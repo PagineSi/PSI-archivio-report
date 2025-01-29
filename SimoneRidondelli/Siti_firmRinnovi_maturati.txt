@@ -1,0 +1,74 @@
+WITH nuoviCMS
+     AS (
+     SELECT DISTINCT
+            aio.archivio,
+            estrazioni.dbo.udfGetArchivioPrecedente(aio.archivio, aio.area) Arc_Prec,
+            c.stContr,
+            c.id,
+            c.Riferimento,
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codice_tipo_inserz IN(704, 705, 706, 908, 931, 1189, 1190, 1191, 1192, 1193, 1194, 1213, 1214, 1219, 1220, 1831, 1832, 1833, 1834, 1835, 1836, 1858, 1860, 1865, 1866)
+                            --NON CMS  --AND aio1.codice_tipo_inserz IN(486, 680, 841, 844, 900, 930, 995, 1014, 1187, 1207, 1208, 1209, 1210, 1211, 1212, 1215, 1216, 1217, 1218, 1221, 1222, 1225, 1226, 1690, 1752, 1753, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1861, 1862, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1937, 1938, 1939, 2266, 2267, 68, 69, 70, 71, 341, 342, 364, 407, 408, 480, 481, 482, 483, 484, 485, 486, 597, 599, 600, 601, 632, 633, 634, 635, 636, 691)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_New
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN estrazioni.dbo.commissioni c ON c.archivio = aio.archivio
+                                                     AND c.id = aio.idCom
+     WHERE format(aio.datacomm, 'yyyyMM') BETWEEN '202402' AND '202408'
+           AND aio.tipo_importo = 'FIRMATO'
+           AND isnull(aio.firmato_rinnovi, 0) > 0
+           AND aio.codice_tipo_inserz IN(704, 705, 706, 908, 931, 1189, 1190, 1191, 1192, 1193, 1194, 1213, 1214, 1219, 1220, 1831, 1832, 1833, 1834, 1835, 1836, 1858, 1860, 1865, 1866)
+         --NON CMS  --AND aio.codice_tipo_inserz IN(486, 680, 841, 844, 900, 930, 995, 1014, 1187, 1207, 1208, 1209, 1210, 1211, 1212, 1215, 1216, 1217, 1218, 1221, 1222, 1225, 1226, 1690, 1752, 1753, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1861, 1862, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1937, 1938, 1939, 2266, 2267, 68, 69, 70, 71, 341, 342, 364, 407, 408, 480, 481, 482, 483, 484, 485, 486, 597, 599, 600, 601, 632, 633, 634, 635, 636, 691)
+          --AND aio.codpsi = 384280
+),
+     oldSiti
+     AS (
+     SELECT DISTINCT
+            --ROW_NUMBER() OVER(PARTITION BY c.CodPsi ORDER BY c.archivio DESC) AS idRec,
+            aio.archivio,
+            c.stContr,
+            c.annsostid,
+            c.Riferimento,
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codice_tipo_inserz IN(704, 705, 706, 908, 931, 1189, 1190, 1191, 1192, 1193, 1194, 1213, 1214, 1219, 1220, 1831, 1832, 1833, 1834, 1835, 1836, 1858, 1860, 1865, 1866)
+                            --NON CMS  -- AND aio1.codice_tipo_inserz IN(486, 680, 841, 844, 900, 930, 995, 1014, 1187, 1207, 1208, 1209, 1210, 1211, 1212, 1215, 1216, 1217, 1218, 1221, 1222, 1225, 1226, 1690, 1752, 1753, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1861, 1862, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1937, 1938, 1939, 2266, 2267, 68, 69, 70, 71, 341, 342, 364, 407, 408, 480, 481, 482, 483, 484, 485, 486, 597, 599, 600, 601, 632, 633, 634, 635, 636, 691)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_Old
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN estrazioni.dbo.commissioni c ON c.archivio = aio.archivio
+                                                     AND c.id = aio.idCom
+          INNER JOIN nuoviCMS ON nuoviCMS.codpsi = aio.codpsi
+     WHERE aio.codice_tipo_inserz IN(704, 705, 706, 908, 931, 1189, 1190, 1191, 1192, 1193, 1194, 1213, 1214, 1219, 1220, 1831, 1832, 1833, 1834, 1835, 1836, 1858, 1860, 1865, 1866)
+	--NON CMS  -- aio.codice_tipo_inserz IN(486, 680, 841, 844, 900, 930, 995, 1014, 1187, 1207, 1208, 1209, 1210, 1211, 1212, 1215, 1216, 1217, 1218, 1221, 1222, 1225, 1226, 1690, 1752, 1753, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1861, 1862, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1937, 1938, 1939, 2266, 2267, 68, 69, 70, 71, 341, 342, 364, 407, 408, 480, 481, 482, 483, 484, 485, 486, 597, 599, 600, 601, 632, 633, 634, 635, 636, 691)
+          --AND aio.codpsi = 384280
+          AND aio.archivio = nuoviCMS.Arc_Prec)
+     SELECT DISTINCT
+            nuoviCMS.Area,
+            nuoviCMS.CodPsi,
+            nuoviCMS.Archivio Arc_New,
+            nuoviCMS.Sigle_New,
+            oldSiti.archivio Arc_Old,
+            oldSiti.Sigle_Old
+            --oldSiti.idRec
+     FROM nuoviCMS
+          LEFT JOIN oldSiti ON oldSiti.CodPsi = nuoviCMS.CodPsi
+     WHERE oldSiti.Sigle_Old IS NOT NULL
+     ORDER BY nuoviCMS.CodPsi;

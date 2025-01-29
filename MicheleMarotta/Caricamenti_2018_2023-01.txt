@@ -1,0 +1,24 @@
+SELECT DISTINCT
+       c.opCrt,
+       COUNT(c.opCrt) AS nCaricati,
+       DATEPART(year, c.datacrt) AS Anno,
+       DATEPART(month, c.datacrt) AS Mese
+FROM
+(
+    SELECT DISTINCT
+           id,
+           opcrt,
+           MIN(archivio) arch,
+           MIN(datacrt) datacrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE isnull(dataCrt, '') <> ''
+          AND [Commissioni].datacrt BETWEEN 180110 AND GETDATE()
+    GROUP BY id,
+             opcrt
+) c
+WHERE opcrt IS NOT NULL
+GROUP BY c.opCrt,
+         DATEPART(year, c.datacrt),
+         DATEPART(month, c.datacrt)
+ORDER BY anno,
+         mese;

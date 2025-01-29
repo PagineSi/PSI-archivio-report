@@ -1,0 +1,307 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            Anno,
+            Area,
+            cc.MacroCategoria Prodotto
+     FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+          LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+     WHERE anno IN(2021, 2022, 2023, 2024)),
+     reg
+     AS (
+     SELECT DISTINCT
+            co.Provincia Area,
+            reg.descrizione Regione
+     FROM anagraf.dbo.comuni co
+          INNER JOIN anagraf.dbo.province pro ON pro.sigla = co.Provincia
+          INNER JOIN anagraf.dbo.regioni reg ON reg.codreg = pro.codreg
+     --WHERE co.edizione IS NOT NULL
+     ),
+     impo
+     AS (
+     SELECT Anno,
+            Area,
+            MacroCategoria Prodotto,
+            SUM(isnull(m.ACQ_Q1, 0)) ACQ_Q1,
+            SUM(isnull(m.ACQ_Q2, 0)) ACQ_Q2,
+            SUM(isnull(m.ACQ_Q3, 0)) ACQ_Q3,
+            SUM(isnull(m.ACQ_Q4, 0)) ACQ_Q4
+     FROM
+     (
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                ROUND(tot_acquisito, 2) ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2021
+               AND mese IN(1, 2, 3)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                ROUND(tot_acquisito, 2) AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2021
+               AND mese IN(4, 5, 6)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                ROUND(tot_acquisito, 2) AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2021
+               AND mese IN(7, 8, 9)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                ROUND(tot_acquisito, 2) AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2021
+               AND mese IN(10, 11, 12)
+     ) m
+     GROUP BY m.Anno,
+              m.Area,
+              m.MacroCategoria
+     UNION ALL
+     SELECT Anno,
+            Area,
+            MacroCategoria Prodotto,
+            SUM(isnull(m.ACQ_Q1, 0)) ACQ_Q1,
+            SUM(isnull(m.ACQ_Q2, 0)) ACQ_Q2,
+            SUM(isnull(m.ACQ_Q3, 0)) ACQ_Q3,
+            SUM(isnull(m.ACQ_Q4, 0)) ACQ_Q4
+     FROM
+     (
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                ROUND(tot_acquisito, 2) ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2022
+               AND mese IN(1, 2, 3)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                ROUND(tot_acquisito, 2) AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2022
+               AND mese IN(4, 5, 6)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                ROUND(tot_acquisito, 2) AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2022
+               AND mese IN(7, 8, 9)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                ROUND(tot_acquisito, 2) AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2022
+               AND mese IN(10, 11, 12)
+     ) m
+     GROUP BY m.Anno,
+              m.Area,
+              m.MacroCategoria
+     UNION ALL
+     SELECT Anno,
+            Area,
+            MacroCategoria Prodotto,
+            SUM(isnull(m.ACQ_Q1, 0)) ACQ_Q1,
+            SUM(isnull(m.ACQ_Q2, 0)) ACQ_Q2,
+            SUM(isnull(m.ACQ_Q3, 0)) ACQ_Q3,
+            SUM(isnull(m.ACQ_Q4, 0)) ACQ_Q4
+     FROM
+     (
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                ROUND(tot_acquisito, 2) ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2023
+               AND mese IN(1, 2, 3)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                ROUND(tot_acquisito, 2) AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2023
+               AND mese IN(4, 5, 6)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                ROUND(tot_acquisito, 2) AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2023
+               AND mese IN(7, 8, 9)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                ROUND(tot_acquisito, 2) AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2023
+               AND mese IN(10, 11, 12)
+     ) m
+     GROUP BY m.Anno,
+              m.Area,
+              m.MacroCategoria
+     UNION ALL
+     SELECT Anno,
+            Area,
+            MacroCategoria Prodotto,
+            SUM(isnull(m.ACQ_Q1, 0)) ACQ_Q1,
+            SUM(isnull(m.ACQ_Q2, 0)) ACQ_Q2,
+            SUM(isnull(m.ACQ_Q3, 0)) ACQ_Q3,
+            SUM(isnull(m.ACQ_Q4, 0)) ACQ_Q4
+     FROM
+     (
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                ROUND(tot_acquisito, 2) ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2024
+               AND mese IN(1, 2, 3)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                ROUND(tot_acquisito, 2) AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2024
+               AND mese IN(4, 5, 6)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                ROUND(tot_acquisito, 2) AS ACQ_Q3,
+                NULL AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2024
+               AND mese IN(7, 8, 9)
+         UNION ALL
+         SELECT anno,
+                area,
+                cc.MacroCategoria,
+                NULL AS ACQ_Q1,
+                NULL AS ACQ_Q2,
+                NULL AS ACQ_Q3,
+                ROUND(tot_acquisito, 2) AS ACQ_Q4
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+              LEFT JOIN anagraf.dbo.[TipoInserz_Categorie_Commerciali] cc ON cc.codice = aio.[CodiceCategoriaCommerciale]
+         WHERE anno = 2024
+               AND mese IN(10, 11, 12)
+     ) m
+     GROUP BY m.Anno,
+              m.Area,
+              m.MacroCategoria)
+     SELECT DISTINCT
+            base.Anno,
+            base.Area,
+            CASE
+                WHEN base.area = 'AB'
+                THEN '-'
+                WHEN base.area = 'ET'
+                THEN '-'
+                WHEN base.area = 'LV'
+                THEN 'Lombardia'
+                WHEN base.area = 'NG'
+                THEN 'Lombardia'
+                WHEN base.area = 'ON'
+                THEN '-'
+                WHEN base.area = 'OS'
+                THEN 'Sardegna'
+                WHEN base.area = 'PX'
+                THEN '-'
+                WHEN base.area = 'PY'
+                THEN 'Sicilia'
+                WHEN base.area = 'RW'
+                THEN 'Lazio'
+                WHEN base.area = 'T0'
+                THEN 'Piemonte'
+                WHEN base.area = 'T1'
+                THEN 'Piemonte'
+                WHEN base.area = 'TX'
+                THEN 'Sicilia'
+                ELSE reg.Regione
+            END AS Regione,
+            base.Prodotto,
+            impo.ACQ_Q1,
+            impo.ACQ_Q2,
+            impo.ACQ_Q3,
+            impo.ACQ_Q4
+     FROM base
+          LEFT JOIN impo ON impo.anno = base.anno
+                            AND impo.area = base.Area
+                            AND impo.Prodotto = base.Prodotto
+          LEFT JOIN reg ON reg.Area = base.Area
+     ORDER BY base.Anno,
+              base.Area,
+              base.Prodotto;

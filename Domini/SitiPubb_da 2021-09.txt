@@ -1,0 +1,119 @@
+SELECT elencoRanked.CodPsi,
+elencoRanked.www,
+format(elencoranked.dataOnline,'yyyy-MM-dd') dataOnline,
+format(elencoranked.dataOnlineOLD,'yyyy-MM-dd') dataOnlineOLD,
+format(elencoranked.datamailpubbdopolav,'yyyy-MM-dd') datamailpubbdopolav,
+format(elencoranked.datamailpubbdopolavOLD,'yyyy-MM-dd') datamailpubbdopolavOLD
+
+     FROM
+(
+    SELECT
+    c.codpsi,
+    WEB_ModuloC_Domini.www,
+    IIF(isnull(sip.online_data,'')<>'', sip.online_data, ec.mail_pubblicazione_data) [dataOnline],
+    WEB_ModuloC.dataOnline dataOnlineOLD,
+     sip.pubb_dopocostr_data datamailpubbdopolav,
+		 WEB_ModuloC.dataMailPubbDopoLav datamailpubbdopolavOLD,		 
+   -- WEB_ModuloC.ID id_moduloc,
+   --        WEB_ModuloC.[IDcom],
+   --        WEB_ModuloC.[contenuto],
+   --        WEB_ModuloC.[datarepIT],
+   --        --WEB_ModuloC.[copy],
+		 --si.assegnazione_operatore [copy],
+   --        --WEB_ModuloC.[dataConsegnaCopy],
+		 --sil.in_produzione_data [dataConsegnaCopy],
+   --        WEB_ModuloC.[dataFineLavWebAcc],
+   --        WEB_ModuloC.[ID_SedProd],
+   --        WEB_ModuloC.[DataAssProd],
+   --        WEB_ModuloC.[WApostWAE],
+   --        --WEB_Moduloc.datamailpubbdopolav,
+		
+   --        WEB_ModuloC.[caricoWApostWAE],
+   --        WEB_ModuloC.[fineLavWApostWAE],
+   --        --WEB_ModuloC.[copyExt],
+		 --sil.copy_assegnato [copyExt],
+   --        WEB_ModuloC.[dataAssCopyExt],
+   --        WEB_ModuloC.[dataCaricoCopyExt],
+   --        WEB_ModuloC.[dataFineLavCopy],
+   --        WEB_ModuloC.[inizioverificaProvvWA],
+   --        --WEB_ModuloC.[dataprovv],
+		 --si.data_provvisorio [dataprovv],
+   --        WEB_ModuloC.dataMailRestyling,
+   --        WEB_ModuloC.[dataInvioProvvisorio],
+   --        --WEB_ModuloC.[dataOnline],
+		 ----sip.online_data [dataOnline],
+		 
+   --        WEB_ModuloC.datasollmat,
+   --        WEB_ModuloC.datasollmatfoto,
+   --        WEB_ModuloC.dataMailConfefrma,
+   --        WEB_ModuloC.tipoMailConfefrma,
+           
+   --        WEB_ModuloC_Domini.wwwalt,
+   --        WEB_ModuloC_Domini.datareg,
+   --        WEB_ModuloC_Domini.tipoannullamento,
+   --        WEB_ModuloC_Domini.sitorif,
+   --        WEB_ModuloC_Domini.cpOut,
+   --        WEB_ModuloC_Domini.datadomrip,
+   --        WEB_ModuloC_Domini.dataCp,
+   --        WEB_ModuloC_Domini.cpseat,
+   --        WEB_ModuloC_Domini.datadomdel,
+   --        web_moduloc_oggetti.id_sito_seo id_sito,
+   --        isnull(WEB_ModuloC.[materialeAssente], 0) materialeassente,
+   --        WEB_ModuloC.dataConsegna,
+   --        WEB_ModuloC_Domini.datacpin,
+   --        WEB_ModuloC_Domini.authInfo,
+   --        WEB_ModuloC_Domini.dataScadenza,
+   --        WEB_ModuloC.accettatoProvvisorio,
+   --        isnull(WEB_ModuloC.[urlprovv], '') urlprovv,
+   --        WEB_ModuloC.finelav,
+   --        WEB_ModuloC.numGiorniMessaOnline,
+   --        --WEB_ModuloC.dataRientroGrafica dataPrevistaMessaOnline,
+		 --si.dataPrevMessaOnline dataPrevistaMessaOnline,
+   --        web_moduloc_domini.cpimmediato,
+   --        web_moduloc.dataMailDomNonAss,
+   --        web_moduloc.tipoMailDomNonAss,
+   --        WEB_ModuloC_Domini.id id_dominio,
+   --        WEB_ModuloC.annullato,
+   --        --WEB_ModuloC.sollmat,
+		 --sil.in_produzione_note sollmat,
+		 --WEB_ModuloC.matRecuperato,
+   --        WEB_ModuloC.dataavvage,
+		 --ec.mail_costruzione_data,
+		 --ec.mail_costruzione_provvisorio_data,
+   --        isnull(WEB_ModuloC_Domini.cpIn, 0) cpIn,
+   --        web_moduloc.dataaccettatoprovvisorio,
+   --        isnull(web_moduloc.tipolettera, 0) inRestylingNonAccettato,
+   --        web_moduloc.RinnovoEliminazione,
+   --        web_moduloc.dataavvcli,
+   --        web_moduloc.dataavvcli2Invio,
+   --        web_moduloc.dataContattoPostCostr,
+   --        web_moduloc.statomodulo,
+   --        WEB_ModuloC.oldWebMask,
+   --        web_moduloc.uteContattoPostCostr,
+		 --WEB_ModuloC.note_pub,
+           ROW_NUMBER() OVER(PARTITION BY WEB_ModuloC.id ORDER BY sitorif DESC,
+                                                                  datareg DESC) AS Ranking
+    FROM WEB_ModuloC
+         LEFT JOIN WEB_ModuloC_Domini ON WEB_ModuloC.ID = WEB_ModuloC_Domini.ID_ModuloC
+         INNER JOIN web_moduloc_oggetti ON WEB_ModuloC.id = web_moduloc_oggetti.id_moduloc
+	    INNER JOIN Commissioni c on c.id=web_moduloC.IDcom
+         INNER JOIN tipoinserz ON tipoinserz.codice = web_moduloc_oggetti.codice_oggetto
+	    left join servizi.dbo.SICOMPROD_ECOMMERCE ec on ec.id_moduloc=WEB_ModuloC.ID
+	    LEFT JOIN servizi.dbo.SICOMPROD_SI2SITE si on si.idWebModcOggetto=WEB_ModuloC_oggetti.id
+	LEFT JOIN servizi.dbo.SICOMPROD_SI2SITE_LAVORAZIONE sil on sil.idSi2site=si.idSi2site
+	LEFT JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti sip on sip.idWebModcOggetto=si.idWebModcOggetto
+	LEFT JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti_Note sipn on sipn.idWebModcOggetto=sip.idWebModcOggetto
+    WHERE 
+    --(WEB_ModuloC_Domini.Id IS NULL
+    --      OR isnull(WEB_ModuloC_Domini.tipoAnnullamento, 0) <> 3)
+    --     AND 
+	    (TipoInserz.CodiceCategoria IN (12, 18, 28, 33, 35) OR tipoinserz.codice IN(1319, 1318, 1329, 1330, 1332, 1331))
+         AND isnull(Web_ModuloC.annullato, 0) = 0
+         AND isNull(Web_ModuloC.statoModulo, 0) in (0,2,3)
+	    --and www like '%caffesensi.com%'	  
+) AS elencoRanked
+     WHERE elencoRanked.Ranking = 1
+	and ((format(elencoranked.dataOnline,'yyyyMMdd') >= 20210901 OR format(elencoRanked.dataOnlineOLD,'yyyyMMdd') >=20210901) OR format(elencoranked.datamailpubbdopolav,'yyyyMMdd') >= 20210901 OR format(elencoRanked.datamailpubbdopolavold,'yyyyMMdd') >=20210901 and (format(elencoranked.datamailpubbdopolav,'yyyyMMdd') <> 20990101 OR format(elencoRanked.datamailpubbdopolavold,'yyyyMMdd') <> 20990101))
+	
+	--and www like '%www.ctisas.it%'
+

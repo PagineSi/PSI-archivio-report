@@ -1,0 +1,68 @@
+WITH ca as (
+
+SELECT DISTINCT 
+       c.Area, 
+       STUFF((SELECT DISTINCT ', ' + ang.nome
+       FROM anagraf.dbo.anage ang
+            INNER JOIN anagraf.dbo.agenti ag on ag.utente=ang.utente
+		  INNER JOIN estrazioni.dbo.commissioni c1 on c1.agente=ag.Codagente and c1.Gruppo=ag.gruppo
+
+       WHERE c1.codpsi=c.codpsi
+	  AND estrazioni.dbo.commissioniattive(c1.archivio, c1.codpsi, c1.id) = 1
+     AND (ISNULL(c1.importo, 0) > 0
+          OR ISNULL(c1.consegnato, 0) > 0)
+     AND c1.archivio = 9999
+
+       FOR XML PATH('')
+       ), 1, 2, '') AS agente, 
+       c.CodPsi, 
+       ragsoc, 
+       a.EmailUrl, 
+       a.EmailAmm, 
+       a.emailPEC
+
+FROM [estrazioni].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+WHERE estrazioni.dbo.commissioniattive(c.archivio, c.codpsi, c.id) = 1
+     AND (ISNULL(c.importo, 0) > 0
+          OR ISNULL(c.consegnato, 0) > 0)
+     AND c.archivio = 9999
+
+	),
+
+fp as (
+SELECT DISTINCT
+c.codpsi,
+
+STUFF((SELECT ', ' + t1.tipo
+       FROM anagraf.dbo.TipoInserz t1
+            INNER JOIN anagraf.dbo.oggetti o1 on o1.tipo=t1.Codice
+		  inner join estrazioni.dbo.commissioni c1 on c1.id=o1.IdCom
+
+       WHERE c1.codpsi=c.codpsi
+	  and estrazioni.dbo.commissioniattive(c1.archivio, c1.codpsi, c1.id) = 1
+     AND (ISNULL(c1.importo, 0) > 0
+          OR ISNULL(c1.consegnato, 0) > 0)
+     AND c1.archivio = 9999
+	  and t1.CodiceCategoriaCommerciale=59
+
+       FOR XML PATH('')
+	  ), 1, 2, '') AS SiglaFP
+
+from [estrazioni].[dbo].[Commissioni] c
+inner join anagraf.dbo.Oggetti o on o.idcom=c.id
+inner join anagraf.dbo.TipoInserz t on t.codice=o.tipo
+
+WHERE estrazioni.dbo.commissioniattive(c.archivio, c.codpsi, c.id) = 1
+     AND (ISNULL(c.importo, 0) > 0
+          OR ISNULL(c.consegnato, 0) > 0)
+     AND c.archivio = 9999
+	and t.CodiceCategoriaCommerciale=59
+)
+
+SELECT DISTINCT *,
+iif(fp.codpsi is not null, 'SigleFP','NoSigleFP') as OggettiFP
+FROM ca
+left JOIN fp on fp.CodPsi=ca.codpsi
+
+order by RagSoc

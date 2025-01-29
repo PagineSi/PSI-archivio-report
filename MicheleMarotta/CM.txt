@@ -1,0 +1,60 @@
+VALIDATI:
+
+SELECT DATEPART(year, dataValidazione) AS Anno,
+c.area,
+       sum(IIF(isnull(dataValidazione, '') <> '', 1, 0)) AS ValidatiIN,
+          SUM(isnull(tar.prezzo, 0)) AS PrezzoTariffario,
+		SUM(CASE
+		WHEN isnull(p.oreCM,0)<>0
+		THEN p.oreCM
+		WHEN isnull(p.oreCM,0)=0
+		THEN 0.16
+		END) AS SommaPD
+        
+FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+inner join anagraf.dbo.commissioni c on c.id=o.id_com
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+	left join servizi.dbo.prodottiore p on p.codiceSigla=t.Codice
+     LEFT JOIN anagraf.dbo.[Tariffario] tar ON tar.codice = t.codice
+WHERE isnull([oggettiCM_Out], 0) = 0
+      AND DATEPART(year, dataValidazione) IN(2018, 2019, 2020, 2021)
+GROUP BY DATEPART(year, dataValidazione), c.area
+order by area, anno asc
+
+
+
+PIP:
+
+SELECT DATEPART(month, dataInProd) AS Mese,
+       DATEPART(year, dataInProd) AS Anno,
+       Sigla,
+       SUM(IIF(isnull(dataInProd, '') <> '', 1, 0)) AS PassatiInProduzione,
+       SUM(isnull(prezzo, 0)) AS PrezzoTariffario
+FROM
+(
+    SELECT DISTINCT
+           o.[id],
+           [id_moduloc],
+           [Codice_Oggetto],
+           t.tipo,
+           tar.prezzo,
+           [oggettiCM_Out],
+           datavalidazione,
+           CASE
+               WHEN l.idWebModulocOggetto IS NOT NULL
+               THEN [vic_fine_lav_cm_data]
+               ELSE [cm_data_inproduzione]
+           END AS dataInProd,
+           t.Tipo Sigla
+
+    FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+         INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+         LEFT JOIN anagraf.dbo.[Tariffario] tar ON tar.codice = t.codice
+         LEFT JOIN [servizi].[dbo].[SICOMPROD_CM_LAVORAZIONE] l ON l.idWebModulocOggetto = o.id
+    WHERE isnull([oggettiCM_Out], 0) = 0
+) AS m
+WHERE CONVERT(DATE, dataInProd) BETWEEN '2021-05-01' AND '2021-10-31'
+GROUP BY DATEPART(month, dataInProd),
+         DATEPART(year, dataInProd),
+         Sigla;
+

@@ -1,0 +1,18 @@
+SELECT DISTINCT 
+       c.id, 
+       c.CodPsi, 
+       a.RagSoc, 
+       c.Area, 
+       tp.tipo, 
+       c.BiannI, 
+       c.BiannA, 
+       c.Rintac
+FROM estrazioni.dbo.Commissioni c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+     AND tp.codice IN(1317, 1328, 1319, 1331, 1332, 1318, 1329, 1330, 1517, 1518, 1519)
+AND c.archivio = 9999
+ORDER BY ragsoc;

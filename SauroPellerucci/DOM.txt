@@ -1,0 +1,63 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+SELECT servizi.dbo.udfTestoSpezzato(d.id) id
+      ,servizi.dbo.udfTestoSpezzato([Dominio]) [Dominio]
+      ,servizi.dbo.udfTestoSpezzato(d.[Provider]) [Provider]
+      ,servizi.dbo.udfTestoSpezzato(d.[Proprietario]) [Proprietario]
+      --,[DataCreazione]
+      ,format(d.[DataScadenza],'yyyy-MM-dd') [DataScadenza]
+	 ,format(do.[DataScadenza],'yyyy-MM-dd') [DataScadenza2]
+      --,[DataCancellazione]
+      ,servizi.dbo.udfTestoSpezzato(d.[PrezzoIniziale])[PrezzoIniziale]
+      ,servizi.dbo.udfTestoSpezzato(d.[PrezzoAnniSucc])[PrezzoAnniSucc]
+      --,[PivaCf]
+	  ,servizi.dbo.udfTestoSpezzato([ProprietaPsi])[ProprietaPsi]
+      ,servizi.dbo.udfTestoSpezzato([DominioPsi]) Categoria
+     
+      --,[ContattoAdmin]
+      --,[DNS]
+      --,[CodiceAUTH]
+      --,[CPin]
+      --,[CPout]
+      ,[CodPsi]
+      --,[AgenteNonAttivo]
+      --,[DataRichiestaCliente]
+      --,[TipoRichiesta]
+      --,[StatoRichiesta]
+      --,[EsitoRichiesta]
+      --,[MotivoRichiesta]
+      --,[EsitoCommerciale]
+      --,[EsitoAziendale]
+      --,[DataRichiestaIntervComm]
+      --,[DataRichiestaIntervAzie]
+      --,[NumeroSollecitiCliente]
+      --,[ImportoRilascio]
+      --,[DataRilascio]
+      --,[DataRispostaIntervComm]
+      --,[DataRispostaIntervAzie]
+      --,[stato_y2k]
+      --,[DataCreazioneCar]
+      --,[Tipologia]
+      --,[IdWebModCOggetto]
+      --,[idWebModCDominio]
+      --,[DataScadenzaCar]
+      --,[DataAnnullamentoContratto]
+      --,[Valutato]
+      --,[checkIns]
+      --,[PrezzoInizialeOld]
+      --,[PrezzoAnniSuccOld]
+  FROM [servizi].[dbo].[domini] d
+  LEFT join anagraf.dbo.WEB_ModuloC_Domini do on do.Id=d.idWebModCDominio
+  where isnull(d.DataCancellazione,'')=''
+  and isnull(DataAnnullamentoContratto,'')=''
+  and isnull(DataRilascio,'')=''
+  and isnull(Codpsi,'')<>''  
+  AND (ISNULL(do.datadomdel, '') = ''
+          OR (ISNULL(do.datadomdel, '') <> ''
+              AND ISNULL(do.datadomrip, '') <> ''))
+     AND ISNULL(do.cpout, '') = ''
+
+  --and isnull(dominiopsi,'')<>1
+  --and PrezzoAnniSucc =''
+
+
+  ORDER BY dominio 

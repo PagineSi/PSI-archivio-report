@@ -1,0 +1,163 @@
+WITH cpp
+     AS (
+     SELECT m.modcDEFINITIVO idModC,
+            m.id idCom,
+            m.idCPP,
+            m.Area,
+            m.CodPsi,
+            m.RagSoc,
+            m.tipo Sigla,
+            m.VIC,
+            m.DataPiP,
+            iu.operatoreCreazione,
+            iu.[scriptPrivacy] Privacy,
+            iu.[scriptCookie] Cookie,
+            iu.[scriptBanner] Bar,
+            m.Lavorato_SicomOld,
+            iu.dataCreazione DataReg,
+            format(iu.dataScadenza, 'yyyy-MM-dd') DataScad,
+            m.BiannA,
+            m.BiannI,
+            m.RinTac
+     FROM
+     (
+         SELECT DISTINCT
+                o.id idCPP,
+                c.id,
+                format(o.cm_data_inproduzione, 'yyyy-MM-dd') DataPiP,
+                IIF(wModcPadre.id IS NOT NULL, wModcPadre.id, w.id) AS modcDEFINITIVO,
+                w.idModcPadre,
+                w.id AS IdmoduloC,
+                codpsi,
+                t.tipo,
+                c.area,
+                a.ragsoc,
+                CASE
+                    WHEN isnull(a.altoSp, '') = 1
+                    THEN 'X'
+                    ELSE ''
+                END AS VIC,
+                w.contenuto,
+                CASE
+                    WHEN isnull(o.datalavWeb, '') <> ''
+                    THEN 'SI'
+                    ELSE 'NO'
+                END AS Lavorato_SicomOld,
+                c.BiannA,
+                c.BiannI,
+                c.RinTac
+         FROM Anagraf.dbo.WEB_ModuloC_oggetti o
+              INNER JOIN Anagraf.dbo.WEB_ModuloC w ON w.id = o.id_moduloc
+              LEFT JOIN Anagraf.dbo.WEB_ModuloC wModcPadre ON w.idModcPadre = wModcPadre.id
+              INNER JOIN anagraf.dbo.commissioni c ON o.id_com = c.id
+              INNER JOIN Anagraf.dbo.TipoInserz t ON o.Codice_Oggetto = t.Codice
+              LEFT JOIN servizi.dbo.SICOMPROD_SI2SITE_OGGETTI ab ON ab.idWebModcOggetto = o.ID
+              INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+         WHERE t.codice = 1762
+               --AND servizi.dbo.commissioniattive(c.codpsi, c.id) = 1
+               AND isnull(codpsi, 0) <> 37774
+     ) AS m
+     LEFT JOIN servizi.dbo.SICOMPROD_Iubenda iu ON iu.idWebModuloCOggetti_Iubenda = m.idCPP),
+     siti
+     AS (
+     SELECT DISTINCT
+            c.codpsi,
+            --c.id,
+            c.area,
+            a.ragsoc,
+            d.www,
+            CASE
+                WHEN isnull(a.altoSp, '') = 1
+                THEN 'X'
+                ELSE ''
+            END AS VIC,
+            --CASE
+            --    WHEN o.Codice_Oggetto IN(1309, 1319, 1331, 1332, 1318, 1329, 1330)
+            --    THEN 'Camilyo'
+            --    WHEN o.Codice_Oggetto IN(931, 1219, 1220, 704, 1189, 1190, 706, 1193, 1194, 705, 1191, 1192, 1461, 1462, 1463, 908, 1213, 1214)
+            --    THEN 'CMS'
+            --    WHEN o.codice_oggetto IN(1014, 1215, 1216, 1465, 1466, 1464, 844, 1217, 1218)
+            --    THEN 'HTML'
+            --    WHEN o.Codice_Oggetto IN(833, 1227, 1228)
+            --    THEN 'Prestashop'
+            --    WHEN o.Codice_Oggetto IN(1458, 1460, 1339, 1449, 1450, 1555, 1438, 1441, 1553, 1337, 1744, 1437, 1440, 1556, 1439, 1442, 1554, 1459)
+            --    THEN 'Storeden'
+            --    WHEN o.Codice_Oggetto IN(480, 481, 482, 597, 483, 599, 484, 600, 632, 634, 633, 680)
+            --    THEN 'Sigle OLD'
+            --    WHEN o.Codice_Oggetto IN(1499, 1501, 1498, 1489, 1690, 930, 1221, 1222, 486, 1225, 1226, 1076, 691, 900, 1211, 1212, 841, 1752, 1753, 1113, 1223, 1224, 1209, 1210, 995, 1207, 1208, 1187, 1188, 1229, 1360, 1230, 1361)
+            --    THEN 'Wordpress'
+            --END AS TipologiaSito
+            t.tipo,
+            MAX(format(o.cm_data_inproduzione, 'yyyyMMdd')) DataPIP,
+            MAX(format(pu.online_data, 'yyyyMMdd')) DataOnline,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+ang.nome
+                      FROM anagraf.dbo.agenti a
+                           LEFT JOIN anagraf.dbo.anage ang ON ang.utente = a.utente
+                           INNER JOIN anagraf.dbo.commissioni c1 ON c1.gruppo = a.gruppo
+                                                                    AND c1.agente = a.Codagente
+                      WHERE c1.codpsi = c.codpsi
+                            AND servizi.dbo.commissioniattive(c1.codpsi, c1.id) = 1 FOR XML PATH('')
+                  ), 1, 2, '')) AS Agente
+            --format(d.datascadenza, 'yyyyMMdd') DataScadenza
+     FROM anagraf.dbo.WEB_ModuloC_oggetti o
+          INNER JOIN anagraf.dbo.commissioni c ON c.id = o.id_com
+          LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.Codice
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini d ON d.ID_ModuloC = o.id_moduloc
+                                                        AND isnull(tipoAnnullamento, 0) <> 3
+                                                        AND (isnull(datareg, '') <> ''
+                                                             OR (isnull(datareg, '') = ''
+                                                                 AND isnull(pubblicazionePerIP, '') <> ''))
+                                                        AND (isnull(d.datadomdel, '') = ''
+                                                             OR (isnull(d.datadomdel, '') <> ''
+                                                                 AND isnull(d.datadomrip, '') <> ''))
+                                                        AND isnull(sitorif, 0) = 1
+                                                        AND isnull(cpout, 0) = 0
+          LEFT JOIN anagraf.dbo.TipoInserz t ON t.codice = o.Codice_Oggetto
+          LEFT JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti pu ON pu.idWebModcOggetto = o.id
+     WHERE servizi.dbo.commissioniattive(c.codpsi, c.id) = 1
+          AND isnull(c.codpsi, 0) <> 37774
+          AND o.Codice_Oggetto IN(2005, 2118, 2119, 1970, 2027, 2253, 970, 1458, 972, 1460, 666, 1122, 1123, 1339, 1449, 1450, 1438, 1441, 1337, 1437, 1440, 1439, 1442, 1645, 1976, 2160, 1082, 1499, 1501, 1498, 1489, 971, 1459, 833, 1227, 665, 667, 2116, 618, 1690, 1938, 1937, 931, 1219, 1858, 1860, 930, 1221, 1862, 1861, 480, 481, 482, 597, 483, 599, 484, 600, 632, 634, 486, 633, 1225, 1226, 680, 1076, 691, 2255, 2229, 1014, 1215, 1869, 1868, 1364, 1366, 1367, 704, 1189, 1832, 1831, 1465, 1464, 844, 1217, 1873, 1872, 891, 1797, 1206, 706, 1193, 1836, 1835, 1927, 1877, 1891, 1876, 705, 2231, 1191, 1834, 1833, 2233, 900, 1211, 841, 1922, 1921, 1752, 1753, 1844, 1845, 1843, 1113, 1223, 1224, 1461, 1462, 908, 1213, 1866, 1865, 1209, 1838, 1839, 1837, 995, 1207, 1852, 1853, 1851, 1309, 1319, 1331, 1332, 1669, 1318, 1329, 1187, 1188, 1229, 1841, 1842, 1230, 1840, 688, 69)
+     GROUP BY c.codpsi,
+              c.id,
+              c.area,
+              a.ragsoc,
+              d.www,
+              a.altoSp,
+              t.tipo),
+     impoarch
+     AS (
+     SELECT codpsi,
+            area,
+            SUM(importo) AS Tot_ImportoArchCorrente,
+            SUM(consegnato) AS Tot_ConsegnatoArchCorrente
+--SUM(importoInsoluto) AS [Tot_InsolutoArchCorrente],
+--SUM(importoscaduto) AS [Tot_ScadutoArchCorrente]
+     FROM anagraf.dbo.commissioni
+     WHERE servizi.dbo.commissioniattive(codpsi, id) = 1
+     GROUP BY codpsi,
+              area)
+     SELECT DISTINCT
+            siti.Area,
+            siti.CodPsi,
+            siti.RagSoc,
+            siti.www,
+            cpp.Sigla,
+            siti.Tipo Sigla_Sito,
+            siti.VIC,
+            impoarch.Tot_ConsegnatoArchCorrente,
+            impoarch.Tot_ImportoArchCorrente,
+            siti.Agente
+            --siti.DataPIP DataPIP_Sito,
+            --siti.DataOnline
+            --siti.DataScadenza
+     FROM siti
+          LEFT JOIN cpp ON cpp.CodPsi = siti.CodPsi
+          LEFT JOIN impoarch ON impoarch.codpsi = siti.CodPsi
+                                AND impoarch.area = siti.Area
+     --WHERE cpp.Sigla IS NULL
+           --AND siti.codpsi = 281809 
+           --AND siti.www LIKE '%misesrl%'
+     ORDER BY siti.RagSoc;

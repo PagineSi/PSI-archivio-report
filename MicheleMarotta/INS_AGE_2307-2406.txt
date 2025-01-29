@@ -1,0 +1,34 @@
+ESEGUIRE estrazioni.dbo.udfImportiAmministrativiCommissione_TEST INSERENDO IL PERIODO DI TEMPO
+IMPORTARE I DATI NELLA TABELLA estrazioni.dbo._ins_scad
+ESEGUIRE LA QUERY
+
+----------------------------------------
+
+SELECT --Area,
+ang.nome Agente,
+ROUND(SUM(i.importoScaduto), 2) Importo_Scaduto,
+ROUND(SUM(i.ImportoInsoluto), 2) Importo_Insoluto,
+ROUND(SUM(i.[ImportoInsolutoNuovi]), 2) [Importo_Insoluto_Nuovi],
+ROUND(SUM(i.[ImportoInsolutoRinnovi]), 2) [Importo_Insoluto_Rinnovi],
+ROUND(SUM(i.[importoInsolutoMaturati]), 2) [Importo_Insoluto_Maturati],
+ROUND(SUM(i.[ImportoInsolutoDaMaturare]), 2) [Importo_Insoluto_Da_Maturare],
+CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsoluto) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') [%_Insoluto],
+CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoNuovi) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') [%_Insoluto_Nuovi],
+CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoRinnovi) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') [%_Insoluto_Rinnovi],
+CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoMaturati) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') [%_Insoluto_Maturati],
+CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoDaMaturare) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') [%_Insoluto_Da_Maturare]
+FROM [estrazioni].[dbo].[commissioni] c
+     INNER JOIN estrazioni.dbo._ins_scad i ON c.archivio = i.archivio
+                                              AND c.id = i.idCom
+     LEFT JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                        AND ag.codagente = c.agente
+     LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+WHERE LTRIM(RTRIM(ISNULL(c.stContr, ''))) NOT IN('AS', 'NON_VALIDATO', 'PRECARICATO', 'RESP. DEFINITIVO')
+     AND ((ISNULL(c.importo, 0)) > 0
+          OR LTRIM(RTRIM(ISNULL(c.stContr, ''))) = 'A')
+     AND NOT(ISNULL(c.Gruppo, '') = 'N'
+             AND ISNULL(c.Agente, '') = '99')
+GROUP BY --Area,
+ang.nome
+ORDER BY --area,
+ang.nome;

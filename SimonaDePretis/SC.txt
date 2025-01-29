@@ -1,0 +1,23 @@
+SELECT DISTINCT
+       [archivio]
+      ,c.[id]
+      ,[CodPsi]
+	 ,a.RagSoc
+      ,[Area]
+	 ,DataComm
+	 ,Consegnato
+	 ,Importo
+	 ,ImportoInsoluto
+	 ,estrazioni.dbo.udfElencoOggettiCliente(c.archivio,c.codpsi) Oggetti
+	 ,ang.nome Agente
+  FROM [estrazioni].[dbo].[Commissioni] c
+  INNER JOIN anagraf.dbo.WEB_ModuloC mc on mc.IDcom=c.id
+  INNER JOIN anagraf.dbo.WEB_ModuloC_Oggetti mco on mco.id_moduloc=mc.ID
+  INNER JOIN anagraf.dbo.Anagrafica a on a.codice=c.codice
+  INNER JOIN anagraf.dbo.agenti ag on ag.Gruppo=c.Gruppo and ag.Codagente=c.Agente
+  LEFT JOIN anagraf.dbo.anage ang on ang.utente=ag.utente
+  WHERE mco.Codice_Oggetto=1004
+  AND c.datacomm between '20221001' and getdate()
+  and estrazioni.dbo.CommissioniAttive(c.archivio,c.codpsi,c.id)=1
+  --and archivio=9999
+  ORDER BY ragsoc

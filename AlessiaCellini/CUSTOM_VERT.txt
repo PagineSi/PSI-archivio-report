@@ -1,0 +1,20 @@
+SELECT DISTINCT 
+       c.CodPsi, 
+       [www], 
+       tp.tipo
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND d.sitoRif = 1
+     AND (ISNULL(d.datadomdel, '') = ''
+          OR (ISNULL(d.datadomdel, '') <> ''
+              AND ISNULL(d.datadomrip, '') <> ''))
+     AND ISNULL(mc.dataOnline, '') <> ''
+     AND ISNULL(d.cpout, '') = ''
+     AND a.altoSp = 1
+     AND tp.codice IN(486, 1225, 1226, 841, 1209, 1210, 995, 1207, 1208, 1187, 1229, 1360,900,1211,1212)
+ORDER BY www;

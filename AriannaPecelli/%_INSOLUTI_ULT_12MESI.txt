@@ -1,0 +1,137 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            anno,
+            mese
+     FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+     WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'),
+     insolutoTOT
+     AS (
+     SELECT Anno,
+            Mese,
+            SUM(isnull(m.importoScaduto, 0)) Scaduto_TOT,
+            SUM(isnull(m.importoInsoluto, 0)) Insoluto_TOT
+     FROM
+     (
+         SELECT mese,
+                anno,
+                idcom,
+                importoScaduto,
+                importoInsoluto
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'
+     ) m
+     GROUP BY m.anno,
+              m.mese),
+     insolutoNUOVI
+     AS (
+     SELECT Anno,
+            Mese,
+            SUM(isnull(m.importoInsoluto, 0)) Insoluto_TOT
+     FROM
+     (
+         SELECT mese,
+                anno,
+                idcom,
+                importoInsoluto
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'
+               AND tipo_importo = 'FIRMATO'
+               AND isnull(firmato_nuovi, 0) > 0
+     ) m
+     GROUP BY m.anno,
+              m.mese),
+     insolutoRINNOVI
+     AS (
+     SELECT Anno,
+            Mese,
+            SUM(isnull(m.importoInsoluto, 0)) Insoluto_TOT
+     FROM
+     (
+         SELECT mese,
+                anno,
+                idcom,
+                importoInsoluto
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'
+               AND tipo_importo = 'FIRMATO'
+               AND isnull(firmato_rinnovi, 0) > 0
+     ) m
+     GROUP BY m.anno,
+              m.mese),
+     insolutoMATURATI
+     AS (
+     SELECT Anno,
+            Mese,
+            SUM(isnull(m.importoInsoluto, 0)) Insoluto_TOT
+     FROM
+     (
+         SELECT mese,
+                anno,
+                idcom,
+                importoInsoluto
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'
+               AND tipo_importo = 'MATURATO'
+               AND isnull(tot_maturato, 0) > 0
+     ) m
+     GROUP BY m.anno,
+              m.mese),
+     fine
+     AS (
+     --insolutoDAMATURARE
+     --AS (
+     --SELECT Anno,
+     --       Mese,
+     --       SUM(isnull(m.importoInsoluto, 0)) Insoluto_TOT
+     --FROM
+     --(
+     --    SELECT mese,
+     --           anno,
+     --           idcom,
+     --           importoInsoluto
+     --    FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+     --    WHERE format(DataCompetenza, 'yyyyMM') BETWEEN '202307' AND '202407'
+     --          AND tipo_importo = 'MATURATO'
+     --          AND isnull(tot_da_maturare, 0) > 0
+     --) m
+     --GROUP BY m.anno,
+     --         m.mese)
+
+     SELECT base.anno,
+            base.mese,
+            insolutotot.Scaduto_TOT,
+            insolutotot.Insoluto_TOT,
+            insolutoNUOVI.Insoluto_TOT Insoluto_NUOVI,
+            ROUND(IIF(insolutotot.Scaduto_TOT = 0, 0, (insolutoNUOVI.Insoluto_TOT * 100) / insolutotot.Scaduto_TOT), 2) AS '%_Insolvenza_NUOVI',
+            insolutoRINNOVI.Insoluto_TOT Insoluto_RINNOVI,
+            ROUND(IIF(insolutotot.Scaduto_TOT = 0, 0, (insolutoRINNOVI.Insoluto_TOT * 100) / insolutotot.Scaduto_TOT), 2) AS '%_Insolvenza_RINNOVI',
+            insolutoMATURATI.Insoluto_TOT Insoluto_MATURATI,
+            ROUND(IIF(insolutotot.Scaduto_TOT = 0, 0, (insolutoMATURATI.Insoluto_TOT * 100) / insolutotot.Scaduto_TOT), 2) AS '%_Insolvenza_MATURATI'
+            --insolutoDAMATURARE.Insoluto_TOT InsolutoDAMATURARE
+     FROM base
+          LEFT JOIN insolutoTOT ON InsolutoTOT.anno = base.anno
+                                   AND insolutotot.mese = base.mese
+          LEFT JOIN Insolutonuovi ON Insolutonuovi.anno = base.anno
+                                     AND Insolutonuovi.mese = base.mese
+          LEFT JOIN Insolutorinnovi ON Insolutorinnovi.anno = base.anno
+                                       AND Insolutorinnovi.mese = base.mese
+          LEFT JOIN insolutoMaturati ON insolutoMaturati.anno = base.anno
+                                        AND insolutoMaturati.mese = base.mese
+          --LEFT JOIN insolutoDAMATURARE ON insolutoDAMATURARE.anno = base.anno
+          --                                AND insolutoDAMATURARE.mese = base.mese
+
+     )
+     SELECT fine.Anno,
+            fine.Mese,
+            fine.Scaduto_TOT,
+            fine.Insoluto_TOT,
+            fine.Insoluto_NUOVI,
+            ROUND(CONVERT(FLOAT, fine.[%_Insolvenza_NUOVI]), 2) [% Insolvenza NUOVI],
+            fine.Insoluto_RINNOVI,
+            ROUND(CONVERT(FLOAT, fine.[%_Insolvenza_RINNOVI]), 2) [% Insolvenza RINNOVI],
+            fine.Insoluto_MATURATI,
+            ROUND(CONVERT(FLOAT, fine.[%_Insolvenza_MATURATI]), 2) [% Insolvenza MATURATI]
+     FROM fine
+     ORDER BY anno,
+              mese;

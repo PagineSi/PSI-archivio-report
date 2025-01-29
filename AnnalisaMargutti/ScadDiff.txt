@@ -1,0 +1,53 @@
+WITH mese
+     AS (SELECT DISTINCT 
+                idwebmodcoggetto, 
+                anno,
+                CASE sam.mese
+                    WHEN '1'
+                    THEN '01'
+                    WHEN '2'
+                    THEN '02'
+                    WHEN '3'
+                    THEN '03'
+                    WHEN '4'
+                    THEN '04'
+                    WHEN '5'
+                    THEN '05'
+                    WHEN '6'
+                    THEN '06'
+                    WHEN '7'
+                    THEN '07'
+                    WHEN '8'
+                    THEN '08'
+                    WHEN '9'
+                    THEN '09'
+                    WHEN '10'
+                    THEN '10'
+                    WHEN '11'
+                    THEN '11'
+                    WHEN '12'
+                    THEN '12'
+                END AS mese
+         FROM servizi.dbo.SICOMPROD_SOCIAL_ANNO_MESE sam),
+     dati
+     AS (SELECT DISTINCT 
+                c.CodPsi, 
+                s.[idWebModcOggetto], 
+                format(s.data_scadenza_contratto, 'yyyyMM') [data_scadenza_contratto], 
+                MAX(CONCAT(mese.anno, mese.mese)) AnnoMese
+         FROM [servizi].[dbo].[SICOMPROD_SOCIAL] s
+              INNER JOIN mese ON mese.idWebModcOggetto = s.idWebModcOggetto
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = s.idWebModcOggetto
+              INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+         WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+         GROUP BY c.codpsi, 
+                  s.idWebModcOggetto, 
+                  data_scadenza_contratto)
+     SELECT DISTINCT 
+            dati.codpsi, 
+            dati.idwebmodcoggetto, 
+            dati.data_scadenza_contratto, 
+            dati.annomese
+     FROM dati
+     WHERE data_scadenza_contratto > AnnoMese
+     ORDER BY CodPsi;

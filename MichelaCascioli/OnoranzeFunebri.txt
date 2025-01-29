@@ -1,0 +1,39 @@
+SELECT c.Piva,
+       a.RagSoc,
+       c.CodPsi,
+       cat.categoria,
+       c.DataComm,
+       CONCAT(a.Prefisso, '-', a.Telefono) AS telefono,
+       CONCAT(a.Indirizzo, '', a.Civico) AS indirizzo,
+       cu.Comune,
+       IIF(EmailUrl IS NOT NULL, EmailUrl, EmailAmm) AS Email,
+       agn.nome,
+       c.consegnato,
+       c.importo,
+       CASE
+           WHEN isnull(c.importo, 0) >= 3000
+                AND isnull(c.consegnato, 0) = 0
+           THEN 'NUOVO'
+           WHEN isnull(c.importo, 0) >= 3000
+                AND isnull(c.consegnato, 0) > 0
+           THEN 'RINNOVATO'
+           WHEN isnull(c.importo, 0) = 0
+                AND isnull(c.Consegnato, 0) >= 3000
+           THEN 'NON RINNOVATO'
+       END AS 'STATO',
+       c.importoInsoluto,
+       estrazioni.dbo.udfElencoOggetti(c.archivio, c.id) AS oggetti
+FROM [estrazioni].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.Categorie cat ON cat.Codice = a.Categoria
+     INNER JOIN anagraf.dbo.comuni cu ON cu.Codice = a.Comune
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     INNER JOIN anagraf.dbo.anAge agn ON agn.utente = ag.utente
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND c.archivio = 9999
+     AND cat.catref = 393
+     AND (isnull(c.Importo, 0) >= 3000
+          OR (isnull(c.importo, 0) = 0
+              AND isnull(c.Consegnato, 0) >= 3000))
+ORDER BY RagSoc;

@@ -1,0 +1,10 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT t.Codice,
+       t.tipo Sigla,
+       p.ore pDay
+FROM [anagraf].[dbo].[TipoInserz] t
+     LEFT JOIN servizi.dbo.prodottiOre p ON p.codicesigla = t.codice
+WHERE isnull(nonvendibile, 0) = 0
+      AND t.codicecategoriacommerciale IN(18, 94, 95, 153, 165, 166, 206);

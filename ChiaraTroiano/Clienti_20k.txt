@@ -1,0 +1,46 @@
+SELECT DISTINCT
+m.Area,
+m.CodPsi,
+m.RagSoc,
+isnull(m.Cons_TOT,0) Cons_TOT,
+isnull(m.Cons_Conc,0) Cons_Conc,
+isnull(m.Cons_Prop,0) Cons_Prop,
+isnull(m.Impo_TOT,0) Impo_TOT,
+isnull(m.Impo_Conc,0) Impo_Conc,
+isnull(m.Impo_Prop,0) Impo_Prop,
+isnull(m.Impo_Ins,0) Impo_Ins,
+m.Agente,
+m.Oggetti
+
+FROM
+(
+SELECT DISTINCT
+c.Area,
+c.CodPsi,
+a.RagSoc,
+ROUND(SUM(ia.Consegnato),2) Cons_TOT,
+ROUND(SUM(ia.Consegnato_Concessione),2) Cons_Conc,
+ROUND(SUM(ia.Consegnato_Property),2) Cons_Prop,
+ROUND(SUM(ia.Importo),2) Impo_TOT,
+ROUND(SUM(ia.Importo_Concessione),2) Impo_Conc,
+ROUND(SUM(ia.Importo_Property),2) Impo_Prop,
+ROUND(SUM(ia.Importo_Insoluto),2) Impo_Ins,
+ang.nome Agente,
+estrazioni.dbo.udfElencoOggettiClienteCommAttive(9999,c.codpsi) Oggetti
+
+FROM estrazioni.dbo.Commissioni c
+LEFT JOIN anagraf.dbo.anagrafica a on a.codice=c.Codice
+LEFT JOIN estrazioni.dbo.ImportiALL ia on ia.idCom=c.id and ia.Archivio=c.archivio
+LEFT JOIN anagraf.dbo.agenti ag on ag.Codagente=c.Agente and ag.gruppo=c.Gruppo
+LEFT JOIN anagraf.dbo.anage ang on ang.utente=ag.utente
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio,c.CodPsi,c.id)= 1
+AND c.archivio = 9999
+GROUP BY c.CodPsi,
+c.Area,
+ang.nome,
+a.RagSoc
+) m
+
+WHERE (isnull(m.Impo_TOT,0) >= 20000 OR isnull(m.Cons_TOT,0) >= 20000)
+
+ORDER BY m.CodPsi

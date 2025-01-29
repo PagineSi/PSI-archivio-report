@@ -1,0 +1,24 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT --[id_dati_comissione],
+       --[id_com],
+dc.[id_tipo_campopagina],
+dp.label campo,
+dp.titoloSezione sezione,
+       --[id_oggetto],
+servizi.dbo.udfTestoSpezzato(dc.valore) valore,
+format([data_ultima_modifica], 'yyyy-MM-dd') [data_ultima_modifica],
+IIF(u.Cognome IS NOT NULL, CONCAT(u.cognome, ' ', u.Nome), dc.utente_ultima_modifica) utente_ultima_modifica,
+       --[utente_ultima_modifica],
+       --[valore_date],
+       --[id_web_moduloc_oggetto],
+[codpsi],
+[codiceAnagrafica]
+FROM [servizi].[dbo].[WIZARD_dati_commissione] dc
+     INNER JOIN [servizi].[dbo].[WIZARD_config_dati_pagina] dp ON dp.id_tipo_campopagina = dc.id_tipo_campopagina
+     LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = dc.utente_ultima_modifica
+WHERE dc.id_tipo_campopagina IN(20, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 56, 57, 58, 59, 60, 61, 480, 481)
+     AND data_ultima_modifica BETWEEN DATEADD(day, -30, GETDATE()) AND GETDATE()
+     AND dc.valore IS NOT NULL
+ORDER BY codpsi;

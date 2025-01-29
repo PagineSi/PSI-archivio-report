@@ -1,0 +1,284 @@
+WITH dett
+     AS (
+     SELECT DISTINCT
+            c.modpagam,
+            u.idcommis,
+            u.drid,
+            u.erid,
+            u.arid,
+            u.irid,
+            rata
+     FROM
+     (
+         SELECT idcommis,
+                drid0 AS drid,
+                erid0 AS erid,
+                arid0 AS arid,
+                irid0 AS irid,
+                '0' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid0, '') = 'I'
+               AND isnull(Arid0, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid0) = 2023)
+         UNION
+         SELECT idcommis,
+                drid1 AS drid,
+                erid1 AS erid,
+                arid1 AS arid,
+                irid1 AS irid,
+                '1' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid1, '') = 'I'
+               AND isnull(Arid1, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid1) = 2023)
+         UNION
+         SELECT idcommis,
+                drid2 AS drid,
+                erid2 AS erid,
+                arid2 AS arid,
+                irid2 AS irid,
+                '2' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid2, '') = 'I'
+               AND isnull(Arid2, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid2) = 2023)
+         UNION
+         SELECT idcommis,
+                drid3 AS drid,
+                erid3 AS erid,
+                arid3 AS arid,
+                irid3 AS irid,
+                '3' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid3, '') = 'I'
+               AND isnull(Arid3, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid3) = 2023)
+         UNION
+         SELECT idcommis,
+                drid4 AS drid,
+                erid4 AS erid,
+                arid4 AS arid,
+                irid4 AS irid,
+                '4' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid4, '') = 'I'
+               AND isnull(Arid4, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid4) = 2023)
+         UNION
+         SELECT idcommis,
+                drid5 AS drid,
+                erid5 AS erid,
+                arid5 AS arid,
+                irid5 AS irid,
+                '5' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid5, '') = 'I'
+               AND isnull(Arid5, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid5) = 2023)
+         UNION
+         SELECT idcommis,
+                drid6 AS drid,
+                erid6 AS erid,
+                arid6 AS arid,
+                irid6 AS irid,
+                '6' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid6, '') = 'I'
+               AND isnull(Arid6, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid6) = 2023)
+         UNION
+         SELECT idcommis,
+                drid7 AS drid,
+                erid7 AS erid,
+                arid7 AS arid,
+                irid7 AS irid,
+                '7' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid7, '') = 'I'
+               AND isnull(Arid7, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid7) = 2023)
+         UNION
+         SELECT idcommis,
+                drid8 AS drid,
+                erid8 AS erid,
+                arid8 AS arid,
+                irid8 AS irid,
+                '8' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid8, '') = 'I'
+               AND isnull(Arid8, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid8) = 2023)
+         UNION
+         SELECT idcommis,
+                drid9 AS drid,
+                erid9 AS erid,
+                arid9 AS arid,
+                irid9 AS irid,
+                '9' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid9, '') = 'I'
+               AND isnull(Arid9, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid9) = 2023)
+         UNION
+         SELECT idcommis,
+                drid10 AS drid,
+                erid10 AS erid,
+                arid10 AS arid,
+                irid10 AS irid,
+                '10' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid10, '') = 'I'
+               AND isnull(Arid10, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid10) = 2023)
+         UNION
+         SELECT idcommis,
+                drid11 AS drid,
+                erid11 AS erid,
+                arid11 AS arid,
+                irid11 AS irid,
+                '11' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid11, '') = 'I'
+               AND isnull(Arid11, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid11) = 2023)
+         UNION
+         SELECT idcommis,
+                drid12 AS drid,
+                erid12 AS erid,
+                arid12 AS arid,
+                irid12 AS irid,
+                '12' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid12, '') = 'I'
+               AND isnull(Arid12, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid12) = 2023)
+         UNION
+         SELECT idcommis,
+                drid13 AS drid,
+                erid13 AS erid,
+                arid13 AS arid,
+                irid13 AS irid,
+                '13' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid13, '') = 'I'
+               AND isnull(Arid13, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid13) = 2023)
+         UNION
+         SELECT idcommis,
+                drid14 AS drid,
+                erid14 AS erid,
+                arid14 AS arid,
+                irid14 AS irid,
+                '14' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid14, '') = 'I'
+               AND isnull(Arid14, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid14) = 2023)
+         UNION
+         SELECT idcommis,
+                drid15 AS drid,
+                erid15 AS erid,
+                arid15 AS arid,
+                irid15 AS irid,
+                '15' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid15, '') = 'I'
+               AND isnull(Arid15, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid15) = 2023)
+         UNION
+         SELECT idcommis,
+                drid16 AS drid,
+                erid16 AS erid,
+                arid16 AS arid,
+                irid16 AS irid,
+                '16' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid16, '') = 'I'
+               AND isnull(Arid16, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid16) = 2023)
+         UNION
+         SELECT idcommis,
+                drid17 AS drid,
+                erid17 AS erid,
+                arid17 AS arid,
+                irid17 AS irid,
+                '17' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid17, '') = 'I'
+               AND isnull(Arid17, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid17) = 2023)
+         UNION
+         SELECT idcommis,
+                drid18 AS drid,
+                erid18 AS erid,
+                arid18 AS arid,
+                irid18 AS irid,
+                '18' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid18, '') = 'I'
+               AND isnull(Arid18, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid18) = 2023)
+         UNION
+         SELECT idcommis,
+                drid19 AS drid,
+                erid19 AS erid,
+                arid19 AS arid,
+                irid19 AS irid,
+                '19' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid19, '') = 'I'
+               AND isnull(Arid19, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid19) = 2023)
+         UNION
+         SELECT idcommis,
+                drid20 AS drid,
+                erid20 AS erid,
+                arid20 AS arid,
+                irid20 AS irid,
+                '20' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid20, '') = 'I'
+               AND isnull(Arid20, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid20) = 2023)
+         UNION
+         SELECT idcommis,
+                drid21 AS drid,
+                erid21 AS erid,
+                arid21 AS arid,
+                irid21 AS irid,
+                '21' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid21, '') = 'I'
+               AND isnull(Arid21, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid21) = 2023)
+         UNION
+         SELECT idcommis,
+                drid22 AS drid,
+                erid22 AS erid,
+                arid22 AS arid,
+                irid22 AS irid,
+                '22' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid22, '') = 'I'
+               AND isnull(Arid22, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid22) = 2023)
+         UNION
+         SELECT idcommis,
+                drid23 AS drid,
+                erid23 AS erid,
+                arid23 AS arid,
+                irid23 AS irid,
+                '23' AS rata
+         FROM estrazioni.dbo.comm2
+         WHERE(isnull(erid23, '') = 'I'
+               AND isnull(Arid23, '') IN('NON EMETTERE', 'XXX', 'X')
+         AND DATEPART(year, Drid23) = 2023)
+     ) U
+     INNER JOIN estrazioni.dbo.commissioni c ON c.id = u.idcommis
+     WHERE c.modpagam = 0)
+     SELECT DATEPART(year, dett.drid) Anno,
+            DATEPART(month, dett.drid) Mese,
+            SUM(dett.irid) TOT_Impo
+     FROM dett
+     GROUP BY DATEPART(year, dett.drid),
+              DATEPART(month, dett.drid);

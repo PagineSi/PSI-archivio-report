@@ -1,0 +1,139 @@
+WITH tmk
+     AS (SELECT DISTINCT 
+                codcli, 
+                piva, 
+                t.ragsoc, 
+                t.prefisso, 
+                t.telefono, 
+                esito, 
+                format(MIN(data), 'yyyyMMdd') data, 
+                area
+         FROM [anagraf].[dbo].[TMK_Contatti] t
+         WHERE esito = 3
+         GROUP BY codcli, 
+                  piva, 
+                  t.ragsoc, 
+                  t.prefisso, 
+                  t.telefono, 
+                  esito, 
+                  area),
+     impo
+     AS (SELECT DISTINCT 
+                area, 
+                archivio, 
+                importo, 
+                id, 
+                codpsi, 
+                a.RagSoc, 
+                a.prefisso, 
+                a.telefono, 
+                DataCompetenza, 
+                aic.piva
+         FROM [estrazioni].[dbo].[vCommNuoveRinnoviPluriennali] aic
+              INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aic.Codice
+         WHERE ISNULL(importo, 0) > 0
+               AND estrazioni.dbo.CommissioniAttive(aic.archivio, aic.CodPsi, aic.id) = 1),
+     escl
+     AS (SELECT DISTINCT 
+                codpsi, 
+                a.RagSoc, 
+                a.prefisso, 
+                a.telefono, 
+                MIN(DataCompetenza) AS DataCompetenza, 
+                aic.piva
+         FROM [estrazioni].[dbo].[vCommNuoveRinnoviPluriennali] aic
+              INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aic.Codice
+         WHERE ISNULL(importo, 0) > 0
+               AND estrazioni.dbo.CommissioniAttive(aic.archivio, aic.CodPsi, aic.id) = 1
+         GROUP BY area, 
+                  codpsi, 
+                  a.RagSoc, 
+                  a.prefisso, 
+                  a.telefono, 
+                  piva),
+     fine
+     AS (SELECT DISTINCT 
+                impo.archivio, 
+                impo.area, 
+                impo.id, 
+                impo.codpsi, 
+                impo.RagSoc, 
+                impo.importo, 
+                tmk.data
+         FROM impo
+              INNER JOIN tmk ON tmk.RagSoc = impo.RagSoc
+                                AND tmk.area = impo.area
+              INNER JOIN escl ON escl.ragsoc = impo.ragsoc
+                                 AND escl.datacompetenza < tmk.data
+         WHERE impo.DataCompetenza > tmk.data
+         UNION
+         SELECT DISTINCT 
+                impo.archivio, 
+                impo.area, 
+                impo.id, 
+                impo.codpsi, 
+                impo.RagSoc, 
+                impo.importo, 
+                tmk.data
+         FROM impo
+              INNER JOIN tmk ON tmk.prefisso = impo.prefisso
+                                AND tmk.telefono = impo.telefono
+              INNER JOIN escl ON tmk.prefisso = escl.prefisso
+                                 AND tmk.telefono = escl.telefono
+                                 AND escl.DataCompetenza < tmk.data
+         --WHERE impo.DataCompetenza > tmk.data
+         UNION
+         SELECT DISTINCT 
+                impo.archivio, 
+                impo.area, 
+                impo.id, 
+                impo.codpsi, 
+                impo.RagSoc, 
+                impo.importo, 
+                tmk.data
+         FROM impo
+              INNER JOIN tmk ON tmk.piva = impo.Piva
+              INNER JOIN escl ON tmk.prefisso = escl.piva
+                                 AND escl.DataCompetenza < tmk.data
+         --WHERE impo.DataCompetenza > tmk.data
+         UNION
+         SELECT DISTINCT 
+                impo.archivio, 
+                impo.area, 
+                impo.id, 
+                impo.codpsi, 
+                impo.RagSoc, 
+                impo.importo, 
+                tmk.data
+         FROM impo
+              INNER JOIN tmk ON tmk.codcli = impo.Codpsi
+              INNER JOIN escl ON tmk.codcli = escl.codpsi
+                                 AND escl.DataCompetenza < tmk.data
+         --WHERE impo.DataCompetenza > tmk.data
+         )
+     SELECT m.area Area, 
+            m.codpsi Codpsi, 
+            m.RagSoc, 
+            SUM(m.importo) Importo, 
+            dataContatto
+     FROM(SELECT DISTINCT 
+                 archivio, 
+                 area, 
+                 id, 
+                 codpsi, 
+                 RagSoc, 
+                 importo, 
+                 format(CONVERT(DATE, MIN(fine.data)), 'yyyy') dataContatto
+          FROM fine
+          GROUP BY archivio, 
+                   area, 
+                   id, 
+                   codpsi, 
+                   RagSoc, 
+                   importo) AS m
+     -- WHERE codpsi = 269885
+     GROUP BY m.codpsi, 
+              m.RagSoc, 
+              m.area, 
+              dataContatto
+     ORDER BY RagSoc;

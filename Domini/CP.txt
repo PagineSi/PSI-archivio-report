@@ -1,0 +1,37 @@
+SELECT DISTINCT 
+       WEB_ModuloC.ID AS id_moduloc, 
+       Commissioni.codpsi, 
+       commissioni.commissione, 
+       anagrafica.ragsoc, 
+       Commissioni.area, 
+       Commissioni.datacomm, 
+       web_moduloc_domini.www, 
+       tipoinserz.tipo, 
+       WEB_ModuloC_Domini.cpIn, 
+       web_moduloc_domini.cpseat, 
+       WEB_ModuloC_Domini.authInfo, 
+       CONVERT(VARCHAR(10), web_moduloc.dataOnline, 111) AS dataOnline,
+       CASE
+           WHEN anagrafica.altosp = 1
+           THEN 'X'
+           WHEN anagrafica.altosp <> 1
+           THEN ''
+       END AS 'VIC',
+	  servizi.dbo.udftestospezzato(format(WEB_ModuloC_Domini.DataScadenza,'yyyyMMdd')) DataScadenza,
+	  servizi.dbo.udftestospezzato(WEB_ModuloC_Domini.note) Note
+FROM WEB_ModuloC_Domini
+     INNER JOIN WEB_ModuloC ON WEB_ModuloC_Domini.ID_ModuloC = WEB_ModuloC.ID
+     INNER JOIN Commissioni ON WEB_ModuloC.IDcom = Commissioni.id
+     INNER JOIN anagrafica ON Commissioni.Codice = anagrafica.Codice
+     INNER JOIN WEB_ModuloC_oggetti ON WEB_ModuloC_oggetti.id_moduloc = WEB_ModuloC.ID
+     INNER JOIN tipoinserz ON tipoinserz.Codice = WEB_ModuloC_oggetti.Codice_Oggetto
+WHERE(ISNULL(WEB_ModuloC_Domini.cpin, 0) = 1
+      OR ISNULL(WEB_ModuloC_Domini.cpseat, 0) = 1)
+     AND ISNULL(codpsi, 0) <> 37774
+     AND (web_moduloc.dataprovv IS NOT NULL
+          OR web_moduloc.datainvioprovvisorio IS NOT NULL)
+     AND web_moduloc_domini.datareg IS NULL
+     AND servizi.dbo.commissioniattive(commissioni.codpsi, commissioni.id) = 1
+     AND TipoInserz.CodiceCategoria IN(35, 12, 18, 179)
+AND ISNULL(WEB_ModuloC_Domini.pubblicazionePerIP, 0) <> 1
+ORDER BY anagrafica.ragsoc;

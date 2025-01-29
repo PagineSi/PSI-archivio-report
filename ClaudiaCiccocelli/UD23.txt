@@ -1,0 +1,27 @@
+SELECT DISTINCT 
+       c.archivio, 
+       c.Area, 
+	  o.Edizione,
+       c.id AS [Id commissione], 
+       c.codpsi AS [Codice cliente], 
+       a.ragsoc AS [Ragione sociale], 
+       bg.dominio, 
+       t.tipo as sigla
+       --ROUND(aio.tot_acquisito, 2) AS [importo ogg]
+FROM estrazioni.dbo.Oggetti o
+     INNER JOIN estrazioni.dbo.commissioni c ON c.id = o.IdCom
+                                                AND c.archivio = o.archivio
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = o.Tipo
+     LEFT JOIN [estrazioni].[dbo].[vUltimeCampagne] vuc ON vuc.archivio = c.archivio
+                                                            AND vuc.ediz = c.area
+     LEFT JOIN klingon.[landbook].[dbo].[BLOG] bg ON bg.id = o.Oggetto
+     LEFT JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idcom = c.id
+                                                             AND aio.archivio = c.archivio
+                                                             AND aio.codice_tipo_inserz IN(684, 873)
+WHERE o.tipo IN(684, 873)
+     --AND estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 1
+	AND o.ObjNote like '%www.quifarmacie.it%'
+	AND o.Edizione='UD23'
+	AND c.archivio=9999
+ORDER BY [Ragione sociale]

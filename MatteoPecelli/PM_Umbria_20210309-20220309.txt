@@ -1,0 +1,11 @@
+SELECT DISTINCT
+c.CodPsi,
+a.RagSoc,
+c.area,
+pm.nomePM
+  FROM [estrazioni].[dbo].[vCommNuoveRinnoviPluriennali] c
+  INNER JOIN anagraf.dbo.anagrafica a on a.codice=c.codice
+  LEFT JOIN main.dbo.PM on pm.id=a.vicPM
+  WHERE isnull(a.vicPM,'')''
+  and c.area IN ('TR','PG')
+  and c.datacompetenza between 20210309 and 20220309

@@ -1,0 +1,38 @@
+
+
+SELECT DISTINCT
+       cmsd.MacroSet,
+       ct.Categoria,
+       a.RagSoc,
+       c.[CodPsi],
+       c.id idCom,
+       IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore,
+       (STUFF(
+             (
+                 SELECT ', '+tp1.tipo+' (x',
+                        COUNT(tp1.tipo),
+                        ')'
+                 FROM anagraf.dbo.TipoInserz tp1
+                      INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                      INNER JOIN anagraf.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                 WHERE ulc1.codpsi = c.codpsi
+                       AND servizi.dbo.commissioniattive(ulc1.CodPsi, ulc1.id) = 1
+                      AND tp1.Codice IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+                 GROUP BY tp1.tipo FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle
+FROM [estrazioni].[dbo].[Commissioni] c
+     LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+     LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+     LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+     LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+     LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+     INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+     LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+AND c.archivio = 9999
+AND isnull(s.assegnazione_operatore, '') <> ''
+AND ct.catref = ct.codice;

@@ -1,0 +1,45 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+SELECT DISTINCT
+c.area,
+anage.nome,
+c.codpsi,
+c.id,
+c.DataComm,
+c.Importo,
+c.Consegnato,
+(STUFF(
+             (
+                 SELECT ', '+tp1.tipo+' (x',
+			  COUNT(tp1.tipo),
+			  ')'
+			  FROM  anagraf.dbo.TipoInserz tp1
+			  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.codice_oggetto=tp1.codice
+                 INNER JOIN estrazioni.dbo.commissioni ulc1 on ulc1.id=mco1.id_com
+			  WHERE ulc1.id=c.id and ulc1.archivio=c.archivio
+			  AND ulc1.archivio=9999
+			  AND tp1.Codice IN (1760,
+1761,
+1762,
+1763,
+1813)
+GROUP BY tp1.tipo
+			FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle,
+estrazioni.dbo.udfElencoOggettiCliente(c.archivio,c.codpsi) OggCli,
+c.ModPagam
+  FROM [estrazioni].[dbo].[Commissioni] c
+  INNER JOIN anagraf.dbo.WEB_ModuloC mc on mc.idcom=c.id
+  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.id
+  INNER JOIN anagraf.dbo.anagrafica a ON a.codice=c.codice
+  LEFT JOIN anagraf.dbo.agenti ag ON c.Gruppo = ag.Gruppo AND c.Agente = ag.Codagente
+  LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+  INNER JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+
+  WHERE mco.Codice_Oggetto IN (1760,
+1761,
+1762,
+1763,
+1813)
+AND c.archivio=9999
+
+order by CodPsi

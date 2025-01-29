@@ -1,0 +1,196 @@
+WITH cli AS (SELECT DISTINCT
+      servizi.dbo.udfTestoSpezzato(m.[Dominio]) Dominio,
+       servizi.dbo.udfTestoSpezzato(m.[Provider]) Provider,
+       servizi.dbo.udfTestoSpezzato(m.[Proprietario]) Proprietario,
+       servizi.dbo.udfTestoSpezzato(m.DataDEF) DataDEF,
+       CASE     
+
+	     --RinTac=''
+	     
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+
+		 --RinTac=1
+
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+       END AS DataScad,
+       NULL AS DataScadCli,
+       m.RinTac,
+       m.[PrezzoIniziale],
+       m.[PrezzoAnniSucc],
+       m.[ProprietaPsi],
+       m.[Categoria],
+	  m.codpsi,
+		 m.RagSoc,
+		 m.area,
+		 m.Agente,
+		 m.Consegnato,
+		 m.Importo,
+		 m.Insoluto,
+		 estrazioni.dbo.udfElencoOggettiClienteCommAttiveNA(m.CodPsi) Oggetti
+FROM
+(
+    SELECT d.[Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           IIF(isnull(d.[DataCreazione], '') <> '', d.[DataCreazione], d.DataCreazioneCar) DataDEF,
+           IIF(isnull(d.[DataScadenza], '') <> '', d.[DataScadenza], d.DataScadenzaCar) DataScad,
+           c.BiannA,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+           CASE
+               WHEN ISNULL([DominioPsi], '') <> ''                  
+               THEN 'AZIENDALI'
+               ELSE 'ADD/MAD/BLOG'
+           END AS [Categoria],
+		 c.codpsi,
+		 an.RagSoc,
+		 c.area,
+		 c.nomeAgente Agente,
+		 SUM(c.Consegnato) Consegnato,
+		 SUM(c.Importo) Importo,
+		 SUM(c.importoInsoluto) Insoluto
+    FROM [servizi].[dbo].[domini] d
+         LEFT JOIN klingon.landbook.dbo.blog b ON b.id = d.idMadBlog
+         LEFT JOIN klingon.landbook.dbo.clienti_mad mad ON mad.id = b.id       
+         --LEFT JOIN lisa.addomain.dbo.addomain a ON d.idAdDomain = a.id
+         --LEFT JOIN lisa.addomain.dbo.clientidomini cd ON cd.iddominio = a.id
+	    LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali c ON c.id = mad.idcom AND c.archivio=9999
+	    --OR c.Commissione COLLATE SQL_Latin1_General_CP1_CI_AS = cd.Commissione 
+	    LEFT JOIN anagraf.dbo.Anagrafica an on an.codice=c.Codice AND c.archivio=9999	 
+    WHERE isnull(b.disattivato, '') = ''
+          --AND isnull(a.dominio_eliminato, '') = ''
+          AND (ISNULL(d.idAdDomain, '') <> ''
+               AND ISNULL(idmadblog, '') <> '')
+			GROUP BY d.[Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           d.[DataCreazione],
+		 d.DataCreazioneCar,
+           d.[DataScadenza],
+		 d.[DataScadenzaCar],
+           bianna,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+          [DominioPsi],
+		 c.codpsi,
+		 an.RagSoc,
+		 c.area,
+		 c.nomeAgente
+
+) AS m
+
+),
+
+ins as (SELECT DISTINCT codpsi,
+               SUM(importoinsoluto) TotInsoluto
+            FROM estrazioni.dbo.vCommNuoveRinnoviPluriennali
+		  GROUP BY codpsi
+		  ) 
+
+SELECT DISTINCT
+          cli.dominio,
+		cli.provider,
+		cli.proprietario,
+		cli.datadef,
+		 DataScad,
+       cli.DataScadCli,
+       cli.RinTac,
+       cli.[PrezzoIniziale],
+       cli.[PrezzoAnniSucc],
+       cli.[ProprietaPsi],
+       cli.[Categoria],
+	   cli.codpsi,
+		 cli.RagSoc,
+		 cli.area,
+		 cli.Agente,
+		 cli.Consegnato,
+		 cli.Importo,
+		 cli.Insoluto,
+		 ins.totinsoluto,
+		 cli.Oggetti
+		 
+		 from cli left join ins on cli.codpsi=ins.CodPsi
+
+		 order by Dominio

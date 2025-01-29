@@ -1,0 +1,57 @@
+WITH vali
+     AS (
+     SELECT DATEPART(year, dataValidazione) AS Anno,
+            c.area,
+            SUM(IIF(isnull(dataValidazione, '') <> '', 1, 0)) AS Validati,
+            SUM(isnull(tar.prezzo, 0)) AS PrezzoTariffario,
+            SUM(p.ore) SommaPD
+     FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+          INNER JOIN anagraf.dbo.commissioni c ON c.id = o.id_com
+          INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+          LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = t.Codice
+          LEFT JOIN anagraf.dbo.[Tariffario] tar ON tar.codice = t.codice
+     WHERE DATEPART(year, dataValidazione) IN(2018, 2019, 2020, 2021)
+          AND t.codice IN(1006,
+1015,
+1007)
+     GROUP BY DATEPART(year, dataValidazione),
+              c.area),
+     mat
+     AS (
+     SELECT DATEPART(year, datacompetenza) AS Anno,
+            SUM(IIF(isnull(tipo_importo, '') = 'MATURATO', 1, 0)) AS Maturati,
+            area,
+            SUM(p.ore) SommaPD
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          LEFT JOIN servizi.dbo.prodottiOre p ON p.codiceSigla = aio.codice_tipo_inserz
+     WHERE DATEPART(year, datacompetenza) IN(2018, 2019, 2020, 2021)
+          AND codice_tipo_inserz IN(1006,
+1015,
+1007)
+     AND aio.tipo_importo = 'MATURATO'
+     GROUP BY DATEPART(year, datacompetenza),
+              area),
+     base
+     AS (
+     SELECT DISTINCT area,
+            DATEPART(year, datavalidazione) anno
+     FROM anagraf.dbo.commissioni c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id)
+     SELECT IIF(isnull(vali.anno, '') <> '', vali.anno, mat.anno) Anno,
+            IIF(isnull(vali.area, '') <> '', vali.area, mat.area) Area,
+            vali.Validati,
+            mat.maturati Maturati,
+            vali.prezzotariffario PrezzoTariffario_Validati,
+            --vali.SommaPD SommaPD_Validati,
+            --mat.SommaPD SommaPD_Maturati,
+            ((isnull(vali.sommapd,0) + isnull(mat.sommapd,0))) SommaPD
+     FROM base
+          left JOIN vali ON vali.area = base.area
+                            AND base.anno = vali.anno
+          left JOIN mat ON mat.area = base.area
+                           AND mat.anno = base.anno
+
+--vali right join mat on vali.area=mat.area and vali.anno=mat.Anno
+
+     ORDER BY area,
+              anno;

@@ -1,0 +1,48 @@
+WITH tutto as (
+SELECT DISTINCT 
+       c.[Archivio]
+      ,c.[id] idCom
+      ,c.[CodPsi]
+	 ,a.RagSoc
+	 ,estrazioni.dbo.udfElencoOggettiAttive(c.archivio,c.id) Ogg
+      ,c.[DataComm]
+      ,c.[Area]
+      ,[importo] Importo
+	 ,Consegnato	 
+	 ,c.[importoInsoluto] ImportoInsoluto
+  FROM [estrazioni].[dbo].[Commissioni] c
+  INNER JOIN anagraf.dbo.WEB_ModuloC mc on mc.IDcom=c.id
+  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.id
+  LEFT JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+  LEFT JOIN anagraf.dbo.Anagrafica a on a.codice=c.Codice
+  WHERE tp.codice IN (1490,1491)
+  --and datepart(year,c.datacomm) IN (2020,2021,2022)
+  and archivio=9999
+  and estrazioni.dbo.CommissioniAttive(c.archivio,c.codpsi,c.id)=1
+  and c.area IN ('CA','OR','NG','OS','SS','S1')
+  ),
+  sigla as (
+  SELECT DISTINCT
+  idcom,
+  codpsi,
+  area,
+  tot_acquisito ImportoSigla
+  FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+  WHERE codice_tipo_inserz IN (1490,1491)
+  and archivio=9999
+  )
+
+  SELECT
+       tutto.[Archivio]
+      ,tutto.idCom
+      ,tutto.[CodPsi]
+	 ,tutto.RagSoc
+	 ,tutto.Ogg
+      ,tutto.[DataComm]
+      ,tutto.[Area]
+	 ,sigla.ImportoSigla
+      ,tutto.Importo
+	 ,tutto.Consegnato	 
+	 ,tutto.ImportoInsoluto
+
+   FROM tutto left join sigla on tutto.area=sigla.area and tutto.idCom=sigla.idCom

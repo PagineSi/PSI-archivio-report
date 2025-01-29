@@ -1,0 +1,109 @@
+WITH 
+
+--dati dei clienti in archivio corrente ATTIVI 
+
+cli
+AS (
+SELECT DISTINCT
+       ulc.archivio,
+       ulc.codpsi,
+       a.ragsoc,
+       MAX(ulc.firmante) AS firmante,
+       MAX(concat(a.Indirizzo, ' ', a.civico)) AS Indirizzo,
+       MAX(concat(a.prefisso, ' ', a.telefono)) AS Telefono,
+       MAX(concat(comuni.comune, ' ', '(', comuni.Provincia, ')')) AS Comune,
+       ulc.area,
+       MAX(anage.nome) AS nome,
+       estrazioni.dbo.udfElencoOggettiClienteCommAttive(ulc.archivio, ulc.codpsi) Oggetti
+FROM estrazioni.dbo.commissioni ulc
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+     LEFT JOIN anagraf.dbo.comuni ON comuni.codice = a.comune
+     LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                        AND ulc.Agente = ag.Codagente
+     LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+     INNER JOIN estrazioni.dbo.oggetti o ON o.idcom = ulc.id
+                                            AND o.archivio = ulc.archivio
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = o.tipo
+WHERE ulc.archivio = 9999
+      --AND (datacomm IS NULL
+      --     OR SUBSTRING(datacomm, 1, 6) <> format(GETDATE(), 'yyyyMM'))
+--funzione che individua le commissioni attive
+      AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+	-- and codpsi=247295
+     --AND t.codice NOT IN(713, 1539, 1754)
+--AND ulc.codpsi = 12013
+GROUP BY ulc.archivio,
+         ulc.codpsi,
+         a.ragsoc,
+         ulc.area
+         --[nomePM]
+),
+
+
+--dati relativi all'archivio corrente di ogni cliente
+
+domini
+AS (
+SELECT 9999 AS Archivio,
+       Codpsi,
+       www,
+       note
+FROM anagraf.dbo.WEB_ModuloC_Domini d
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON d.ID_ModuloC_Oggetti = mco.id
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+WHERE isnull(tipoannullamento, 0) <> 3
+      AND isnull(d.sitoRif, 0) = 0
+      AND datareg IS NOT NULL
+      --AND ((d.datadomdel IS NULL)
+      --     OR (d.datadomdel IS NOT NULL
+      --         AND d.datadomrip IS NOT NULL))
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     --AND t.codice IN(841, 930, 995, 1187, 1188, 1207, 1208, 1209, 1210, 1221, 1222, 1229, 1230, 1360, 1361, 1489, 1498, 1499, 1501, 1645, 1646, 1752, 1753, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1861, 1862, 1876, 1877, 1891, 1910, 1911, 1912, 1913, 1915, 1919, 1976, 1977, 1988, 1989, 486, 1225, 1226, 2266, 2267)
+)
+SELECT DISTINCT
+       --'_Archivio' AS Archivio,
+       cli.CodPsi,
+       cli.RagSoc,
+       --cli.indirizzo,
+       --cli.comune,
+       --cli.telefono,
+       cli.Area,
+       cli.Oggetti,
+       --Tot_ConsegnatoArchCorrente,
+       --Tot_ImportoArchCorrente,
+       --[Tot_InsolutoArchCorrente],
+       --[Tot_ScadutoArchCorrente],
+       --replace(CAST(IIF([Tot_ScadutoArchCorrente] <  = 0, 0, IIF(isnull([Tot_InsolutoArchCorrente], 0) < 0, 0, [Tot_InsolutoArchCorrente]) / IIF(isnull([Tot_ScadutoArchCorrente], 0) < 0, 0, [Tot_ScadutoArchCorrente])) * 100 AS NUMERIC(36, 2)), '.', ',') percInsolutoArchCorrente,
+       (STUFF(
+             (
+                 SELECT ', '+domini.www
+                 FROM domini
+                      --INNER JOIN anagraf.dbo.tipoinserz t ON wow.codice_oggetto = t.Codice
+                      --                                       AND t.codicecategoria = 88
+                      --INNER JOIN anagraf.dbo.commissioni cw ON cw.id = wow.id_com
+                 WHERE domini.codpsi = cli.codpsi FOR XML PATH('')
+             ), 1, 2, '')) AS Domini,
+       (STUFF(
+             (
+                 SELECT '| '+servizi.dbo.udftestospezzato(domini.note)
+                 FROM domini
+                      --INNER JOIN anagraf.dbo.tipoinserz t ON wow.codice_oggetto = t.Codice
+                      --                                       AND t.codicecategoria = 88
+                      --INNER JOIN anagraf.dbo.commissioni cw ON cw.id = wow.id_com
+                 WHERE domini.codpsi = cli.codpsi FOR XML PATH('')
+             ), 1, 2, '')) AS Note
+       --domini.www Sito
+       --estrazioni.dbo.udfElencoOggettiClienteCommAttiveWP(cli.archivio, cli.codpsi) AS SigleWP
+       --Cli.nome AS nomeagente,
+       --servizi.dbo.vtipovic.TipoVic
+       --[nomePM]
+FROM cli
+     --INNER JOIN impoarch ON impoarch.codpsi = cli.codpsi
+     --                       AND impoarch.area = cli.area
+     LEFT JOIN domini ON domini.codpsi = cli.CodPsi
+     --INNER JOIN servizi.[dbo].[vTipoVIC] ON [vTipoVIC].codpsi = cli.codpsi
+WHERE cli.oggetti NOT LIKE '%dom+%'
+      AND domini.www IS NOT NULL
+      AND cli.area NOT IN('ET')
+ORDER BY codpsi;

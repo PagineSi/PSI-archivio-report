@@ -1,0 +1,46 @@
+SELECT  
+       c.archivio, 
+       c.dataCrt, 
+       o.[Codice], 
+       [IdCom], 
+       c.CodPsi, 
+       tp.tipo, 
+       [Oggetto], 
+       [Edizione], 
+       [ObjNote]
+FROM estrazioni.[dbo].[Oggetti] o
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.tipo
+                                             AND tp.CodiceCategoria = 109
+     INNER JOIN estrazioni.dbo.commissioni c ON c.id = o.idcom
+                                                AND c.archivio = o.archivio
+WHERE estrazioni.dbo.commissioniattive(c.archivio, c.codpsi, c.id) = 1
+     AND c.archivio = 9999
+     AND ISNULL(o.oggetto, '') = ''
+
+-----
+
+
+SELECT DISTINCT 
+       c.dataCrt, 
+       o.[Codice] CodiceOgg, 
+       o.[IdCom], 
+       c.CodPsi, 
+       c.area, 
+       tp.tipo, 
+       [Oggetto] Ogg_GeCo,
+       CASE
+           WHEN idOggGeco IS NULL
+           THEN 'NO_DOM'
+       END Ogg_GenModC, 
+       [Edizione], 
+       IIF([ObjNote] IS NOT NULL, [ObjNote], '') ObjNote
+FROM anagraf.[dbo].[Oggetti] o
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.tipo
+                                             AND tp.CodiceCategoria = 109
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = o.idcom
+     LEFT JOIN servizi.dbo.SICOMPROD_SIAMOCALCIO_OGGETTI sc ON sc.idcom = o.IdCom
+WHERE(ISNULL(c.importo, 0) > 0
+      OR ISNULL(c.impo2, 0) > 0
+      OR ISNULL(c.exOmaggio, 0) = 1
+      OR ISNULL(c.StContr, '') IN('oma', 'omb', 'omrt', 'VALID_PRECAR'))
+     AND sc.idOggGeco IS NULL;

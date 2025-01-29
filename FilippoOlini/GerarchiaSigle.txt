@@ -1,0 +1,9 @@
+SELECT DISTINCT
+       [Tipo] Sigla,
+       tc.Descrizione Categoria,
+       tcom.Descrizione CategoriaCommerciale,
+       tcom.MacroCategoria MacroCategoriaCommerciale
+FROM [anagraf].[dbo].[TipoInserz] t
+     LEFT JOIN anagraf.dbo.TipoInserz_Categorie tc ON t.CodiceCategoria = tc.Codice
+     LEFT JOIN anagraf.dbo.TipoInserz_Categorie_Commerciali tcom ON tcom.Codice = t.CodiceCategoriaCommerciale
+ORDER BY t.tipo;

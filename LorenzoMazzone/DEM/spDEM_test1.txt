@@ -1,0 +1,70 @@
+USE [estrazioni]
+GO
+/****** Object:  StoredProcedure [dbo].[spDEM_test]    Script Date: 23/11/2023 12:09:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Giulia>
+-- Create date: <Create 20/07/2022>
+-- Description:	<Description,,>
+--
+-- @GG giorni indietro da oggi
+--
+-- =============================================
+ALTER PROCEDURE [dbo].[spDEM_test]
+WITH EXEC AS CALLER
+AS
+     BEGIN
+         SET NOCOUNT ON;
+         INSERT INTO estrazioni.dbo.DEM_test
+         ([DataRif],
+          [Email_Cliente],
+          [Firmante],
+          [Cognome_Cliente],
+          [Nome_Cliente],
+          [Ragione_Sociale],
+          [Codice_Cliente],
+          [Telefono],
+          [Cellulare],
+          [Agente],
+          [Coordinatore],
+          [Supervisore],
+          [Prodotti],
+          [Categoria_Cliente],
+          [Macro_Categoria_Cliente],
+          [Macro_Settore_Cliente],
+          [Comune_Cliente],
+          [Provincia_Cliente],
+          [Regione_Cliente],
+          [Area_Commissione],
+          [Cliente_Attivo],
+          [Data_Inizio_Rapporto],
+          [Data_Fine_Rapporto]
+         )
+                SELECT GETDATE() AS [DataRif],
+                       [Email_Cliente],
+                       [Firmante],
+                       [Cognome_Cliente],
+                       [Nome_Cliente],
+                       [Ragione_Sociale],
+                       [Codice_Cliente],
+                       [Telefono],
+                       [Cellulare],
+                       [Agente],
+                       [Coordinatore],
+                       [Supervisore],
+                       [Prodotti],
+                       [Categoria_Cliente],
+                       [Macro_Categoria_Cliente],
+                       [Macro_Settore_Cliente],
+                       [Comune_Cliente],
+                       [Provincia_Cliente],
+                       [Regione_Cliente],
+                       [Area_Commissione],
+                       [Cliente_Attivo],
+                       [Data_Inizio_Rapporto],
+                       [Data_Fine_Rapporto]
+                FROM [estrazioni].[dbo].[vDEM_test];
+     END;

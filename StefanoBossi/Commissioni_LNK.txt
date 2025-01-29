@@ -1,0 +1,14 @@
+SELECT DISTINCT
+       c.id idCom,
+       c.codpsi,
+       MAX(CONVERT(DATE, c.dataCrt)) DataCaric,
+       MAX(format(mco.cm_data_inproduzione, 'yyyy-MM-dd')) DataPIP,
+       MAX(format(l.assegnazione_data, 'yyyy-MM-dd')) DataAss,
+       MAX(format(l.in_carico_data, 'yyyy-MM-dd')) InizioLav,
+       MAX(l.assegnazione_a) Ope
+FROM [servizi].[dbo].[SICOMPROD_LINKEDIN] l
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = l.idwebmodcoggetto
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+WHERE c.codpsi <> 37774
+GROUP BY c.id,
+         c.codpsi;

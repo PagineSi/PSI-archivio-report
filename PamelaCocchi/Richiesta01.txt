@@ -1,0 +1,14 @@
+SELECT
+area,
+archivio,
+comm.id,
+CONVERT(date,comm.dataprrata) as dataprrata
+
+FROM estrazioni.dbo.Commissioni comm 
+
+where archivio IN (9999, 213)
+and comm.fatbloc=1
+and ISNULL(comm.fattAutom,'')=''
+and comm.DataPrRata<=20200731
+
+order by area asc

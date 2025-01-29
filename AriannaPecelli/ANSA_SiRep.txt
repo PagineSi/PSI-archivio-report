@@ -1,0 +1,119 @@
+WITH
+
+--dati dei clienti in archivio corrente ATTIVI
+
+cli
+AS (
+SELECT DISTINCT
+ulc.id,
+ulc.archivio,
+ulc.codpsi,
+ragsoc,
+max(ulc.firmante) as firmante,
+max(concat(a.Indirizzo,' ',a.civico)) as Indirizzo,
+max(concat(a.prefisso,' ',a.telefono)) as Telefono,
+max(concat(comuni.comune,' ','(',comuni.Provincia,')')) as Comune,
+ulc.area,
+max(anage.nome) as nome
+FROM estrazioni.dbo.commissioni ulc
+INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+LEFT JOIN anagraf.dbo.comuni ON comuni.codice = a.comune
+LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+AND ulc.Agente = ag.Codagente
+LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+INNER JOIN anagraf.dbo.WEB_ModuloC mc on mc.idcom=ulc.id
+INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.ID
+INNER JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+INNER JOIN anagraf.dbo.TipoInserz_Categorie_Commerciali tpc on tpc.codice=tp.CodiceCategoriaCommerciale
+WHERE archivio = 9999
+AND tpc.Codice IN (84,104,105,87,120)
+--funzione che individua le commissioni attive
+AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+group by
+ulc.id,
+ulc.archivio,
+ulc.codpsi,
+ragsoc,
+ulc.area),
+
+-- faccio la somma degli importi dei clienti e area
+importi
+AS (
+SELECT id,
+area,
+SUM(importo) AS Tot_Importo,
+SUM(consegnato) AS Tot_Consegnato,
+SUM(importoInsoluto) AS [Tot_Insoluto],
+SUM(importoscaduto) AS [Tot_Scaduto]
+FROM estrazioni.dbo.commissioni aic
+WHERE estrazioni.dbo.commissioniattive(aic.archivio, aic.codpsi, aic.id) = 1
+GROUP BY id,
+area),
+
+-- mi seleziono la data comm più grande per ogni cliente
+MaxDATAC
+AS (
+SELECT vAnalisiImportiCommissioni.codpsi,
+MAX(format(DATACOMM, 'yyyy-MM-dd')) AS Maxdatacomm,
+MAX(archivio) AS archivio
+FROM estrazioni.dbo.vAnalisiImportiCommissioni
+GROUP BY vAnalisiImportiCommissioni.CodPsi),
+
+
+-- mi seleziono la data comm più piccola per ogni cliente
+MinDATAC
+AS (
+SELECT vAnalisiImportiCommissioni.codpsi,
+MIN(format(DATACOMM, 'yyyy-MM-dd')) AS Mindatacomm
+FROM estrazioni.dbo.vAnalisiImportiCommissioni
+GROUP BY vAnalisiImportiCommissioni.CodPsi),
+
+--dati relativi all'archivio corrente di ogni cliente
+impoarch
+AS (
+SELECT
+id,
+area,
+SUM(importo) AS Tot_ImportoArchCorrente,
+SUM(consegnato) AS Tot_ConsegnatoArchCorrente,
+SUM(importoInsoluto) AS [Tot_InsolutoArchCorrente],
+SUM(importoscaduto) AS [Tot_ScadutoArchCorrente]
+FROM estrazioni.dbo.commissioni aic
+WHERE estrazioni.dbo.commissioniattive(aic.archivio, aic.codpsi, aic.id) = 1
+AND archivio = 9999
+GROUP BY id,
+codpsi,
+area)
+SELECT DISTINCT
+'_Archivio' AS Archivio,
+impoarch.id,
+cli.codpsi,
+cli.ragsoc,
+cli.indirizzo,
+
+cli.comune,
+
+cli.telefono,
+cli.area,
+Tot_ConsegnatoArchCorrente,
+Tot_ImportoArchCorrente,
+[Tot_InsolutoArchCorrente],
+[Tot_ScadutoArchCorrente],
+replace(CAST(IIF([Tot_ScadutoArchCorrente] < = 0, 0, IIF(isnull([Tot_InsolutoArchCorrente], 0) < 0, 0, [Tot_InsolutoArchCorrente]) / IIF(isnull([Tot_ScadutoArchCorrente], 0) < 0, 0, [Tot_ScadutoArchCorrente])) * 100 AS NUMERIC(36, 2)), '.', ',') percInsolutoArchCorrente,
+Tot_Consegnato,
+Tot_importo,
+[Tot_Insoluto],
+[Tot_Scaduto],
+replace(CAST(IIF([Tot_Scaduto] < = 0, 0, IIF(isnull([Tot_Insoluto], 0) < 0, 0, [Tot_Insoluto]) / IIF(isnull([Tot_Scaduto], 0) < 0, 0, [Tot_Scaduto])) * 100 AS NUMERIC(36, 2)), '.', ',') percentualeInsoluto,
+Mindatacomm,
+Maxdatacomm,
+estrazioni.dbo.udfElencoOggetti(cli.archivio, cli.id) AS ElencoOggArchivioCorrente,
+Cli.nome AS nomeagente
+FROM cli
+INNER JOIN importi ON importi.id = cli.id
+AND importi.area = cli.Area
+INNER JOIN impoarch ON impoarch.id = cli.id
+AND impoarch.area = cli.area
+INNER JOIN MinDATAC ON MinDATAC.CodPsi = cli.codpsi
+INNER JOIN MaxDATAC ON MaxDATAC.CodPsi = cli.codpsi
+ORDER BY ragsoc;

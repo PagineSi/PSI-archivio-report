@@ -1,0 +1,30 @@
+SELECT DISTINCT
+mco.id,
+       c.[id] idCom,
+       c.CodPsi,
+       mco.[id_moduloC],
+       a.RagSoc,
+       tp.Tipo Sigla,      
+       --[operatoreLavWeb],
+       --[datalavWeb],
+       format([cm_data_inproduzione], 'yyyy-MM-dd') DataInProd,
+       [cm_ope_inproduzione] OpeInProd,
+       --vd.dataAssLavVideo
+	  IIF(format(datalavweb, 'yyyy-MM-dd') IS NOT NULL, format(datalavweb, 'yyyy-MM-dd'), format(dataMailVideoRealiz, 'yyyy-MM-dd')) DataLav,
+       IIF(operatoreLavWeb IS NOT NULL, operatoreLavWeb, operatoreMailVideoRealiz) OpeLav
+       --dataMailVideoRealiz DataSicomNuova,
+       --operatoreMailVideoRealiz OpeSicomNuova
+FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] mco
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = mco.id_moduloc
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+     LEFT JOIN servizi.dbo.SICOMPROD_Videodrone vd ON vd.id_moduloc = mc.ID
+WHERE servizi.dbo.CommissioniAttive(c.CodPsi, c.id) = 1
+     AND tp.Tipo IN('VF6', 'VST30', 'VS1', 'VS4', 'VCT', 'VP', 'VE', 'VCOM', 'VC', 'VCdE', 'VRG', 'VRC', 'VRH4', 'YTA', 'SFPRO', 'SFP2', 'SFC2', 'SFC', 'VSDR', 'VDR', 'VSOP', 'VSOV', 'VSOVP', 'VSOPP', 'VspeakC', 'VSGR', 'VSG', 'SOCADVCOM', 'SFL', 'SFL2')
+     --AND tp.CodiceCategoria IN(76, 81)
+AND cm_data_inproduzione IS NOT NULL
+--AND vd.dataMailAnteprima IS NULL
+AND codpsi <> 37774
+AND format(cm_data_inproduzione, 'yyyy-MM-dd') BETWEEN '2023-01-01' AND '2023-01-31'
+ORDER BY RagSoc ASC;

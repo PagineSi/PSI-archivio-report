@@ -1,0 +1,123 @@
+WITH main
+     AS (
+     SELECT DISTINCT
+            [CodPsi],
+            (STUFF(
+                  (
+                      SELECT ', '+tp.tipo+' (x',
+                             COUNT(tp.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp.codice
+                           INNER JOIN anagraf.dbo.commissioni c1 ON c1.id = mco1.id_com
+                      WHERE c1.codpsi = c.codpsi
+                            AND servizi.dbo.commissioniattive(c1.CodPsi, c1.id) = 1
+                           AND tp.Codice IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918)
+                      GROUP BY tp.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+do.www
+                      FROM anagraf.dbo.web_moduloc_domini do
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco2 ON mco2.id = do.ID_ModuloC_Oggetti
+                           INNER JOIN anagraf.dbo.commissioni c2 ON c2.id = mco2.id_com
+                           INNER JOIN anagraf.dbo.TipoInserz tp1 ON tp1.codice = mco2.codice_oggetto
+                      WHERE c2.codpsi = c.codpsi
+                            AND sitorif = 1
+                            AND tp1.Codice IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918)
+                           AND servizi.dbo.commissioniattive(c.codpsi, c.id) = 1 FOR XML PATH('')
+                  ), 1, 2, '')) AS www
+     FROM [anagraf].[dbo].[Commissioni] c
+          LEFT JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+     WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          AND mco.codice_oggetto IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918)),
+     sub1
+     AS (
+     SELECT DISTINCT
+            [CodPsi],
+            (STUFF(
+                  (
+                      SELECT ', '+tp.tipo+' (x',
+                             COUNT(tp.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp.codice
+                           INNER JOIN anagraf.dbo.commissioni c1 ON c1.id = mco1.id_com
+                      WHERE c1.codpsi = c.codpsi
+                            --AND servizi.dbo.commissioniattive(c1.CodPsi, c1.id) = 1
+                            AND tp.Codice IN(991, 992, 993, 1005, 1703, 1453)
+                      GROUP BY tp.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle
+     FROM estrazioni.[dbo].[Commissioni] c
+          LEFT JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+     WHERE --servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          --AND 
+     c.DataComm <= 20211231
+     AND mco.codice_oggetto IN(991, 992, 993, 1005, 1703, 1453)),
+     sub2
+     AS (
+     SELECT DISTINCT
+            [CodPsi],
+            (STUFF(
+                  (
+                      SELECT ', '+tp.tipo+' (x',
+                             COUNT(tp.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp.codice
+                           INNER JOIN anagraf.dbo.commissioni c1 ON c1.id = mco1.id_com
+                      WHERE c1.codpsi = c.codpsi
+                            --AND servizi.dbo.commissioniattive(c1.CodPsi, c1.id) = 1
+                            AND tp.Codice IN(918, 919, 920, 929, 934, 1236, 1237, 1238, 1476, 1521, 1522, 1523)
+                      GROUP BY tp.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle
+     FROM estrazioni.[dbo].[Commissioni] c
+          LEFT JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+     WHERE --servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          --AND
+     c.DataComm <= 20211231
+     AND mco.codice_oggetto IN(918, 919, 920, 929, 934, 1236, 1237, 1238, 1476, 1521, 1522, 1523))
+     --SELECT main.codpsi,
+     --       main.www,
+     --       (main.sigle + sub1.sigle) Sigle
+     --FROM main
+     --     INNER JOIN sub1 ON main.codpsi = sub1.CodPsi
+     --     --INNER JOIN sub2 ON main.CodPsi = sub2.codpsi;
+     --UNION
+     --SELECT main.codpsi,
+     --       main.www,
+     --       (main.sigle + sub2.sigle) Sigle
+     --FROM main
+     --     --INNER JOIN sub1 ON main.codpsi = sub1.CodPsi
+     --     INNER JOIN sub2 ON main.CodPsi = sub2.codpsi
+     --UNION
+     --SELECT main.codpsi,
+     --       main.www,
+     --       (main.sigle + sub1.sigle + sub2.sigle) Sigle
+     --FROM main
+     --     INNER JOIN sub1 ON main.codpsi = sub1.CodPsi
+     --     INNER JOIN sub2 ON main.CodPsi = sub2.codpsi
+     --ORDER BY main.codpsi
+
+     SELECT DISTINCT
+            main.codpsi CodPsi,
+            main.www,
+            main.sigle Sito,
+            CASE
+                WHEN sub1.sigle IS NOT NULL
+                THEN sub1.sigle
+                ELSE ''
+            END AS Ansa,
+            CASE
+                WHEN sub2.sigle IS NOT NULL
+                THEN sub2.sigle
+                ELSE ''
+            END AS SiRep
+     FROM main
+          LEFT JOIN sub1 ON main.codpsi = sub1.CodPsi
+          LEFT JOIN sub2 ON main.CodPsi = sub2.codpsi
+     WHERE(sub1.sigle IS NOT NULL
+           OR sub2.sigle IS NOT NULL)
+          AND main.codpsi <> 37774
+     ORDER BY main.codpsi;

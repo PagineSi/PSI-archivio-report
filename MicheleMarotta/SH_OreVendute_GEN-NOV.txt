@@ -1,0 +1,74 @@
+
+WITH firmati as (
+SELECT DATEPART(year, datacompetenza) AS Anno,
+       DATEPART(month, datacompetenza) AS Mese,
+       aio.tipo_inserz Sigla,
+       SUM(IIF(isnull(tipo_importo, '') = 'FIRMATO', 1, 0)) AS Firmati
+       --IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(p.ore)) SommaPD
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE FORMAT(datacompetenza,'yyyyMMdd') BETWEEN '20240101' and '20241130'
+      AND aio.CodiceCategoriaCommerciale IN (23,
+66,
+71,
+229,
+230)
+GROUP BY DATEPART(year, datacompetenza),
+         DATEPART(month, datacompetenza),
+         aio.tipo_inserz
+		 ),
+
+		 ore as (
+
+		 SELECT
+		 p.tipo Sigla,
+		 CASE
+		 WHEN p.tipo='SiHOS'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 0.92
+		 WHEN p.tipo='SHOSP'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 0.92
+		 WHEN p.tipo='SHSeo'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 4.6
+		 WHEN p.tipo='SHEC12'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 11.04
+		 WHEN p.tipo='SH3'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 2.76
+		 WHEN p.tipo='SH6'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 5.52
+		 WHEN p.tipo='SH9'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 8.28
+		 WHEN p.tipo='SH12'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 11.04
+		 WHEN p.tipo='SH24'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 22.08
+		 WHEN p.tipo='SHGO'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 4.6
+		 WHEN p.tipo='SHPLAY'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 9.2
+		 WHEN p.tipo='SHBUILD'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 13.8
+		 WHEN p.tipo='SHInt'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 0.92
+		 WHEN p.tipo='SHIntOS'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 0.92
+		 WHEN p.tipo='SHIntT'
+		 THEN IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0))) + 11.04
+		 ELSE IIF(SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)) <> 0, SUM(isnull(step1,0) + isnull(step2,0) + isnull(step3,0) + isnull(step4,0) + isnull(step5,0) + isnull(step6,0) + isnull(step7,0)), SUM(isnull(p.ore,0)))
+		 END AS SommaPD
+		 FROM servizi.dbo.prodottiOre p
+		 LEFT JOIN anagraf.dbo.TipoInserz t on t.codice=p.codiceSigla
+		 WHERE t.CodiceCategoriaCommerciale IN (23,
+66,
+71,
+229,
+230)
+		 GROUP BY p.tipo
+		 )
+
+		 SELECT 
+		 Anno,
+		 Mese,
+		 firmati.Sigla,
+		 Firmati,
+		 (isnull(Firmati,0) * isnull(ore.SommaPD,0)) as OreVendute
+		 
+		 FROM firmati left join ore on firmati.Sigla=ore.Sigla

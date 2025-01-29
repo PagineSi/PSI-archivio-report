@@ -1,0 +1,54 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+	        Commissioni.codpsi,
+			commissioni.importo,
+			commissioni.consegnato,
+            [pivacf],
+            --categorie.Categoria,
+            elenco.ragsoc+' '+rsnome Azienda,
+            CONCAT(elenco.parttop COLLATE SQL_Latin1_General_CP1_CI_AS, ' ' COLLATE SQL_Latin1_General_CP1_CI_AS, elenco.indirizzo COLLATE SQL_Latin1_General_CP1_CI_AS, ' ' COLLATE SQL_Latin1_General_CP1_CI_AS, elenco.civico COLLATE SQL_Latin1_General_CP1_CI_AS) AS Indirizzo,
+            locali Localita,
+            elenco.CAP,
+            comuni.Comune,
+            prov Provincia,
+            commissioni.Firmante,
+			elenco.prefisso,
+			elenco.telefono,
+			categorie.categoria
+     FROM klingon.lele.dbo.elenco
+          LEFT JOIN Categorie ON categorie.codice = elenco.categoria
+          LEFT JOIN commissioni ON elenco.pivacf COLLATE SQL_Latin1_General_CP1_CI_AS = commissioni.piva COLLATE SQL_Latin1_General_CP1_CI_AS
+          INNER JOIN comuni ON elenco.comune = comuni.codice
+          LEFT JOIN anagrafica ON Commissioni.Codice = Anagrafica.Codice
+     WHERE elenco.azienda = 1
+           --AND Categorie.catref = 393
+           AND comuni.Provincia = 'BG'
+           AND (isnull(commissioni.piva, '') = ''
+                OR (isnull(commissioni.piva, '') <> ''
+                    AND servizi.dbo.commissioniattive(commissioni.codpsi, commissioni.id) = 0))),
+     daEscludere
+     AS (
+     SELECT c.piva
+     FROM anagraf.dbo.commissioni c
+     WHERE servizi.dbo.commissioniattive(c.codpsi, c.id) = 1)
+     SELECT DISTINCT 
+	 --base.codpsi,
+	 --base.importo,
+	 --base.consegnato,
+	 base.Categoria,
+	 base.pivacf PIVA,
+	        base.Azienda,
+            base.Indirizzo,
+            base.Localita,
+            base.CAP,
+            base.Comune,
+            base.Provincia,
+			base.prefisso,
+			base.telefono,
+            --base.Firmante
+			IIF(base.Codpsi IS NOT NULL, 'EX CLIENTE', '') exCliente
+     FROM base
+          LEFT JOIN daEscludere ON base.[pivacf] = daEscludere.piva COLLATE SQL_Latin1_General_CP1_CI_AS
+     WHERE daEscludere.piva IS NULL
+	 ORDER BY comune, pivacf, azienda, indirizzo

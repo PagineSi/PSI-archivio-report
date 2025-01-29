@@ -1,0 +1,17 @@
+SELECT
+	   CodPsi
+      ,RagSoc
+	  ,t.Tipo
+      ,CONVERT(date,formazione_data) as [Data Formazione]
+      ,[formazione_operatore] as [Operatore Formazione]
+      
+  FROM [servizi].[dbo].[SICOMPROD_SI4BUSINESS] as s4
+  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti as mco on mco.id=s4.idWebModcOggetto
+  INNER JOIN anagraf.dbo.Commissioni as comm on comm.id=mco.id_com
+  INNER JOIN anagraf.dbo.TipoInserz as t on t.codice=mco.Codice_Oggetto
+  INNER JOIN anagraf.dbo.Anagrafica as an on an.codice=comm.codice
+
+  where lavorazioneTrasferita<>1
+  and isnull(formazione_data,'')<>''
+
+  order by RagSoc

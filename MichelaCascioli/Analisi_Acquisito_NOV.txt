@@ -1,0 +1,92 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            Area
+     FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]),
+     acquiOLD
+     AS (
+     SELECT Area,
+            SUM(isnull(m.acquisito_property, 0)) Property,
+            SUM(isnull(m.acquisito_concessione, 0)) Concessione
+     FROM
+     (
+         SELECT area,
+                idcom,
+                acquisito_property,
+                acquisito_concessione
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE anno = 2023
+               AND mese = 01
+     ) m
+     GROUP BY m.Area),
+     acquiNEW
+     AS (
+     SELECT Area,
+            SUM(isnull(m.acquisito_property, 0)) Property,
+            SUM(isnull(m.acquisito_concessione, 0)) Concessione
+     FROM
+     (
+         SELECT area,
+                idcom,
+                acquisito_property,
+                acquisito_concessione
+         FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni]
+         WHERE anno = 2024
+               AND mese = 01
+     ) m
+     GROUP BY m.Area),
+     fine
+     AS (
+     SELECT CASE
+                WHEN base.Area IN('MI')
+                THEN 'Cappelletti'
+                WHEN base.Area IN('RM', 'RW')
+                THEN 'Casati'
+                WHEN base.Area IN('CA', 'NG', 'OS', 'OR')
+                THEN 'Cossu Masala'
+                WHEN base.Area IN('PG', 'RI', 'TR', 'VT')
+                THEN 'Cucci'
+                WHEN base.Area IN('CT', 'PA', 'RG', 'SR', 'TP')
+                THEN 'Fazio'
+                WHEN base.Area IN('AN', 'AR', 'AP', 'CH', 'FI', 'GE', 'GR', 'AQ', 'LV', 'LI', 'LU', 'MC', 'MS', 'PU', 'PE', 'PI', 'PT', 'PO', 'RA', 'SI', 'TE', 'T0')
+                THEN 'Gherardotti'
+                WHEN base.Area IN('BA', 'BN', 'CE', 'CZ', 'CS', 'KR', 'LE', 'NA', 'PZ', 'RC', 'SA', 'TA')
+                THEN 'Gigliotti'
+                WHEN base.Area IN('BL', 'PD', 'PN', 'RO', 'TV', 'GT', 'UD', 'VE')
+                THEN 'Nordest'
+                WHEN base.Area IN('ET', 'T1')
+                THEN 'PagineSI'
+                WHEN base.Area IN('BG', 'BS', 'CR', 'VR', 'VI')
+                THEN 'Preda'
+                WHEN base.Area IN('FE', 'IM', 'SP', 'MO', 'PR', 'PC')
+                THEN 'Ridondelli'
+            END AS 'Supervisore',
+            base.Area,
+            ROUND(isnull(acquiOLD.Property, 0), 2) Property_23,
+            ROUND(isnull(acquiOLD.Concessione, 0), 2) Concessione_23,
+            ROUND(isnull(acquiNEW.Property, 0), 2) Property_24,
+            ROUND(isnull(acquiNEW.Property, 0) - isnull(acquiOLD.Property, 0), 2) AS 'Prop_+/-',
+            ROUND(IIF(isnull(acquiOLD.Property, 0) = 0, 0, (isnull(acquiNEW.Property, 0) - isnull(acquiOLD.Property, 0)) / isnull(acquiOLD.Property, 0) * 100), 2) AS 'Prop_+/- in %',
+            ROUND(isnull(acquiNEW.Concessione, 0), 2) Concessione_24,
+            ROUND(isnull(acquiNEW.Concessione, 0) - isnull(acquiOLD.Concessione, 0), 2) AS 'Conc_+/-',
+            ROUND(IIF(isnull(acquiOLD.Concessione, 0) = 0, 0, (isnull(acquiNEW.Concessione, 0) - isnull(acquiOLD.Concessione, 0)) / isnull(acquiOLD.Concessione, 0) * 100), 2) AS 'Conc_+/- in %',
+            ROUND((isnull(acquiNEW.Property, 0) - isnull(acquiOLD.Property, 0)) + (isnull(acquiNEW.Concessione, 0) - isnull(acquiOLD.Concessione, 0)), 2) AS Delta,
+            ROUND(IIF((isnull(acquiOLD.Property, 0) + isnull(acquiOLD.Concessione, 0)) = 0, 0, ((isnull(acquiNEW.Property, 0) - isnull(acquiOLD.Property, 0)) + (isnull(acquiNEW.Concessione, 0) - isnull(acquiOLD.Concessione, 0))) / (isnull(acquiOLD.Property, 0) + isnull(acquiOLD.Concessione, 0)) * 100), 2) AS 'Delta_+/- in %'
+     FROM base
+          LEFT JOIN acquiOLD ON acquiOLD.area = base.area
+          LEFT JOIN acquiNEW ON acquiNEW.area = base.area)
+     SELECT fine.Supervisore,
+            fine.Area,
+            fine.Property_23,
+            fine.Concessione_23,
+            '' AS ' ',
+            fine.Property_24,
+            fine.[Prop_+/-] AS '+/-',
+            REPLACE(CONCAT(fine.[Prop_+/- in %], '%'), '.', ',') AS '+/- in %',
+            fine.Concessione_24,
+            fine.[Conc_+/-] AS '+/-',
+            REPLACE(CONCAT(fine.[Conc_+/- in %], '%'), '.', ',') AS '+/- in %',
+            fine.Delta,
+            REPLACE(CONCAT(fine.[Delta_+/- in %], '%'), '.', ',') AS '+/- in %'
+     FROM fine
+     ORDER BY Area;

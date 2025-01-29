@@ -1,0 +1,604 @@
+WITH cli
+     AS (
+     SELECT DISTINCT
+            m.Operatore,
+            COUNT(m.[Abitare (Arredo, Forniture, Impianti, Interventi)]) [Abitare (Arredo, Forniture, Impianti, Interventi)],
+            COUNT(m.[Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero]) [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+            COUNT(m.[Eventi, Pranzo e cena, Viaggi e turismo]) [Eventi, Pranzo e cena, Viaggi e turismo],
+            COUNT(m.[Salute (Bellezza, Sanità)]) [Salute (Bellezza, Sanità)],
+            COUNT(m.[Auto e Moto]) [Auto e Moto],
+            COUNT(m.[Onoranze Funebri]) [Onoranze Funebri],
+            COUNT(m.[Servizi Immobiliari]) [Servizi Immobiliari],
+            COUNT(m.[Moda e Shopping]) [Moda e Shopping],
+            COUNT(m.[Arte e Cultura, Istruzione e Formazione]) [Arte e Cultura, Istruzione e Formazione],
+            COUNT(m.[Elettronica e Tecnologia]) [Elettronica e Tecnologia],
+            COUNT(m.[Enti]) [Enti],
+            COUNT(m.[Industria]) [Industria],
+            COUNT(m.[Professionisti e Consulenti]) [Professionisti e Consulenti],
+            COUNT(m.[Servizi]) [Servizi],
+            COUNT(m.[Abitare (Arredo, Forniture, Impianti, Interventi)]) + COUNT(m.[Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero]) + COUNT(m.[Eventi, Pranzo e cena, Viaggi e turismo]) + COUNT(m.[Salute (Bellezza, Sanità)]) + COUNT(m.[Auto e Moto]) + COUNT(m.[Onoranze Funebri]) + COUNT(m.[Servizi Immobiliari]) + COUNT(m.[Moda e Shopping]) + COUNT(m.[Arte e Cultura, Istruzione e Formazione]) + COUNT(m.[Elettronica e Tecnologia]) + COUNT(m.[Enti]) + COUNT(m.[Industria]) + COUNT(m.[Professionisti e Consulenti]) + COUNT(m.[Servizi]) TotCli
+     FROM
+     (
+         SELECT DISTINCT
+                cmsd.MacroSet AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Abitare (Arredo, Forniture, Impianti, Interventi)'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                cmsd.MacroSet AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                cmsd.MacroSet AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Eventi, Pranzo e cena, Viaggi e turismo'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                cmsd.MacroSet AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Salute (Bellezza, Sanità)'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                cmsd.MacroSet AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Auto e Moto'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                cmsd.MacroSet AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Onoranze Funebri'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                cmsd.MacroSet AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Servizi Immobiliari'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                cmsd.MacroSet AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Moda e Shopping'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                cmsd.MacroSet AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Arte e Cultura, Istruzione e Formazione'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                cmsd.MacroSet AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Elettronica e Tecnologia'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                cmsd.MacroSet AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Enti'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                cmsd.MacroSet AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Industria'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                cmsd.MacroSet AS [Professionisti e Consulenti],
+                NULL AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Professionisti e Consulenti'
+         UNION
+         SELECT DISTINCT
+                NULL AS [Abitare (Arredo, Forniture, Impianti, Interventi)],
+                NULL AS [Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+                NULL AS [Eventi, Pranzo e cena, Viaggi e turismo],
+                NULL AS [Salute (Bellezza, Sanità)],
+                NULL AS [Auto e Moto],
+                NULL AS [Onoranze Funebri],
+                NULL AS [Servizi Immobiliari],
+                NULL AS [Moda e Shopping],
+                NULL AS [Arte e Cultura, Istruzione e Formazione],
+                NULL AS [Elettronica e Tecnologia],
+                NULL AS [Enti],
+                NULL AS [Industria],
+                NULL AS [Professionisti e Consulenti],
+                cmsd.MacroSet AS [Servizi],
+                ct.Categoria,
+                c.[CodPsi],
+                IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+		 --cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND cmsd.MacroSet = 'Servizi'
+    --AND vc.datacompetenza BETWEEN 20210101 AND 20211231
+     ) AS m
+--WHERE m.MacroSet = 'Abitare (Arredo, Forniture, Impianti, Interventi)'
+     GROUP BY m.Operatore
+--ORDER BY nClienti DESC;
+),
+     targetc
+     AS (
+     SELECT DISTINCT
+--TOP 10 
+            --IIF(m.MacroSet IS NOT NULL, m.MacroSet, 'Categoria non associata') MacroSet,
+            m.Operatore,
+            COUNT(m.Codpsi) TargetCli
+     FROM
+     (
+         SELECT DISTINCT
+                cmsd.MacroSet,
+                ct.Categoria,
+                c.[CodPsi],
+           --IIF(u.Cognome IS NOT NULL, u.cognome, s.assegnazione_operatore) Operatore
+                cst.OpeSocial Operatore
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc ON vc.id = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+              LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+              LEFT JOIN main.dbo.catrefSettore crs ON crs.catRef = ct.catref
+              LEFT JOIN main.dbo.CatSetMacroSet csms ON csms.codiceset = crs.codiceset
+              LEFT JOIN main.dbo.catmacrosetdescrizione cmsd ON cmsd.codicemacroset = csms.codicemacroset
+              LEFT JOIN main.dbo.catsocialtarget cst ON cst.codicemacroset = cmsd.codiceMacroSet
+              INNER JOIN [servizi].[dbo].[SICOMPROD_SOCIAL] s ON s.idwebmodcoggetto = mco.id
+              LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = s.assegnazione_operatore
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+              AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+         AND c.archivio = 9999
+         AND isnull(s.assegnazione_operatore, '') <> ''
+         --AND ct.catref = ct.codice
+         AND u.Cognome = cst.OpeSocial
+    --AND vc.datacompetenza BETWEEN 20210101 AND 20211231
+     ) AS m
+--WHERE m.MacroSet = 'Abitare (Arredo, Forniture, Impianti, Interventi)'
+     GROUP BY --m.MacroSet,
+     m.Operatore
+--ORDER BY nClienti DESC;
+)
+     SELECT DISTINCT
+            cli.Operatore,
+            cli.[Abitare (Arredo, Forniture, Impianti, Interventi)],
+            cli.[Agricoltura, Animali Domestici, Enogastronomia, Hobby e Tempo Libero],
+            cli.[Eventi, Pranzo e cena, Viaggi e turismo],
+            cli.[Salute (Bellezza, Sanità)],
+            cli.[Auto e Moto],
+            cli.[Onoranze Funebri],
+            cli.[Servizi Immobiliari],
+            cli.[Moda e Shopping],
+            cli.[Arte e Cultura, Istruzione e Formazione],
+            cli.[Elettronica e Tecnologia],
+            cli.[Enti],
+            cli.[Industria],
+            cli.[Professionisti e Consulenti],
+            cli.[Servizi],
+            cli.TotCli,
+            targetc.TargetCli,
+            IIF(targetc.TargetCli * 100 / cli.TotCli <> 0, CONCAT(targetc.TargetCli * 100 / cli.TotCli, '%'), '') PercTarget
+     FROM cli
+          LEFT JOIN targetc ON cli.operatore = targetc.operatore;	

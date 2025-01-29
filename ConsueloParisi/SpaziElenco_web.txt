@@ -1,0 +1,95 @@
+WITH cliNC
+     AS (
+     SELECT DISTINCT
+            ulc.archivio,
+            t.tipo,
+            ulc.codpsi
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN estrazioni.dbo.oggetti o ON o.idcom = ulc.id
+                                                 AND ulc.archivio = o.archivio
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = o.tipo
+     WHERE isnull(t.isweb, 0) = 1
+           AND o.archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1),
+     cli
+     AS (
+     SELECT DISTINCT
+            ulc.archivio,
+            ulc.codpsi,
+            a.ragsoc,
+            ulc.area,
+            MAX(ulc.DataComm) DataComm,
+		  ulc.RinTac,
+            MAX(anage.nome) Agente
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+          INNER JOIN anagraf.dbo.oggetti o ON o.idcom = ulc.id
+          INNER JOIN main.dbo.arcediz ae ON ae.ediz = ulc.Area
+          LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                             AND ulc.Agente = ag.Codagente
+          LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+     WHERE archivio = 9999
+           AND isnull(o.edizione, '') <> 'WWW'
+           AND isnull(ulc.importo, 0) <> 0
+           AND isnull(ae.tipoArea, '') = 'web'
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+     GROUP BY ulc.archivio,
+              ulc.codpsi,
+		    ulc.RinTac,
+              a.ragsoc,
+              ulc.area),
+     impoarch
+     AS (
+     SELECT codpsi,
+            area,
+            SUM(importo) AS Tot_ImportoArchCorrente,
+            SUM(consegnato) AS Tot_ConsegnatoArchCorrente,
+            SUM(importoInsoluto) AS [Tot_InsolutoArchCorrente],
+            SUM(importoscaduto) AS [Tot_ScadutoArchCorrente]
+     FROM estrazioni.dbo.commissioni aic
+     WHERE estrazioni.dbo.commissioniattive(aic.archivio, aic.codpsi, aic.id) = 1
+     AND archivio = 9999
+     GROUP BY codpsi,
+              area),
+     scadenze
+     AS (
+     SELECT ulc.codpsi,
+            CASE
+                WHEN isnull(rintac, '') <> ''
+                THEN NULL
+                WHEN isnull(rintac, '') = ''
+                     AND isnull(bianni, '') = ''
+                THEN IIF(TRY_CONVERT( DATE, datacomm) IS NOT NULL, DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+                WHEN isnull(rintac, '') = ''
+                     AND isnull(bianni, '') = 'A'
+                     AND isnull(bianni, '') = 'B'
+                THEN IIF(TRY_CONVERT(DATE, datacomm) IS NOT NULL, DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+                WHEN isnull(rintac, '') = ''
+                     AND isnull(bianni, '') = 'B'
+                     AND isnull(bianni, '') = 'B'
+                THEN IIF(TRY_CONVERT(DATE, datacomm) IS NOT NULL, DATEADD(year, 2, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+            END AS scadenzaContratti
+     FROM estrazioni.dbo.commissioni ulc
+     WHERE estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+     AND archivio = 9999)
+     SELECT DISTINCT
+            cli.Archivio,
+            cli.Codpsi,
+            cli.RagSoc,
+            cli.Area,
+            cli.DataComm,
+		  cli.RinTac,
+            scadenze.scadenzaContratti,
+            cli.Agente,
+            impoarch.Tot_ImportoArchCorrente,
+            --impoarch.Tot_ConsegnatoArchCorrente,
+            impoarch.[Tot_InsolutoArchCorrente]
+            --impoarch.[Tot_ScadutoArchCorrente]
+     FROM cli
+          LEFT JOIN cliNC ON cliNC.codpsi = cli.codpsi
+          INNER JOIN impoarch ON impoarch.codpsi = cli.codpsi
+                                 AND impoarch.area = cli.area
+          LEFT JOIN scadenze ON scadenze.codpsi = cli.codpsi
+     WHERE clinc.codpsi IS NULL
+     ORDER BY codpsi,
+              archivio;

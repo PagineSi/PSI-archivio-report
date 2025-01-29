@@ -1,0 +1,8 @@
+SELECT DISTINCT 
+       dl.domini AS DOMINI, 
+       format(d.datadomdel, 'yyyy-MM-dd') AS DATA_ANN, 
+       format(d.datadomrip, 'yyyy-MM-dd') AS DATA_RIP
+FROM [servizi].[dbo].[dominiLo] dl
+     INNER JOIN anagraf.dbo.WEB_ModuloC_Domini d ON d.www = concat('www.', dl.domini)
+WHERE ISNULL(d.tipoAnnullamento, 0) <> 3
+ORDER BY dl.domini ASC;

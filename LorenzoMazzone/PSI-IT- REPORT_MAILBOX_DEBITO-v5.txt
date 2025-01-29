@@ -1,0 +1,78 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT DISTINCT
+       [Dominio],
+       [CODICE COMMISSIONE],
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+MAX(c4.PIVA)
+                FROM anagraf.dbo.commissioni c4
+                WHERE c4.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c4.codpsi, c4.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS PIVA,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+MAX(a1.ragsoc)
+                FROM anagraf.dbo.anagrafica a1
+                     INNER JOIN anagraf.dbo.commissioni c3 ON c3.codice = a1.codice
+                WHERE c3.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c3.codpsi, c3.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS RagSoc,
+       IIF(isnull(a.altosp, '') <> '', 'X', '') VIC,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+ang.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Agente,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.zone = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isCoordinatore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Coordinatore,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.zone = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isSupervisore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Supervisore,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+c1.area
+                FROM anagraf.dbo.commissioni c1
+                WHERE c1.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c1.codpsi, c1.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Area,
+       [COUNT MAIL_COMMISSIONE],
+       [COUNT MAIL_TENANT ZIMBRA],
+       [WARNING],
+       [COUNT MAIL DELTA]
+FROM [estrazioni].[dbo].[_report_mailbox_clienti] rep
+     LEFT JOIN anagraf.dbo.commissioni c ON c.codpsi = rep.[CODICE COMMISSIONE]
+     LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice;

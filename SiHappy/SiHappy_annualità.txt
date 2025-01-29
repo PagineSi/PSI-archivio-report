@@ -1,0 +1,154 @@
+
+WITH cli
+     AS (
+     SELECT DISTINCT
+            c.Codpsi,
+            c.Area
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+     WHERE tp.codicecategoria IN(23, 66)
+          AND estrazioni.dbo.commissioniattive(c.archivio, c.codpsi, c.id) = 1),
+     uno
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.CodiceCategoria IN(23, 66)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2020
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2020,
+            NULL AS Annualità_2021,
+            NULL AS Annualità_2022,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2020
+           AND tp.codicecategoria IN(23, 66)),
+     due
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.CodiceCategoria IN(23, 66)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2021
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2021,
+            NULL AS Annualità_2022,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2021
+           AND tp.codicecategoria IN(23, 66)),
+     tre
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            NULL AS Annualità_2021,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.CodiceCategoria IN(23, 66)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2022
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2022,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2022
+           AND tp.codicecategoria IN(23, 66)),
+     quattro
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            NULL AS Annualità_2021,
+            NULL AS Annualità_2022,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.CodiceCategoria IN(23, 66)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2023
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2023
+           AND tp.codicecategoria IN(23, 66))
+     SELECT cli.CodPsi,
+            cli.Area,
+            uno.Annualità_2020,
+            due.Annualità_2021,
+            tre.Annualità_2022,
+            quattro.Annualità_2023
+     FROM cli
+          LEFT JOIN uno ON uno.codpsi = cli.CodPsi
+                           AND uno.area = cli.Area
+          LEFT JOIN due ON due.codpsi = cli.CodPsi
+                           AND due.area = cli.Area
+          LEFT JOIN tre ON tre.codpsi = cli.CodPsi
+                           AND tre.area = cli.Area
+          LEFT JOIN quattro ON quattro.codpsi = cli.CodPsi
+                               AND quattro.area = cli.Area
+     WHERE((uno.Annualità_2020 IS NOT NULL
+            AND due.Annualità_2021 IS NOT NULL
+            AND tre.Annualità_2022 IS NOT NULL
+            AND quattro.Annualità_2023 IS NOT NULL)
+           OR (uno.Annualità_2020 IS NULL
+               AND due.Annualità_2021 IS NULL
+               AND tre.Annualità_2022 IS NULL
+               AND quattro.Annualità_2023 IS NOT NULL));

@@ -1,0 +1,188 @@
+WITH 
+cliNC
+     AS (
+     SELECT DISTINCT
+            ulc.archivio,
+            t.tipo,
+            ulc.codpsi
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN estrazioni.dbo.oggetti o ON o.idcom = ulc.id
+                                                 AND ulc.archivio = o.archivio
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = o.tipo
+     WHERE isnull(t.isweb,0)=1
+           AND o.archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1),
+
+cli
+AS (
+SELECT DISTINCT
+       ulc.archivio,
+       ulc.codpsi,
+       a.ragsoc,
+	   [nomePM],
+       MAX(ulc.firmante) AS firmante,
+       MAX(concat(a.Indirizzo, ' ', a.civico)) AS Indirizzo,
+       MAX(concat(a.prefisso, ' ', a.telefono)) AS Telefono,
+       MAX(concat(comuni.comune, ' ', '(', comuni.Provincia, ')')) AS Comune,
+       ulc.area,
+       MAX(anage.nome) AS nome,
+	  cat.categoria
+FROM estrazioni.dbo.commissioni ulc
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+     LEFT JOIN anagraf.dbo.comuni ON comuni.codice = a.comune
+     LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                        AND ulc.Agente = ag.Codagente
+     LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+	 left join   [main].[dbo].[PM] on pm.id=a.[vicPM] 
+	 INNER JOIN anagraf.dbo.Categorie cat on cat.Codice=a.Categoria
+
+--left  JOIN anagraf.dbo.WEB_ModuloC mc on mc.idcom=ulc.id
+--left join anagraf.dbo.WEB_ModuloC_Domini MD on MD.ID_ModuloC=mc.id
+--INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.ID
+--INNER JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+
+WHERE archivio = 9999
+--funzione che individua le commissioni attive
+      AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+	 --and cat.catref=393
+GROUP BY ulc.archivio,
+         ulc.codpsi,
+         a.ragsoc,
+         ulc.area,
+		 [nomePM],
+		 cat.categoria),
+
+-- faccio la somma degli importi dei clienti e area 
+importi
+AS (
+SELECT codpsi,
+       area,
+       SUM(importo) AS Tot_Importo,
+       SUM(consegnato) AS Tot_Consegnato,
+       SUM(importoInsoluto) AS [Tot_Insoluto],
+       SUM(importoscaduto) AS [Tot_Scaduto]
+FROM estrazioni.dbo.commissioni aic
+WHERE estrazioni.dbo.commissioniattive(aic.archivio, aic.codpsi, aic.id) = 1
+
+GROUP BY codpsi,
+         area
+	    
+	   
+      ),
+
+-- mi seleziono la data comm  più grande per ogni cliente
+MaxDATAC
+AS (
+SELECT vAnalisiImportiCommissioni.codpsi,
+       MAX(format(DATACOMM, 'yyyy-MM-dd')) AS Maxdatacomm,
+       MAX(archivio) AS archivio
+FROM estrazioni.dbo.vAnalisiImportiCommissioni
+GROUP BY vAnalisiImportiCommissioni.CodPsi),
+
+
+-- mi seleziono la data comm  più piccola per ogni cliente
+MinDATAC
+AS (
+SELECT vAnalisiImportiCommissioni.codpsi,
+       MIN(format(DATACOMM, 'yyyy-MM-dd')) AS Mindatacomm
+FROM estrazioni.dbo.vAnalisiImportiCommissioni
+GROUP BY vAnalisiImportiCommissioni.CodPsi),
+
+--dati relativi all'archivio corrente di ogni cliente
+impoarch
+AS (
+SELECT codpsi,
+       area,
+       SUM(importo) AS Tot_ImportoArchCorrente,
+       SUM(consegnato) AS Tot_ConsegnatoArchCorrente,
+       SUM(importoInsoluto) AS [Tot_InsolutoArchCorrente],
+       SUM(importoscaduto) AS [Tot_ScadutoArchCorrente]
+FROM estrazioni.dbo.commissioni aic
+WHERE estrazioni.dbo.commissioniattive(aic.archivio, aic.codpsi, aic.id) = 1
+AND archivio = 9999
+GROUP BY codpsi,
+         area
+	    
+	     --HAVING (SUM(isnull(importo,0)) >= 5000 or SUM(isnull(Consegnato,0)) >= 5000)
+		),
+scadenze
+AS (
+SELECT ulc.codpsi,
+       CASE
+           WHEN isnull(rintac, '') <> ''
+           THEN NULL
+           WHEN isnull(rintac, '') = ''
+                AND isnull(bianni, '') = ''
+           THEN IIF(TRY_CONVERT( DATE, datacomm) IS NOT NULL, DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+           WHEN isnull(rintac, '') = ''
+                AND isnull(bianni, '') = 'A'
+                AND isnull(bianni, '') = 'B'
+           THEN IIF(TRY_CONVERT(DATE, datacomm) IS NOT NULL, DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+           WHEN isnull(rintac, '') = ''
+                AND isnull(bianni, '') = 'B'
+                AND isnull(bianni, '') = 'B'
+           THEN IIF(TRY_CONVERT(DATE, datacomm) IS NOT NULL, DATEADD(year, 2, TRY_CONVERT(DATE, (datacomm))), DATEADD(year, 1, TRY_CONVERT(DATE, (datacomm_annoprec))))
+       END AS scadenzaContratti
+FROM estrazioni.dbo.commissioni ulc
+     INNER JOIN servizi.dbo.vTipoVIC ON vtipovic.codpsi = ulc.codpsi
+WHERE estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+     AND archivio = 9999),
+Causali
+AS (
+SELECT ulc.codpsi,
+       stcontr
+FROM estrazioni.dbo.commissioni ulc
+     INNER JOIN servizi.dbo.vTipoVIC ON vtipovic.codpsi = ulc.codpsi
+WHERE estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1
+     AND archivio = 9999)
+SELECT DISTINCT
+       '_Archivio' AS Archivio,
+       cli.codpsi,
+       cli.ragsoc,
+       cli.indirizzo,
+       cli.comune,
+       cli.telefono,
+       cli.area,
+       Tot_ConsegnatoArchCorrente,
+       Tot_ImportoArchCorrente,
+       [Tot_InsolutoArchCorrente],
+       [Tot_ScadutoArchCorrente],
+       replace(CAST(IIF([Tot_ScadutoArchCorrente] <  = 0, 0, IIF(isnull([Tot_InsolutoArchCorrente], 0) < 0, 0, [Tot_InsolutoArchCorrente]) / IIF(isnull([Tot_ScadutoArchCorrente], 0) < 0, 0, [Tot_ScadutoArchCorrente])) * 100 AS NUMERIC(36, 2)), '.', ',') percInsolutoArchCorrente,
+       Tot_Consegnato,
+       Tot_importo,
+       [Tot_Insoluto],
+       [Tot_Scaduto],
+       replace(CAST(IIF([Tot_Scaduto] <  = 0, 0, IIF(isnull([Tot_Insoluto], 0) < 0, 0, [Tot_Insoluto]) / IIF(isnull([Tot_Scaduto], 0) < 0, 0, [Tot_Scaduto])) * 100 AS NUMERIC(36, 2)), '.', ',') percentualeInsoluto,
+       Mindatacomm,
+       Maxdatacomm,
+       estrazioni.dbo.udfElencoOggettiClienteCommAttive(cli.archivio, cli.codpsi) AS ElencoOggArchivioCorrente,
+       Cli.nome AS nomeagente,
+	    vtipovic.tipovic,
+		[nomePM],
+       (STUFF(
+             (
+                 SELECT ', '+CONVERT(VARCHAR, scadenze.scadenzaContratti)
+                 FROM scadenze
+                 WHERE scadenze.codpsi = cli.codpsi FOR XML PATH('')
+             ), 1, 2, '')) AS [ScadenzaContratti],
+       (STUFF(
+             (
+                 SELECT ', '+stcontr
+                 FROM causali
+                 WHERE causali.codpsi = cli.codpsi FOR XML PATH('')
+             ), 1, 2, '')) AS [StatoContratti],
+		   cli.categoria
+FROM cli
+     LEFT JOIN cliNC ON cliNC.codpsi = cli.codpsi
+     INNER JOIN importi ON importi.CodPsi = cli.CodPsi
+                           AND importi.area = cli.Area
+     INNER JOIN impoarch ON impoarch.codpsi = cli.codpsi
+                            AND impoarch.area = cli.area
+     INNER JOIN MinDATAC ON MinDATAC.CodPsi = cli.codpsi
+     INNER JOIN MaxDATAC ON MaxDATAC.CodPsi = cli.codpsi
+     LEFT JOIN servizi.[dbo].[vTipoVIC] ON [vTipoVIC].codpsi = cli.codpsi
+     LEFT JOIN scadenze ON scadenze.codpsi = cli.codpsi
+     LEFT JOIN causali ON causali.codpsi = cli.codpsi
+	--WHERE estrazioni.dbo.udfElencoOggettiClienteCommAttive(cli.archivio, cli.codpsi) NOT LIKE '%RDV%'
+	WHERE clinc.codpsi IS NULL
+ORDER BY ragsoc;

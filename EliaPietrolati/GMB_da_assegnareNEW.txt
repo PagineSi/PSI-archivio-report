@@ -1,0 +1,34 @@
+WITH oggetti
+     AS (
+     SELECT commissioni.codpsi AS codice,
+            commissioni.[id],
+            id_moduloc,
+            commissioni.area,
+            commissioni.intfat AS cliente,
+            tipoinserz.tipo AS oggetto,
+            [cm_ope_inproduzione],
+            [cm_data_emailproduzione],
+            [WEB_ModuloC_oggetti].id idog
+     FROM [anagraf].[dbo].[WEB_ModuloC_oggetti]
+          INNER JOIN anagraf.dbo.tipoinserz ON tipoinserz.codice = WEB_ModuloC_oggetti.codice_oggetto
+          INNER JOIN anagraf.dbo.commissioni ON commissioni.id = WEB_ModuloC_oggetti.id_com
+     WHERE servizi.dbo.commissioniattive(commissioni.codpsi, commissioni.id) = 1
+          AND WEB_ModuloC_oggetti.codice_oggetto IN(1262, 1263, 1264, 1265)
+     AND ((servizi.dbo.areacm(commissioni.area, WEB_ModuloC_oggetti.datavalidazione) = 1
+     AND cm_data_inproduzione IS NOT NULL)
+     OR (servizi.dbo.areacm(commissioni.area, WEB_ModuloC_oggetti.datavalidazione) = 0))),
+     gmb
+     AS (
+     SELECT idWebModcOggetto
+     FROM servizi.dbo.SICOMPROD_GMB gmb)
+     SELECT oggetti.codice,
+            oggetti.[id],
+            oggetti.id_moduloc,
+            oggetti.area,
+            oggetti.cliente,
+            oggetti.oggetto,
+            oggetti.[cm_ope_inproduzione],
+            oggetti.[cm_data_emailproduzione]
+     FROM oggetti
+          LEFT JOIN gmb ON gmb.idWebModcOggetto = oggetti.idog
+     WHERE gmb.idWebModcOggetto IS NULL

@@ -1,0 +1,11 @@
+SELECT tipo_inserz AS Sigla, 
+       ROUND(SUM(ISNULL(tot_acquisito, 0)), 2) AS Importo, 
+       tipo_importo AS [Tipo Importo], 
+       area AS Area
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti]
+WHERE CodiceCategoriaCommerciale = 23
+      AND format(DataCompetenza, 'yyyy-MM-dd') BETWEEN '2019-01-01' AND '2019-12-31'
+GROUP BY tipo_inserz, 
+         tipo_importo, 
+         Area
+ORDER BY area;

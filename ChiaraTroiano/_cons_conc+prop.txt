@@ -1,0 +1,82 @@
+
+
+WITH base
+     AS (
+     SELECT [CodPsi],
+            [Piva],
+            [Insegna],
+            [telefono],
+            [Indirizzo],
+            [Comune],
+            [Agente],
+            [Affidatario],
+            [descOGG],
+            [consegnato],
+            [consegnato_concessione],
+            [consegnato_property],
+            [Acquisito],
+            [InsolutoCamp],
+            [InsolutoTOT],
+            [negativi],
+            [DataMinimaContr],
+            [emailPec],
+            [emailAmm],
+            [EmailUrl],
+            [categoria],
+            [negativoDich],
+            [idAgcliPot],
+            [appuntamentiAperti],
+            [appuntamenti],
+            [recuperabile],
+            [VIC],
+            [concessione],
+            [property]
+     FROM [estrazioni].[dbo].[_PORTSICOMA]),
+     consprec
+     AS (
+     SELECT aic.codpsi,
+            a.Agente,
+            SUM(aic.acquisito_property) consegnato_property,
+            SUM(aic.acquisito_concessione) consegnato_concessione
+     FROM estrazioni.dbo.vAnalisiImportiCommissioni aic
+          INNER JOIN estrazioni.dbo.vCommissioniPenultimeCampagne uc ON uc.id = aic.idCom
+                                                                        AND uc.archivio = aic.archivio
+          LEFT JOIN anagraf.dbo.agenti a ON a.Codagente = uc.Agente
+                                            AND a.Gruppo = uc.Gruppo
+          LEFT JOIN anagraf.dbo.anage an ON an.utente = a.utente
+     GROUP BY aic.codpsi,
+              a.Agente)
+     SELECT base.[CodPsi],
+            base.[Piva],
+            base.[Insegna],
+            base.[telefono],
+            base.[Indirizzo],
+            base.[Comune],
+            base.[Agente],
+            base.[Affidatario],
+            base.[descOGG],
+            base.[consegnato],
+            IIF(base.[consegnato_concessione] IS NOT NULL, base.[consegnato_concessione], consprec.consegnato_concessione) consegnato_concessione,
+            IIF(base.[consegnato_property] IS NOT NULL, base.[consegnato_property], consprec.consegnato_property) consegnato_property,
+            base.[Acquisito],
+            base.[InsolutoCamp],
+            base.[InsolutoTOT],
+            base.[negativi],
+            base.[DataMinimaContr],
+            base.[emailPec],
+            base.[emailAmm],
+            base.[EmailUrl],
+            base.[categoria],
+            base.[negativoDich],
+            base.[idAgcliPot],
+            base.[appuntamentiAperti],
+            base.[appuntamenti],
+            base.[recuperabile],
+            base.[VIC],
+            base.[concessione],
+            base.[property]
+     FROM base
+          LEFT JOIN consprec ON base.[CodPsi] = consprec.codpsi
+                                AND base.Agente = consprec.Agente;
+
+						  --DELETE FROM [estrazioni].[dbo].[_PORTSICOMA]

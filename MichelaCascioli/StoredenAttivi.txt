@@ -1,0 +1,27 @@
+SELECT DISTINCT
+a.RagSoc,
+c.CodPsi,
+c.id idCom,
+c.Piva,
+c.area Area,
+ang.nome Agente,
+ag.email MailAgente,
+IIF(ang.telefono is not null, ang.telefono, ang.cellulare) TelAgente,
+CONCAT (a.Indirizzo,', ',a.Civico) as Indirizzo,
+co.comune Comune,
+c.Firmante,
+CONCAT (a.Prefisso,'-',a.Telefono) as TelCli,
+IIF(ISNULL(a.emailurl, '')'',a.emailurl, a.emailamm) as MailCli,
+estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Ogg,
+c.Importo
+  FROM [estrazioni].[dbo].[Commissioni] c
+  inner join anagraf.dbo.web_moduloc mc on mc.idcom=c.id
+  inner join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.id
+  inner join anagraf.dbo.anagrafica a on a.codice=c.Codice
+  left join anagraf.dbo.comuni co on co.codice=a.comune
+  left join anagraf.dbo.TipoInserz t on mco.Codice_Oggetto=t.codice
+  left join anagraf.dbo.Agenti ag on ag.gruppo=c.gruppo and ag.codagente=c.Agente
+  left join anagraf.dbo.anAge ang on ang.utente=ag.utente
+  WHERE estrazioni.dbo.CommissioniAttive(c.archivio,c.codpsi,c.id)=1 
+  and t.Fornitore='storeden'
+  and c.archivio=9999

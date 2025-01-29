@@ -1,0 +1,311 @@
+WITH
+
+cli
+AS (
+SELECT DISTINCT
+ulc.id,
+ulc.archivio,
+ulc.codpsi,
+ragsoc,
+ulc.area,
+anage.nome Agente,
+CASE
+WHEN isnull(ulc.Consegnato, '')<>'' and isnull(ulc.importo,'')=''
+THEN 'Da Rinnovare'
+WHEN isnull(ulc.Consegnato, '')='' and isnull(ulc.importo,'')<>''
+THEN 'Nuova'
+WHEN isnull(ulc.Consegnato, '')<>'' and isnull(ulc.importo,'')<>''
+THEN 'Rinnovata'
+WHEN isnull(ulc.Consegnato, '')='' and isnull(ulc.importo,'')=''
+THEN 'Annullata'
+END as Stato,
+IIF(ulc.datacomm IS NOT NULL, ulc.datacomm, ulc.DataComm_Annoprec) DataComm,
+(STUFF(
+             (
+                 SELECT ', '+tp1.tipo+' (x',
+			  COUNT(tp1.tipo),
+			  ')'
+			  FROM  anagraf.dbo.TipoInserz tp1
+			  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.codice_oggetto=tp1.codice
+                 INNER JOIN estrazioni.dbo.commissioni ulc1 on ulc1.id=mco1.id_com
+			  WHERE ulc1.id=ulc.id and ulc1.archivio=ulc.archivio
+			  AND ulc1.archivio=9999
+			  AND tp1.Codice IN (486,
+966,
+730,
+731,
+732,
+733,
+734,
+735,
+745,
+746,
+747,
+748,
+749,
+750,
+850,
+851,
+868,
+869,
+870,
+871,
+881,
+882,
+883,
+884,
+918,
+919,
+920,
+921,
+922,
+923,
+924,
+925,
+926,
+929,
+934,
+935,
+936,
+937,
+943,
+982,
+987,
+1008,
+1009,
+1012,
+1146,
+1147,
+1236,
+1237,
+1238,
+1476,
+1515,
+1516,
+1521,
+1522,
+1523,
+1225,
+1226)
+GROUP BY tp1.tipo
+			FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle,
+estrazioni.dbo.udfElencoOggettiCliente(ulc.archivio,ulc.codpsi) Ogg
+FROM estrazioni.dbo.commissioni ulc
+INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo AND ulc.Agente = ag.Codagente
+LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+INNER JOIN anagraf.dbo.WEB_ModuloC mc on mc.idcom=ulc.id
+INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.ID
+INNER JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+WHERE archivio = 9999
+AND tp.Codice IN (486,
+966,
+730,
+731,
+732,
+733,
+734,
+735,
+745,
+746,
+747,
+748,
+749,
+750,
+850,
+851,
+868,
+869,
+870,
+871,
+881,
+882,
+883,
+884,
+918,
+919,
+920,
+921,
+922,
+923,
+924,
+925,
+926,
+929,
+934,
+935,
+936,
+937,
+943,
+982,
+987,
+1008,
+1009,
+1012,
+1146,
+1147,
+1236,
+1237,
+1238,
+1476,
+1515,
+1516,
+1521,
+1522,
+1523,
+1225,
+1226)
+AND ulc.area IN ('MS', 'SP', 'IM', 'PR', 'SV', 'PC', 'FE', 'RA', 'MO', 'RE', 'BO')
+AND (estrazioni.dbo.commissioniattive(ulc.archivio,ulc.CodPsi,ulc.id)=1 OR isnull(ulc.stContr,'')='A' OR isnull(ulc.stContr,'')='AS')
+),
+
+ager as (SELECT DISTINCT c.codpsi,
+c.id,
+ag.nome
+  FROM estrazioni.[dbo].[Commissioni] c
+  LEFT JOIN anagraf.dbo.Agenti a on a.Gruppo=c.Gruppor and a.Codagente=c.Agenter
+  LEFT JOIN anagraf.dbo.anage ag on ag.utente=a.utente
+  where c.archivio=9999
+  
+  ),
+
+
+impocomm
+AS (
+SELECT id,
+area,
+importo
+
+FROM estrazioni.dbo.commissioni ulc
+WHERE 
+archivio = 9999
+AND estrazioni.dbo.commissioniattive(ulc.archivio,ulc.CodPsi,ulc.id)=1
+
+),
+
+impotot
+AS (
+SELECT
+area,
+SUM(importo) AS Tot_Importo,
+SUM(consegnato) AS Tot_Consegnato,
+codpsi
+
+FROM estrazioni.dbo.commissioni ulc
+WHERE 
+
+archivio = 9999
+AND estrazioni.dbo.commissioniattive(ulc.archivio,ulc.CodPsi,ulc.id)=1
+GROUP BY 
+
+codpsi,
+area),
+
+imposigla
+AS (
+SELECT
+idCom,
+area,
+codpsi,
+SUM(tot_acquisito) AS ImportoSigla,
+SUM(tot_acquisito_insoluto) AS InsolutoSigla
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE 
+archivio = 9999
+AND codice_tipo_inserz IN (486,
+966,
+730,
+731,
+732,
+733,
+734,
+735,
+745,
+746,
+747,
+748,
+749,
+750,
+850,
+851,
+868,
+869,
+870,
+871,
+881,
+882,
+883,
+884,
+918,
+919,
+920,
+921,
+922,
+923,
+924,
+925,
+926,
+929,
+934,
+935,
+936,
+937,
+943,
+982,
+987,
+1008,
+1009,
+1012,
+1146,
+1147,
+1236,
+1237,
+1238,
+1476,
+1515,
+1516,
+1521,
+1522,
+1523)
+GROUP BY idcom,
+area,
+codpsi
+),
+
+impoins
+AS (
+SELECT
+area,
+SUM(importoInsoluto) AS Tot_ImportoInsoluto,
+codpsi
+FROM estrazioni.dbo.commissioni aic
+GROUP BY 
+codpsi,
+area)
+
+SELECT DISTINCT
+cli.codpsi,
+cli.id,
+cli.RagSoc,
+cli.Area,
+cli.Agente,
+ager.nome AgeAff,
+cli.DataComm,
+cli.Stato,
+cli.Sigle,
+cli.ogg,
+impotot.Tot_Consegnato,
+impotot.Tot_Importo,
+impocomm.importo Importo_Comm,
+ROUND(imposigla.ImportoSigla,2) ImportoSigla,
+ROUND(imposigla.InsolutoSigla,2) InsolutoSigla,
+impoins.Tot_ImportoInsoluto InsolutoSt
+
+FROM cli
+LEFT JOIN ager on ager.codpsi=cli.CodPsi and ager.id=cli.id
+LEFT JOIN impocomm ON impocomm.id = cli.id AND impocomm.area = cli.Area
+LEFT JOIN impotot ON impotot.codpsi = cli.codpsi AND impotot.area = cli.area
+LEFT JOIN imposigla ON imposigla.idCom = cli.id AND imposigla.area = cli.area
+LEFT JOIN impoins ON impoins.codpsi = cli.codpsi AND impoins.area = cli.area
+ORDER BY RagSoc;

@@ -1,0 +1,86 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT [id],
+       [idCommissione],
+       [idCliente],
+       [dataRiferimento],
+       [dataRinnovato],
+       [categoria],
+       [importoDaRinnovare],
+       [importoRinnovato],
+       [gruppoAgente],
+       [codiceAgente],
+       [emailAgente],
+       [gruppoCoordinatore],
+       [codiceCoordinatore],
+       [emailCoordinatore],
+       [gruppoSupervisore],
+       [codiceSupervisore],
+       [emailSupervisore],
+       [area],
+       [num],
+       [codPsi],
+       [campagnaDal],
+       [campagnaAl],
+       [comune],
+       [nonValid],
+       [dataUltimaCommissione],
+       [gruppoRegional],
+       [codiceRegional],
+       [emailRegional],
+       [dataScadenzaCommissione],
+       [dataScadenzaCommissioneBack],
+       importoForzato,
+	  campagnapreced
+FROM [z_erytest].[dbo].[commissioniNonRinnovate]
+WHERE 
+
+--isnull(datarinnovato, '') = ''
+----AND isnull(importoDaRinnovare, 0) > 0
+--AND format(dataScadenzaCommissione, 'yyyyMM') IN('202303')
+--AND dataScadenzaCommissione <> dataUltimaCommissione
+--AND nonvalid IS NULL
+
+
+--format(dataRinnovato, 'yyyyMM') IN ('202403')
+----AND isnull(importoRinnovato, 0) > 0
+----AND isnull(importoDaRinnovare, 0) > 0
+--AND format(dataScadenzaCommissione, 'yyyyMM') IN ('202403')
+----AND dataScadenzaCommissione <> dataUltimaCommissione
+--AND nonvalid IS NULL
+----and idCommissione=327112
+
+
+
+
+--format(dataRinnovato, 'yyyyMM') IN ('202403')
+----AND isnull(importoRinnovato, 0) > 0
+----AND isnull(importoDaRinnovare, 0) > 0
+--AND format(dataScadenzaCommissione, 'yyyyMM') NOT IN ('202403')
+--AND dataScadenzaCommissione <> dataUltimaCommissione     --aggiungere filtro su CH
+--AND nonvalid IS NULL
+----and idCommissione=327112
+
+
+-----------------------------------------------------------------
+
+--STORICO:
+
+
+--format(dataRinnovato, 'yyyyMM') IN ('202303')
+----AND isnull(importoRinnovato, 0) > 0
+----AND isnull(importoDaRinnovare, 0) > 0
+--AND format(dataScadenzaCommissione, 'MM') IN ('03')   ----nuovo campo su CH
+--AND format(dataUltimaCommissione, 'yyyyMMdd') < ('2023') ---aggiungere dataUltimaCommissione < 2023/01/01
+----AND dataScadenzaCommissione <> dataUltimaCommissione
+--AND nonvalid IS NULL
+
+
+--format(dataRinnovato, 'yyyyMM') IN ('202303')
+----AND isnull(importoRinnovato, 0) > 0
+----AND isnull(importoDaRinnovare, 0) > 0
+--AND format(dataScadenzaCommissione, 'MM') NOT IN ('03')
+--AND dataScadenzaCommissione <> dataUltimaCommissione
+--AND nonvalid IS NULL
+----and idCommissione=705005

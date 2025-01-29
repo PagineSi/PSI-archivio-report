@@ -1,0 +1,20 @@
+SELECT distinct anagrafica.ragsoc
+				, commissioni.codpsi
+				, comuni.comune
+				, commissioni.area
+				, agenti.agente
+				, commissioni.datacomm
+				, oggetti.ObjNote
+				, oggetti.codice
+				, case oggetti.tipo
+					when 802 then 'GBV'
+					when 820 then 'GBV+'
+					end as tipo
+				, oggetti.avanz
+				, commissioni.causale
+			FROM anagrafica inner join commissioni on commissioni.codice=anagrafica.codice
+				inner join oggetti on oggetti.idcom = commissioni.id
+				inner join comuni on comuni.codice=anagrafica.Comune
+				inner join agenti on (commissioni.Gruppo = Agenti.Gruppo) AND (commissioni.Agente = Agenti.Codagente)
+				inner join anage on anage.utente=agenti.utente
+			where (oggetti.tipo = 802 or oggetti.tipo = 820 or commissioni.causale like '%GBV250%')

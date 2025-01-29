@@ -1,0 +1,28 @@
+SELECT  distinct anagrafica.ragsoc
+				,commissioni.codpsi
+				,commissioni.codice as codiceComm
+				,commissioni.area
+				,CONVERT(VARCHAR(10),gmb.gbv_data_online, 111) AS dataPubblicazione
+				,[pubblicazione_operatore] as operatore
+				, oggettigpl.tipo
+				, oggettigpl.avanz
+				, categorie.categoria
+			FROM anagrafica inner join commissioni on commissioni.codice=anagrafica.codice
+				inner join oggetti on oggetti.idcom = commissioni.id
+				inner join web_moduloc on web_moduloc.idcom=commissioni.id
+				inner join WEB_ModuloC_oggetti mco on mco.id_moduloc=web_moduloc.id
+				inner join servizi.dbo.SICOMPROD_GMB gmb on gmb.idWebModcOggetto=mco.id
+				left join categorie on categorie.codice = Anagrafica.categoria
+				left join (
+					select distinct commissioni.codpsi
+						, oggetti.avanz
+						,case oggetti.tipo
+							when 802 then 'GBV'
+							when 820 then 'GBV+'
+							end as tipo
+					from commissioni
+						inner join oggetti on oggetti.idcom=commissioni.id
+					where oggetti.tipo in (802,820)
+					) as oggettigpl on oggettigpl.codpsi=commissioni.codpsi
+			where gmb.gbv_data_online is not null 
+				and commissioni.codpsi <> 37774

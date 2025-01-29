@@ -1,0 +1,24 @@
+
+
+SELECT *
+FROM
+(
+    SELECT DISTINCT
+           ROW_NUMBER() OVER(PARTITION BY agen.utente ORDER BY agen.dataini DESC) AS idRec,
+           a.Agente,
+           ai.Descrizione Inquadramento,
+           (STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+agen1.area
+                     FROM [anagraf].[dbo].[Agenti] age1
+                          INNER JOIN anagraf.dbo.agemand agen1 ON agen1.utente = age1.utente
+                     WHERE age1.utente = a.utente FOR XML PATH('')
+                 ), 1, 2, '')) AS Aree
+    FROM [anagraf].[dbo].[Agenti] a
+         LEFT JOIN anagraf.dbo.agemand agen ON agen.utente = a.utente
+         LEFT JOIN anagraf.dbo.ageInquadramento ai ON ai.id = agen.inquadramento
+    WHERE(a.agente IN('Atza Gianfranco', 'Auricchio Loredana_New', 'Bastari Donatella', 'Berti Dario', 'Bianco Maurizio', 'Boffa Aurelio', 'Bonazza Alan', 'Boninsegni Laura', 'BT SI snc di Burgo Massimiliano e Tuttobene Barbara', 'Cagliari Stefania', 'Campanale Giuseppe', 'Cangiano Enrico', 'Capelli Martina', 'Capone Roberto_NEW', 'Caravita Claudio', 'Cecconi Stefano', 'Ciccia Andrea', 'Cimillo Alfredo', 'Corrado Guido', 'Cosentino Fabrizio', 'Cossa Massimo', 'Crapanzano Ignazio', 'Cucurullo Antonio', 'Cusimano Angela', 'De Cesare Pietro', 'Demuro Giuseppe', 'Denti Dario', 'Dentice Simone', 'Depoliti Matteo ', 'Di Folco Christian', 'Effemme Srls', 'Esposito Marco', 'Falcone Giorgio', 'Fornarese Massimiliano', 'Fornasa Tommaso', 'Frate Federico', 'Frola Francesco', 'Gabriele Giovanni', 'Galatolo Maurizio', 'Garavello Antonella', 'Gardini Gino', 'Garofalo Gaetano', 'Giommoni Luca', 'Giovannardi Angelo', 'Granisso Marco', 'ibusinessolution Srl ', 'Lentini Giuseppe', 'Luciani Roberto', 'Luraghi Giorgio', 'M.B. Rappresentanze di Massimo Benetello', 'Maccaferri Cristina', 'Mancini Ernesto', 'Mangiapane Benedetto', 'Mannarà Salvatore', 'Marchetti Roberto', 'Marini Angelo', 'Marinovich Alessandro', 'Marrazzo Annamaria', 'Mazzorana Agnese', 'Mediacommerce Agency Srl', 'Micallo Giovanni', 'Moretti Morena', 'Moschino Fortuna', 'Nave Antonio Maria', 'NULL', 'One Network Srl', 'Pacileo Andrea', 'Patrizia Ziliani', 'Pavani Chiara', 'Peci Marcella', 'Perez Riccardo', 'Perri Santa', 'Piccini Gianfraco', 'Pintus Andrea', 'Ponti Maurizio', 'Porru Alessandra', 'Ricci Matteo', 'Rota Michela', 'Rovai Marcello', 'Roviello Francesco', 'Sanna Gianfranco ', 'Sanvito Stefano_NEW', 'Savoldi Marisella', 'Scarmignan Luca', 'Schiappa Caterina', 'Seddio Alfonso', 'Serighelli Fabio', 'Serra Nando Paolo', 'Sersante Roberto Project Marketing Consultant', 'Soluzioni Web di Sergio Leone', 'Spadafora Franceso', 'Spanò Renato', 'Tafuto Luigi', 'Tanganelli Alessio', 'Tersigni Dario', 'Tesini Francesco', 'Ticor Center di Anna Corcione', 'Tiverne Julien Simon Louis', 'Todaro Gabriella', 'Tomei Leonardo', 'Toscani Clementina', 'Turrini Andrea', 'Tuttobene Barbara', 'Valente Antonio', 'Vecellio Nicola Mario', 'Viola Niccolò', 'Violini Federico', 'Vittori Stefano_New', 'Wilson Roberto', 'Zambon Claudio')
+         OR a.agente LIKE '%armidoro')
+) m
+WHERE m.idRec = 1;

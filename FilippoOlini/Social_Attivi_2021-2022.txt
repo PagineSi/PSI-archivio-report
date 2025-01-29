@@ -1,0 +1,21 @@
+SELECT 
+--TOP 10 
+m.Categoria,
+COUNT(m.Codpsi) nClienti
+FROM
+(
+    SELECT DISTINCT
+           ct.categoria,
+           c.[CodPsi]
+    FROM [estrazioni].[dbo].[Commissioni] c
+         LEFT JOIN estrazioni.dbo.vCommNuoveRinnoviPluriennali vc on vc.id=c.id
+         INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+         INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+         LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+    WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+         AND mco.codice_oggetto IN(1173, 1174, 1175, 1176, 1266, 1267, 1268, 1269, 1412, 1418, 1419, 1420, 1607, 616, 804, 890, 902, 906, 907, 932, 945, 964, 1170, 1204, 1231, 1435, 1468, 1776, 1783, 1808, 1810, 1270, 1271, 1272, 1273, 1413, 1421, 1422, 1423, 1609, 1250, 1436, 1608, 1777, 1786, 1809, 1811, 1775, 1778, 1779, 1782, 1784, 1785, 1807, 1812, 1177, 1178, 1179, 1279, 1280, 1281, 1282, 1180)
+    --AND c.archivio = 9999
+    AND vc.datacompetenza BETWEEN 20210101 AND 20211231
+) AS m
+GROUP BY m.categoria
+ORDER BY nClienti DESC;

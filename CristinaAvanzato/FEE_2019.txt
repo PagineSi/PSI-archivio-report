@@ -1,0 +1,143 @@
+WITH estr1
+     AS (SELECT *
+         FROM [estrazioni].[dbo].[StoricoStoreden] s),
+     estr2
+     AS (SELECT [Codice Paginesi], 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 1, [importoOrdini], 0)) AS importoOrdini_gen, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 2, [importoOrdini], 0)) AS importoOrdini_feb, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 3, [importoOrdini], 0)) AS importoOrdini_mar, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 4, [importoOrdini], 0)) AS importoOrdini_apr, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 5, [importoOrdini], 0)) AS importoOrdini_mag, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 6, [importoOrdini], 0)) AS importoOrdini_giu, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 7, [importoOrdini], 0)) AS importoOrdini_lug, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 8, [importoOrdini], 0)) AS importoOrdini_ago, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 9, [importoOrdini], 0)) AS importoOrdini_sett, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 10, [importoOrdini], 0)) AS importoOrdini_ott, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 11, [importoOrdini], 0)) AS importoOrdini_nov, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 12, [importoOrdini], 0)) AS importoOrdini_dic, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 1, FeeMese, 0)) AS importoFee_gen, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 2, FeeMese, 0)) AS importoFee_feb, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 3, FeeMese, 0)) AS importoFee_mar, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 4, FeeMese, 0)) AS importoFee_apr, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 5, FeeMese, 0)) AS importoFee_mag, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 6, FeeMese, 0)) AS importoFee_giu, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 7, FeeMese, 0)) AS importoFee_lug, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 8, FeeMese, 0)) AS importoFee_ago, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 9, FeeMese, 0)) AS importoFee_sett, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 10, FeeMese, 0)) AS importoFee_ott, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 11, FeeMese, 0)) AS importoFee_nov, 
+                SUM(IIF(Anno = 2019
+                        AND Mese = 12, FeeMese, 0)) AS importoFee_dic, 
+                SUM(IIF(Anno = 2019
+                        AND Mese BETWEEN 1 AND 12, [importoOrdini], 0)) AS importoOrdini_TOT_2019, 
+                SUM(IIF(Anno = 2019
+                        AND Mese BETWEEN 1 AND 12, FeeMese, 0)) AS importoFee_TOT_2019
+         FROM [estrazioni].[dbo].[StoricoStoreden] s1
+         GROUP BY [Codice Paginesi]
+         HAVING SUM(IIF(Anno = 2019
+                        AND Mese BETWEEN 1 AND 12, [importoOrdini], 0)) > 0)
+     SELECT DISTINCT 
+            estr1.[Codice Paginesi], 
+            estr1.[Ragione Sociale], 
+            estr2.importoOrdini_gen, 
+            estr2.importoFee_gen, 
+            estr2.importoOrdini_feb, 
+            estr2.importoFee_feb, 
+            estr2.importoOrdini_mar, 
+            estr2.importoFee_mar, 
+            estr2.importoOrdini_apr, 
+            estr2.importoFee_apr, 
+            estr2.importoOrdini_mag, 
+            estr2.importoFee_mag, 
+            estr2.importoOrdini_giu, 
+            estr2.importoFee_giu, 
+            estr2.importoOrdini_lug, 
+            estr2.importoFee_lug, 
+            estr2.importoOrdini_ago, 
+            estr2.importoFee_ago, 
+            estr2.importoOrdini_sett, 
+            estr2.importoFee_sett, 
+            estr2.importoOrdini_ott, 
+            estr2.importoFee_ott, 
+            estr2.importoOrdini_nov, 
+            estr2.importoFee_nov, 
+            estr2.importoOrdini_dic, 
+            estr2.importoFee_dic, 
+            estr2.importoOrdini_TOT_2019, 
+            estr2.importoFee_TOT_2019
+     FROM estr1
+          INNER JOIN estr2 ON estr1.[Codice Paginesi] = estr2.[Codice Paginesi]
+     ORDER BY estr1.[Ragione Sociale];
+
+
+------------------------------------------------
+
+
+SELECT [id], 
+       [Data estrazione], 
+       [Anno], 
+       [Mese], 
+       [ID Negozio], 
+       [Data apertura negozio], 
+       [Codice Paginesi], 
+       [P#IVA], 
+       [Ragione Sociale], 
+       [Consegnato commissione], 
+       [Importo commissione], 
+       [Scaduto], 
+       [Insoluto], 
+       [Stadio insoluto], 
+       [Online], 
+       [Vendite Totali], 
+       [Oggetti], 
+       [percFee], 
+       [FeeMese], 
+       [Agente], 
+       [telefono], 
+       [cellulare], 
+       [Coordinatore], 
+       [Supervisore], 
+       [StatoCommAttiva], 
+       [datacomm], 
+       [RinTac], 
+       [BiannI], 
+       [BiannA], 
+       [importoOrdini], 
+       [servizio_amazon], 
+       [lingue_aggiuntive], 
+       [coupon_avanzati], 
+       [carrelli_abbandonati], 
+       [servizio_ebay], 
+       [mail_provvisorio_data], 
+       [dataOnline], 
+       [mail_costruzione_provvisorio_data], 
+       [settore]
+FROM [estrazioni].[dbo].[StoricoStoreden]
+WHERE anno = 2019
+      AND ISNULL(importoOrdini, 0) > 0
+ORDER BY [Ragione Sociale], 
+         anno, 
+         mese;

@@ -1,0 +1,25 @@
+SELECT DISTINCT
+       mc.IDcom,
+       c.CodPsi,
+       a.RagSoc,
+       c.Area,
+       c.DataComm,
+       c.Consegnato,
+       c.Importo,
+       c.importoInsoluto,
+       estrazioni.dbo.udfElencoOggetti(c.archivio, mc.IDcom) AS oggetti,
+       ang.nome
+FROM estrazioni.dbo.Commissioni c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = mco.Codice_Oggetto
+     INNER JOIN anagraf.dbo.Agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     INNER JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+     AND t.tipo IN('S2RDV', 'RDVV', 'RDVR', 'RDVS', 'RDVP', 'RDVRM', 'RDVRR', 'RDVVM', 'RDVVR')
+AND c.Area IN('BG', 'BS', 'VR', 'VI')
+AND c.archivio = 9999
+ORDER BY area,
+         ragsoc

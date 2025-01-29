@@ -1,0 +1,14 @@
+SELECT [idCom],
+       [CodPsi],
+       a.RagSoc,
+       format(datacompetenza, 'yyyy-MM-dd') AS DataComp,
+       [Area],
+       [nomeAgente],
+       [tipo_importo],
+       ROUND(ISNULL(tot_acquisito, 0), 2) AS [Tot Acquisito],
+       [tipo_inserz]
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] v
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = v.CodiceAnagrafica
+WHERE tipo_inserz IN('VE', 'VCdE')
+     AND format(datacompetenza, 'yyyy-MM-dd') BETWEEN '2020-06-01' AND '2020-10-30'
+ORDER BY DataComp;

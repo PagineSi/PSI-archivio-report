@@ -1,0 +1,32 @@
+SELECT  
+       aio.archivio, 
+	  aio.idcom, 
+	  aio.codpsi,
+	  a.ragsoc,
+	  format(aio.DataComm, 'yyyyMMdd') DataComm,
+	  aio.nomeAgente,
+	  aio.tipo_inserz Sigla, 
+	  CASE 
+           WHEN isnull(aio.firmato_nuovi,0)<>0 and isnull(aio.firmato_rinnovi,0)=0
+           THEN 'NUOVO'
+           WHEN isnull(aio.firmato_nuovi,0)=0 and isnull(aio.firmato_rinnovi,0)<>0
+           THEN 'RINNOVO'
+       END AS TipoContratto,
+       CASE isRinnovoTacito
+           WHEN 1
+           THEN 'X'
+           WHEN 0
+           THEN ''
+       END AS RinTac,
+       ROUND((aio.tot_acquisito), 2) Tot_Acquisito, 
+       ROUND((aio.tot_acquisito_scaduto), 2) Tot_Acquisito_Scaduto, 
+       ROUND((aio.tot_acquisito_insoluto), 2) Tot_Acquisito_Insoluto
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN anagraf.dbo.Anagrafica a on a.codice=aio.CodiceAnagrafica
+INNER JOIN anagraf.dbo.tipoinserz tp on tp.codice=aio.codice_tipo_inserz
+WHERE tp.CodiceCategoria IN (18,
+122,
+192)
+AND ISNULL(aio.tot_firmato,0)<>0
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20210101 AND 20210630
+ORDER BY ragsoc

@@ -1,0 +1,14 @@
+SELECT 
+nomeAgente,
+tipo_inserz,
+ROUND(SUM(ISNULL(tot_acquisito,0)),2) as [Tot Acquisito],
+tipo_importo
+
+FROM estrazioni.dbo.vAnalisiImportiOggetti
+
+WHERE convert(date,DataCompetenza) between '2020-08-01' and '2020-08-31'
+and CodiceCategoria=23
+
+group by tipo_inserz, tipo_importo, nomeAgente
+
+order by nomeAgente

@@ -1,0 +1,72 @@
+
+
+SELECT DISTINCT
+       c.Codpsi,
+       a.RagSoc,
+       d.www,
+       t.tipo Sigla,
+       IIF(u.Cognome IS NOT NULL, u.cognome, ep.operatore_provvisorio_CQ) Operatore,
+       format(p.online_data, 'yyyy-MM-dd') DataOnline,
+       format(p.pubb_dopocostr_data, 'yyyy-MM-dd') DataOnlinePostCostr
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = d.id_moduloc
+     INNER JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN servizi.dbo.SICOMPROD_ECOMMERCE e ON e.id_moduloc = mc.id
+     INNER JOIN [servizi].[dbo].[SICOMPROD_ECOMMERCE_Provvisorio] ep ON ep.idEcommerce = e.id_ecommerce
+     --INNER JOIN servizi.dbo.SICOMPROD_SI2SITE s ON s.idSi2site = mco.id
+     --INNER JOIN servizi.dbo.SICOMPROD_SI2SITE_LAVORAZIONE sl ON sl.idSi2site = s.idSi2site
+     INNER JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti p ON p.idWebModcOggetto = ep.idWebModcOggetto
+     LEFT JOIN servizi.dbo.SICOMPROD_Utenti u ON u.utente = ep.operatore_provvisorio_CQ
+     LEFT JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+     --INNER JOIN servizi.[dbo].[vTipoVIC] ON [vTipoVIC].codpsi = c.codpsi
+WHERE p.online_data <> ''
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND d.sitorif = 1
+     --AND ep.idlavorazione = 1
+     AND (d.dataScadenza IS NULL
+          OR d.datascadenza >= GETDATE())
+     AND (format(p.online_data, 'yyyyMMdd') BETWEEN '20230801' AND '20230831'
+          OR format(p.pubb_dopocostr_data, 'yyyyMMdd') BETWEEN '20230801' AND '20230831')
+--     AND t.tipo IN
+--('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R',
+--'RDVR',
+--'RDVRM',
+--'RDVR-M',
+--'RDVR-PM',
+--'RDVRR',
+--'RDVR-R',
+     --'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R',
+--'Si2E',
+--'Si2EM',
+--'Si2E-M',
+--'Si2E-PM',
+--'Si2ER',
+--'Si2E-R',
+     --'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R',
+--'Si2NL',
+--'Si2NLM',
+--'Si2NL-M',
+--'Si2NL-PM',
+--'Si2NLR',
+--'Si2NL-R',
+     --'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R',
+--'Si2R',
+--'Si2RM',
+--'Si2R-M',
+--'Si2R-PM',
+--'Si2RR',
+--'Si2R-R',
+     --'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R',
+--'Si2VImm',
+--'Si2VImmM',
+--'Si2VIMM-M',
+--'Si2VIMM-PM',
+--'Si2VImmR',
+--'Si2VIMM-R',
+     --'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R'
+--)
+     AND t.CodiceCategoria = 18
+     --AND codpsi = 349128
+ORDER BY DataOnlinePostCostr;

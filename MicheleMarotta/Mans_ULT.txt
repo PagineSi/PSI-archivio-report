@@ -1,0 +1,36 @@
+WITH base
+     AS (
+     SELECT mu.id,
+            [Mese],
+            u.Nome,
+            u.Cognome,
+            cdc.nome CentroDiCosto,
+            man.Mansione,
+            [perc],
+            FORMAT([DataInserimento], 'yyyy-MM-dd') DataInserimento
+     FROM [servizi].[dbo].[SICOMPROD_Mansionario_Utente] mu
+          LEFT JOIN servizi.dbo.SICOMPROD_Utenti u ON u.utente = mu.utente
+          LEFT JOIN anagraf.dbo.persMansionario man ON man.id = mu.idMansionario
+          LEFT JOIN anagraf.dbo.persCentroDiCosto cdc ON cdc.id = man.idCentroDiCosto),
+     max_month_per_name_cognome
+     AS (
+     SELECT Nome,
+            Cognome,
+            MAX([Mese]) AS MaxMese
+     FROM base
+     GROUP BY Nome,
+              Cognome)
+     SELECT --base.id,
+     base.Mese,
+     base.Nome,
+     base.Cognome,
+     base.CentroDiCosto,
+     base.Mansione,
+     base.perc,
+     base.DataInserimento
+     FROM base
+          INNER JOIN max_month_per_name_cognome m ON base.Nome = m.Nome
+                                                     AND base.Cognome = m.Cognome
+                                                     AND base.[Mese] = m.MaxMese
+     ORDER BY mese DESC,
+              Cognome;

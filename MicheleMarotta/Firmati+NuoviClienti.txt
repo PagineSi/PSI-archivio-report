@@ -1,0 +1,68 @@
+WITH dati as (SELECT 
+       DATEPART(month, c.DataComm) AS Mese,
+	  DATEPART(year, c.DataComm) AS Anno,
+       c.area Area,
+       SUM(IIF(isnull(c.DataComm, '') <> '', 1, 0)) AS Firmati,
+		SUM(isnull(p.oreCM,0)) SommaPD
+        
+FROM estrazioni.dbo.vAnalisiImportiOggetti c
+     LEFT JOIN servizi.dbo.prodottiore p on p.codiceSigla=c.codice_tipo_inserz
+	INNER JOIN anagraf.dbo.TipoInserz t on t.codice=c.codice_tipo_inserz
+
+WHERE 
+--c.area IN ('CA','OR','NG','OS','SS','S1')
+       DATEPART(year, c.DataComm) IN (2018,2019,2020,2021)
+	 AND isnull(c.tipo_importo,'')='FIRMATO'
+	 AND isnull(t.oggettiCM_Out, 0) = 0
+
+GROUP BY DATEPART(month, c.DataComm), DATEPART(year, c.DataComm), c.area
+),
+
+mincom as (SELECT DISTINCT
+       codpsi,
+	  area,
+	  MIN(format(DataComm,'yyyyMMdd')) MinData
+
+    from estrazioni.dbo.vAnalisiImportiCommissioni aic
+    GROUP BY codpsi, area
+    ),
+
+cli as (
+
+SELECT COUNT(m.codpsi) nClienti,
+       m.Area,
+	  DATEPART(month, m.DataComm) AS Mese,
+	  DATEPART(year, m.DataComm) AS Anno
+
+FROM (SELECT DISTINCT
+       aic.codpsi,
+	  aic.area,
+	  aic.DataComm
+
+    from estrazioni.dbo.vAnalisiImportiCommissioni aic
+    inner join mincom on mincom.area=aic.area and mincom.CodPsi=aic.CodPsi
+	    inner join estrazioni.dbo.vAnalisiImportiOggetti aio on aio.archivio=aic.archivio and aio.idCom=aic.idCom
+	     LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = aio.codice_tipo_inserz
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = aio.codice_tipo_inserz
+    where DATEPART(year, aic.DataComm) IN (2018,2019,2020,2021)
+    --AND isnull(aic.tipo_importo,'')='FIRMATO'
+    --AND mincom.MinData = format(aic.DataComm,'yyyyMMdd')
+    AND  format(aic.DataComm,'yyyyMMdd') > mincom.MinData
+    AND isnull(t.oggettiCM_Out, 0) = 0
+    ) as m
+    GROUP BY DATEPART(month, m.DataComm), DATEPART(year, m.DataComm), m.area
+    )
+
+
+    SELECT 
+    dati.anno Anno,
+    dati.mese Mese,
+    dati.area Area,
+    dati.Firmati,
+    cli.nClienti,
+    dati.SommaPD SommaPD_CM
+
+    FROM dati 
+    left join cli on dati.area=cli.area and dati.Mese=cli.Mese and dati.anno=cli.anno
+
+    order by anno, mese, area

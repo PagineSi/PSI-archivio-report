@@ -1,0 +1,26 @@
+SELECT DISTINCT 
+       c.CodPsi, 
+       a.RagSoc, 
+       d.[www], 
+       t.tipo, 
+       c.DataComm, 
+       c.BiannI, 
+       c.BiannA, 
+       c.RinTac
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND d.sitoRif = 1
+     --AND (ISNULL(d.datadomdel, '') = ''
+     --     OR (ISNULL(d.datadomdel, '') <> ''
+     --         AND ISNULL(d.datadomrip, '') <> ''))
+     --AND ISNULL(d.cpout, '') = ''
+     --AND ISNULL(d.pubblicazionePerIP, '') <> 1
+     AND ISNULL(c.codpsi, '') <> 37774
+     AND c.DataComm BETWEEN 20200101 AND 20201231
+     AND t.CodiceCategoria IN(12, 35, 179)
+ORDER BY www;

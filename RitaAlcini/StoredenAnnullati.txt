@@ -1,0 +1,22 @@
+SELECT DISTINCT 
+       t.tipo AS Sigla, 
+       id AS idcom, 
+       codpsi, 
+       BiannI, 
+       BiannA,
+       CASE RinTac
+           WHEN 1
+           THEN 'SI'
+           WHEN 0
+           THEN 'NO'
+       END AS RT, 
+       ROUND((Importo), 2) Importo, 
+       ROUND((importoInsoluto), 2) ImportoInsoluto
+FROM [estrazioni].[dbo].[vCommNuoveRinnoviPluriennali] c
+     INNER JOIN anagraf.dbo.Oggetti o ON o.idcom = c.id
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = o.tipo
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 0
+     AND DataCompetenza BETWEEN 20160101 AND 20190531
+     AND t.tipo IN('EC-FlexS', 'EC-AmaGes', 'EC-FlexSM', 'EC-ConsS', 'EC-FlexSR', 'EC-Coup', 'EC-FlexL', 'EC-Design', 'EC-FlexLM', 'EC-eBayGes', 'EC-FlexLR', 'EC-ELC', 'EC-FlexXL', 'EC-Gate+', 'EC-FlexXLM,''EC-Lingua+', 'EC-FlexXLR', 'EC-PlatFor', 'EC-FlexB2B', 'EC-Prod20+', 'EC-FlexB2BM', 'EC-Sincro', 'EC-FlexB2BR,''EC-upload', 'EC-Med', 'EC-Var+', 'EC-Flex', 'EC-Sped', 'EC-Bus', 'EC-Foto20', 'EC-Acc', 'EC-AccM', 'EC-MedM', 'EC-FlexM', 'EC-FlexR', 'EC-BusM')
+ORDER BY sigla, 
+         codpsi;

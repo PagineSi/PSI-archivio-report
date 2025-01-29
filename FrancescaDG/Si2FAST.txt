@@ -1,0 +1,17 @@
+SELECT DISTINCT 
+       ragsoc, 
+       codpsi, 
+       an.nome, 
+       area, 
+       DataComm, 
+       t.tipo
+FROM anagraf.dbo.commissioni AS comm
+     INNER JOIN anagraf.dbo.Anagrafica AS a ON a.codice = comm.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC AS mc ON mc.idcom = comm.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti AS mco ON mco.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.TipoInserz AS t ON t.codice = mco.Codice_Oggetto
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = comm.gruppo
+                                         AND ag.codagente = comm.agente
+     INNER JOIN anagraf.dbo.anage an ON an.utente = ag.utente
+WHERE tipo = 'Si2FAST'
+ORDER BY area;

@@ -1,0 +1,16 @@
+SELECT TOP 10 m.Categoria,
+              COUNT(m.Codpsi) nClienti
+FROM
+(
+    SELECT DISTINCT
+           ct.categoria,
+           [CodPsi]
+    FROM [anagraf].[dbo].[Commissioni] c
+         INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+         INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+         LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+    WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+         AND mco.codice_oggetto IN(486, 680, 704, 705, 706, 841, 844, 900, 908, 930, 931, 995, 1014, 1187, 1189, 1190, 1191, 1192, 1193, 1194, 1207, 1208, 1209, 1210, 1211, 1212, 1213, 1214, 1215, 1216, 1217, 1218, 1219, 1220, 1221, 1222, 1225, 1226, 1690, 1752, 1753, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1858, 1860, 1861, 1862, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1907, 1908, 1909, 1910, 1911, 1912, 1913, 1914, 1915, 1916, 1917, 1918, 1919, 1920, 1921, 1922, 1923, 1927, 1937, 1938, 1939, 1949, 1950)
+) AS m
+GROUP BY m.categoria
+ORDER BY nClienti DESC;

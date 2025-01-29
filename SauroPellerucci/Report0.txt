@@ -1,0 +1,84 @@
+WITH att
+AS (
+SELECT codpsi
+FROM anagraf.dbo.commissioni
+WHERE servizi.dbo.commissioniattive(commissioni.codpsi, commissioni.id) = 1),
+url
+AS (
+SELECT DISTINCT
+d.www,
+codpsi,
+piva,
+c.codice,
+ragsoc,
+area,
+comuni.comune,
+provincia,
+categorie.categoria,
+anage.nome,
+iif(isnull(emailurl,'')<>'',emailurl,emailamm) as email,
+concat(a.prefisso,'-',a.telefono) as telefono
+
+FROM [servizi].[dbo].[URLsitiEstra] u
+INNER JOIN anagraf.dbo.WEB_ModuloC_Domini d ON d.www = u.www
+AND isnull(tipoAnnullamento, '') <> 3
+INNER JOIN anagraf.dbo.WEB_ModuloC m ON m.id = d.ID_ModuloC
+INNER JOIN anagraf.dbo.commissioni c ON c.id = m.IDcom
+inner join anagraf.dbo.anagrafica a on a.codice=c.codice
+left join anagraf.dbo.categorie on categorie.codice=a.Categoria
+inner join anagraf.dbo.comuni on comuni.codice=a.Comune
+inner join anagraf.dbo.agenti age on age.codagente=c.agente and c.gruppo=age.gruppo
+inner join anagraf.dbo.anage on anage.utente=age.utente),
+impo as (
+
+SELECT codpsi,
+SUM(isnull(importo, 0)) AS importoArchCorrente,
+SUM(isnull(consegnato, 0)) AS ConsegnatoArchCorrente,
+SUM(isnull(importoinsoluto, 0)) AS ImportoInsolutoArchCorrente,
+SUM(isnull(importoscaduto, 0)) AS ImportoScadutoArchCorrente
+FROM [estrazioni].[dbo].commissioni c
+WHERE archivio = 9999
+and estrazioni.dbo.commissioniattive(9999,codpsi,id)=1
+GROUP BY codpsi
+
+),
+storico as (
+select
+Codpsi,
+StoricoScaduto,
+StoricoInsoluto,
+percInsoluto
+from estrazioni.dbo.[udfStoricoCodpsi]()
+)
+
+
+
+
+SELECT DISTINCT
+www,
+categoria,
+codice as codiceAnagrafica,
+piva,
+url.codpsi,
+ragsoc,
+area,
+comune,
+provincia,
+email,
+telefono,
+IIF(att.codpsi IS NOT NULL, 'ATTIVO', 'NON_ATTIVO') AS stato,
+ConsegnatoArchCorrente,
+importoArchCorrente,
+ImportoScadutoArchCorrente,
+ImportoInsolutoArchCorrente,
+StoricoScaduto,
+StoricoInsoluto,
+percInsoluto,
+nome as nomeAgente,
+estrazioni.[dbo].[udfElencoOggettiClienteCommAttiveNA](url.codpsi) as StoricoOggettiCliente
+
+
+FROM url
+LEFT JOIN att ON att.codpsi = url.codpsi
+left join impo on impo.codpsi=url.CodPsi
+inner join storico on storico.codpsi=url.CodPsi

@@ -1,0 +1,137 @@
+QUERYSI - UFFICIO CREDITI
+
+select archivio,
+id,
+codpsi,
+intfat,
+--despaga,
+importo,
+convert(date,dataprrata) as DataPrRata,
+NULL As Drid,
+iif(rintac=1,'SI',NULL) as RinnovoTacito,
+iif(fatbloc=1,'SI',NULL) as FatturaBloccata,
+iif(fattautom=1,'SI',NULL) FatturaAutomatica,
+[desPag],
+comtus,
+
+case 
+when creditoAss=1
+then 'si'
+when creditoass=2
+then 'no(diniego)'
+when creditoAss is null
+then 'nessunaAzione'
+end as Assicurazione
+from estrazioni.dbo.commissioni c
+left join [anagraf].[dbo].[modPagam] m on c.modpagam=m.codpag
+where isnull(importo,0)>=3000
+and 
+isnull(fatbloc,0)=0 and isnull(fattautom,0)=0
+
+and convert(date,dataprrata) between '2020-10-01' and '2020-10-31'
+
+ union 
+
+select c.archivio,
+id,
+codpsi,
+intfat,
+--despaga,
+importo,
+NULL as dataprrata,
+case 
+when convert(date,drid0) between '2020-10-01' and '2020-10-31' 
+then convert(date,drid0)
+when convert(date,drid1) between '2020-10-01' and '2020-10-31' 
+then convert(date,drid1)
+when convert(date,drid2) between '2020-10-01' and '2020-10-31' 
+then convert(date,drid2)
+when convert(date,drid3) between '2020-10-01' and '2020-10-31'
+then convert(date,drid3)
+when convert(date,drid4) between '2020-10-01' and '2020-10-31'
+then convert(date,drid4)
+when convert(date,drid5) between '2020-10-01' and '2020-10-31'
+then convert(date,drid5)
+when convert(date,drid6) between '2020-10-01' and '2020-10-31'
+then convert(date,drid6)
+when convert(date,drid7) between '2020-10-01' and '2020-10-31'
+then convert(date,drid7)
+when convert(date,drid8) between '2020-10-01' and '2020-10-31'
+then convert(date,drid8)
+when convert(date,drid9) between '2020-10-01' and '2020-10-31'
+then convert(date,drid9)
+when convert(date,drid10) between '2020-10-01' and '2020-10-31'
+then convert(date,drid10)
+when convert(date,drid11) between '2020-10-01' and '2020-10-31'
+then convert(date,drid11)
+when convert(date,drid12) between '2020-10-01' and '2020-10-31'
+then convert(date,drid12)
+when convert(date,drid13) between '2020-10-01' and '2020-10-31'
+then convert(date,drid13)
+when convert(date,drid14) between '2020-10-01' and '2020-10-31'
+then convert(date,drid14)
+when convert(date,drid15) between '2020-10-01' and '2020-10-31'
+then convert(date,drid15)
+when convert(date,drid16) between '2020-10-01' and '2020-10-31'
+then convert(date,drid16)
+when convert(date,drid17) between '2020-10-01' and '2020-10-31'
+then convert(date,drid17)
+when convert(date,drid18) between '2020-10-01' and '2020-10-31'
+then convert(date,drid18)
+when convert(date,drid19) between '2020-10-01' and '2020-10-31' 
+then convert(date,drid19)
+when convert(date,drid20) between '2020-10-01' and '2020-10-31'
+then convert(date,drid20)
+when convert(date,drid21) between '2020-10-01' and '2020-10-31'
+then convert(date,drid21)
+when convert(date,drid22) between '2020-10-01' and '2020-10-31'
+then convert(date,drid22)
+when convert(date,drid23) between '2020-10-01' and '2020-10-31'
+then convert(date,drid23)
+end as Drid,
+
+iif(rintac=1,'SI',NULL) as RinnovoTacito,
+iif(fatbloc=1,'SI',NULL) as FatturaBloccata,
+iif(fattautom=1,'SI',NULL) FatturaAutomatica,
+[desPag],
+comtus,
+
+case 
+when creditoAss=1
+then 'si'
+when creditoass=2
+then 'no(diniego)'
+when creditoAss is null
+then 'nessunaAzione'
+end as Assicurazione
+from estrazioni.dbo.commissioni c
+inner join estrazioni.dbo.comm2 c2 on c2.idcommis=c.id and c2.archivio=c.archivio 
+left join [anagraf].[dbo].[modPagam] m on c.modpagam=m.codpag
+where isnull(importo,0)>=3000
+and isnull(fattautom,0)<>0
+
+and (
+convert(date,drid0) between '2020-10-01' and '2020-10-31' or
+convert(date,drid1) between '2020-10-01' and '2020-10-31' or
+convert(date,drid2) between '2020-10-01' and '2020-10-31' or
+convert(date,drid3) between '2020-10-01' and '2020-10-31' or
+convert(date,drid4) between '2020-10-01' and '2020-10-31' or
+convert(date,drid5) between '2020-10-01' and '2020-10-31' or
+convert(date,drid6) between '2020-10-01' and '2020-10-31' or
+convert(date,drid7) between '2020-10-01' and '2020-10-31' or
+convert(date,drid8) between '2020-10-01' and '2020-10-31' or
+convert(date,drid9) between '2020-10-01' and '2020-10-31' or
+convert(date,drid10) between '2020-10-01' and '2020-10-31' or
+convert(date,drid11) between '2020-10-01' and '2020-10-31' or
+convert(date,drid12) between '2020-10-01' and '2020-10-31' or
+convert(date,drid13) between '2020-10-01' and '2020-10-31' or
+convert(date,drid14) between '2020-10-01' and '2020-10-31' or
+convert(date,drid15) between '2020-10-01' and '2020-10-31' or
+convert(date,drid16) between '2020-10-01' and '2020-10-31' or
+convert(date,drid17) between '2020-10-01' and '2020-10-31' or
+convert(date,drid18) between '2020-10-01' and '2020-10-31' or 
+convert(date,drid19) between '2020-10-01' and '2020-10-31' or 
+convert(date,drid20) between '2020-10-01' and '2020-10-31' or
+convert(date,drid21) between '2020-10-01' and '2020-10-31' or
+convert(date,drid22) between '2020-10-01' and '2020-10-31' or
+convert(date,drid23) between '2020-10-01' and '2020-10-31' )  

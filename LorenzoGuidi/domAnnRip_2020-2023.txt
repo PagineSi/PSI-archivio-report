@@ -1,0 +1,30 @@
+
+
+SELECT DISTINCT --[Id],
+       [ID_ModuloC],
+       c.CodPsi,
+       d.www,
+       --[email],
+       --m.[user],
+       --[user],
+       --[pwd],
+       --[note],
+       --[dataInserimento],
+       --[operatore],
+       --[mailDaAnnullare],
+       format([datadomdel], 'yyyy-MM-dd') [datadomdel],
+       --[operatoremaildel],
+       format(d.datadomrip, 'yyyy-MM-dd') datadomrip
+       --[datamailrip]
+       --[operatoremailrip],
+       --[dataCopiaInGeco],
+       --[isPec],
+       --[dataInvioCredenziali],
+       --[operatoreInvioCredenziali]
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+     LEFT JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+WHERE(format([datadomdel], 'yyyy') >= '2020'
+      AND isnull(datadomrip, '') <> '')
+     AND isnull(d.tipoannullamento, 0) <> 3;
+     --AND m.email = m.[user];

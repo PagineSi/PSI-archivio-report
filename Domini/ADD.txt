@@ -1,0 +1,39 @@
+SELECT ad.[ID], 
+       [addomain], 
+       cd.codiceCliente, 
+       [regione], 
+       [provincia], 
+       [categoria], 
+       [maintainer], 
+       [data_landing], 
+       [username], 
+       [password], 
+       [keys], 
+       [weekElab], 
+       [isMad], 
+       [isSeo], 
+       [idSitoCms], 
+       [isAdPro], 
+       [isAdName], 
+       [data_modifica], 
+       [data_abbandono], 
+       [scadenza_dominio], 
+       [dominio_eliminato], 
+       [agente_richiedente], 
+       [area], 
+       [data_richiesta], 
+       [isSi2land], 
+       [keyword_localita], 
+       [keyword], 
+       [isY2k]
+FROM [AdDomain].[dbo].[adDomain] ad
+     LEFT JOIN addomain.dbo.clientidomini cd ON cd.iddominio = ad.id
+WHERE regione = 9
+      AND ISNULL(isadname, '') <> 1
+      AND ISNULL(ismad, '') <> 1
+      AND ISNULL(isseo, '') <> 1
+      AND ISNULL([isSi2land], '') <> 1
+      AND ISNULL(dominio_eliminato, '') <> 1
+      AND (scadenza_dominio > GETDATE()
+           OR scadenza_dominio IS NULL)
+ORDER BY addomain;

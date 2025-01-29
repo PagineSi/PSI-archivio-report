@@ -1,0 +1,125 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+WITH zero as (
+SELECT
+--[id]
+     -- ,[Data estrazione]
+      [Anno]
+      --,[Mese]
+      ,[ID Negozio]
+      --,[Data apertura negozio]
+      ,[Codice Paginesi]
+      --,[P#IVA]
+      --,[Ragione Sociale]
+      --,[Consegnato commissione]
+      --,[Importo commissione]
+      --,[Scaduto]
+      --,[Insoluto]
+      --,[Stadio insoluto]
+      --,[Online]
+      --,[Vendite Totali]
+      --,[Oggetti]
+      --,[percFee]
+      --,[FeeMese]
+      --,[Agente]
+      --,[telefono]
+      --,[cellulare]
+      --,[Coordinatore]
+      --,[Supervisore]
+      --,[StatoCommAttiva]
+      --,[datacomm]
+      --,[RinTac]
+      --,[BiannI]
+      --,[BiannA]
+      --,[importoOrdini]
+      --,[servizio_amazon]
+      --,[lingue_aggiuntive]
+      --,[coupon_avanzati]
+      --,[carrelli_abbandonati]
+      --,[servizio_ebay]
+      --,[mail_provvisorio_data]
+      --,[dataOnline]
+      --,[mail_costruzione_provvisorio_data]
+      --,[settore]
+  FROM [estrazioni].[dbo].[StoricoStoreden]
+  where [ID Negozio] is not null and  anno=2020
+
+  GROUP BY Anno, [ID Negozio], [Codice Paginesi]
+  ),
+
+
+  unodue as (
+  SELECT
+--[id]
+     -- ,[Data estrazione]
+      [Anno]
+      --,[Mese]
+      ,[ID Negozio]
+      --,[Data apertura negozio]
+      ,[Codice Paginesi]
+      --,[P#IVA]
+      --,[Ragione Sociale]
+      --,[Consegnato commissione]
+      --,[Importo commissione]
+      --,[Scaduto]
+      --,[Insoluto]
+      --,[Stadio insoluto]
+      --,[Online]
+      --,[Vendite Totali]
+      --,[Oggetti]
+      --,[percFee]
+      --,[FeeMese]
+      --,[Agente]
+      --,[telefono]
+      --,[cellulare]
+      --,[Coordinatore]
+      --,[Supervisore]
+      --,[StatoCommAttiva]
+      --,[datacomm]
+      --,[RinTac]
+      --,[BiannI]
+      --,[BiannA]
+      --,[importoOrdini]
+      --,[servizio_amazon]
+      --,[lingue_aggiuntive]
+      --,[coupon_avanzati]
+      --,[carrelli_abbandonati]
+      --,[servizio_ebay]
+      --,[mail_provvisorio_data]
+      --,[dataOnline]
+      --,[mail_costruzione_provvisorio_data]
+      --,[settore]
+  FROM [estrazioni].[dbo].[StoricoStoreden]
+  where [ID Negozio] is not null and  anno IN (2021,2022)
+
+  GROUP BY Anno, [ID Negozio], [Codice Paginesi]
+  )
+
+  SELECT DISTINCT
+  zero.[ID Negozio],
+  zero.[Codice Paginesi],
+  a.RagSoc,
+  (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+www
+                      FROM anagraf.dbo.web_moduloc_domini do
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.id = do.ID_ModuloC_Oggetti
+                           INNER JOIN anagraf.dbo.web_moduloc mc1 ON mc1.id = mco1.id_moduloc
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mc1.idcom
+					  LEFT JOIN anagraf.dbo.TipoInserz tp on tp.codice=mco1.Codice_Oggetto
+                      WHERE ulc1.CodPsi = zero.[Codice Paginesi]
+                            --AND ulc1.archivio = ulc.archivio
+                            AND ulc1.archivio = 9999
+                            AND do.sitorif = 1
+                            --AND tp1.Codice IN(1760, 1761, 1762, 1763, 1813)
+					   and tp.CodiceCategoria=18
+                      FOR XML PATH('')
+                  ), 1, 2, '')) AS www,
+  estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Comm_attuali
+ 
+  FROM zero left join unodue on unodue.[ID Negozio]=zero.[ID Negozio]
+  left join estrazioni.dbo.Commissioni c on c.codpsi=zero.[Codice Paginesi] and archivio=9999
+  inner join anagraf.dbo.WEB_ModuloC mc on mc.idcom=c.id
+  inner join anagraf.dbo.WEB_ModuloC_Domini mcd on mcd.id_moduloc=mc.id
+  left join anagraf.dbo.Anagrafica a on a.codice=c.codice
+  where unodue.[ID Negozio] is null

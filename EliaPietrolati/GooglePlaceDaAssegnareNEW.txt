@@ -1,0 +1,43 @@
+SELECT DISTINCT
+       modC.ID AS id_moduloc,
+	  mco.id as id_oggetto,
+       c.codpsi,
+       a.ragsoc,
+	   iif(isnull(a.altosp,0)=1,'X','') as [Alto spendente],
+       ang.nome,
+       c.area,
+       modC.contenuto,
+	  tp.tipo,
+       CONVERT(VARCHAR(10), modC.datarepIT, 111) AS dataValidazione,
+       SUBSTRING(c.datacomm, 1, 4)+''+SUBSTRING(c.datacomm, 5, 2)+''+SUBSTRING(c.datacomm, 7, 2) AS dataCommissione,
+       gp.assegnazione_data AS DataAssegnazione,
+       agp.Account accountGooglePlace,
+       gp.Pin,
+       CONVERT(VARCHAR(10), modc.dataOnline, 111) AS dataOnlineSito,
+       modc.urlprovv,
+       modc.copy,
+       oldwebmask
+FROM WEB_ModuloC_oggetti mco
+         INNER JOIN web_ModuloC modc ON modc.id = mco.id_moduloc
+         INNER JOIN commissioni AS c ON modC.IDcom = c.id
+         INNER JOIN anagrafica AS a ON c.Codice = a.Codice
+         INNER JOIN agenti ON C.Gruppo = Agenti.Gruppo
+                             AND C.Agente = Agenti.Codagente
+	    INNER JOIN anAge ang on ang.utente=agenti.utente
+         INNER JOIN [servizi].[dbo].[SICOMPROD_GMB] gp ON mco.id = gp.idWebModcOggetto
+         INNER JOIN [WEB_AccountGooglePlace] agp ON gp.idAccountGoogle = agp.Id
+	    INNER JOIN TipoInserz tp on tp.Codice=mco.Codice_Oggetto
+         
+WHERE isnull(gp.gbv, 0)=0
+
+
+AND servizi.dbo.CommissioniAttive(c.CodPsi,c.id)=1
+
+AND (servizi.dbo.areaCM(c.area, modc.datarepit) = 0
+     OR (
+					   --gestione CM
+     servizi.dbo.areaCM(c.area, modc.datarepit) = 1
+     AND mco.cm_data_inproduzione IS NOT NULL))
+
+AND gp.assegnazione_data IS NULL
+#Area

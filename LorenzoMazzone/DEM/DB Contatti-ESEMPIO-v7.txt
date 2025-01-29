@@ -1,0 +1,301 @@
+WITH cli
+          AS (
+          SELECT ulc.id,
+                 ulc.codpsi,
+                 ragsoc,
+                 ulc.area,
+                 anage.nome Agente,
+                 coo.Coordinatore,
+                 sup.Supervisore,
+                 com.comune Comune,
+                 com.provincia Provincia,
+                 reg.descrizione Regione,
+                 CONCAT(a.Indirizzo, ', ', a.Civico) AS Indirizzo,
+                 CONCAT(a.Prefisso, '-', a.Telefono) AS Tel1,
+                 CONCAT(a.Prefiss2, '-', a.Telefon2) AS Tel2,
+                 (STUFF(
+                       (
+                           SELECT DISTINCT
+                                  ', '+prodotti.Prodotti
+                           FROM estrazioni.dbo.vDEM_Prodotti prodotti
+                                INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.codpsi = prodotti.codpsi
+                           WHERE prodotti.codpsi = ulc1.codpsi
+                                 AND ulc1.codpsi = ulc.codpsi FOR XML PATH('')
+                       ), 1, 2, '')) AS Prodotti,
+                 cat.categoria Categoria,
+                 cat.catref,
+                 --csd.settore SettoreSub,
+                 cmsd.MacroSet Settore,
+                 tcc.MacroCategoriaProdotti,
+                 ulc.Firmante Firmante,
+                 commi.firmantecognome Cognome,
+                 commi.firmantenome Nome,
+                 fs.firCognome,
+                 fs.firNome,
+                 IIF(a.EmailUrl IS NOT NULL, a.EmailUrl, a.EmailAmm) AS Email,
+                 IIF(wdc.id_tipo_campopagina = 27, wdc.valore, '') AS EmailAlt1,
+                 IIF(wdc.id_tipo_campopagina = 1285, wdc.valore, '') AS EmailAlt2
+          FROM estrazioni.dbo.commissioni ulc
+               INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+               LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                                  AND ulc.Agente = ag.Codagente
+               LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+               LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                        AND ags.iscoordinatore = 1
+               LEFT JOIN anagraf.dbo.agesicomnew ags1 ON ags1.utenteAge = ag.utente
+                                                         AND ags1.isSupervisore = 1
+               LEFT JOIN
+          (
+              SELECT DISTINCT
+                     anage.nome Coordinatore,
+                     anage.utente
+              FROM anagraf.dbo.agenti ag
+                   LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                            AND ags.isCoordinatore = 1
+                   LEFT JOIN anagraf.dbo.anage anage ON anage.utente = ag.utente
+          ) coo ON coo.utente = ags.utenteRif
+               LEFT JOIN
+          (
+              SELECT DISTINCT
+                     anage.nome Supervisore,
+                     anage.utente
+              FROM anagraf.dbo.agenti ag
+                   LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                            AND ags.isSupervisore = 1
+                   LEFT JOIN anagraf.dbo.anage anage ON anage.utente = ag.utente
+          ) sup ON sup.utente = ags1.utenteRif
+               LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = ulc.id
+               LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+               LEFT JOIN anagraf.dbo.Tipoinserz_Categorie_Commerciali tcc ON tcc.codice = tp.codicecategoriacommerciale
+               LEFT JOIN anagraf.dbo.Comuni com ON com.codice = a.Comune
+               LEFT JOIN anagraf.dbo.province pro ON pro.sigla = com.Provincia
+               LEFT JOIN anagraf.dbo.regioni reg ON reg.codreg = pro.codreg
+               LEFT JOIN estrazioni.dbo.firmanteSplit fs ON fs.codAnag = a.Codice
+               LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+               LEFT JOIN main.dbo.CatRefSettore crs ON crs.catRef = cat.catref
+               --LEFT JOIN main.dbo.CatSetDescrizione csd ON csd.codiceSet = crs.codiceSet
+               LEFT JOIN main.dbo.CatSetMacroSet cms ON cms.codiceSet = crs.codiceSet
+               LEFT JOIN main.dbo.CatMacroSetDescrizione cmsd ON cmsd.codicemacroset = cms.codicemacroset
+               LEFT JOIN anagraf.dbo.commissioni commi ON commi.id = ulc.id
+               LEFT JOIN servizi.dbo.WIZARD_dati_commissione wdc ON wdc.codiceAnagrafica = a.Codice
+          WHERE archivio = 9999),
+          coo
+          AS (
+          SELECT DISTINCT
+                 anage.nome Coordinatore,
+                 anage.utente,
+                 ags.area
+          FROM anagraf.dbo.agenti ag
+               LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                        AND ags.isCoordinatore = 1
+               LEFT JOIN anagraf.dbo.anage anage ON anage.utente = ag.utente),
+          sup
+          AS (
+          SELECT DISTINCT
+                 anage.nome Supervisore,
+                 anage.utente,
+                 ags.area
+          FROM anagraf.dbo.agenti ag
+               LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                        AND ags.isSupervisore = 1
+               LEFT JOIN anagraf.dbo.anage anage ON anage.utente = ag.utente),
+          macroCat
+          AS (
+          SELECT cat.catref,
+                 cat.categoria
+          FROM anagraf.dbo.Categorie cat
+          WHERE cat.codice = cat.catref),
+          age
+          AS (
+          SELECT anage.nome Agente,
+                 c.codpsi
+          FROM anagraf.dbo.commissioni c
+               INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                                   AND ag.Codagente = c.Agente
+               INNER JOIN anagraf.dbo.anage ON anAge.utente = ag.utente
+          WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1),
+          MinData
+          AS (
+          SELECT c.codpsi,
+                 TRY_CONVERT( DATE, MIN(DataComm)) AS MinData
+          FROM estrazioni.dbo.commissioni c
+          GROUP BY c.CodPsi),
+          MaxData
+          AS (
+          SELECT codpsi,
+                 MAX(Data_Fine_Rapporto) Data_Fine_Rapporto
+          FROM
+          (
+              SELECT c.id,
+                     c.codpsi,
+                     CASE
+                         WHEN isnull(c.biannI, '') = ''
+                              AND isnull(c.RinTac, '') = ''
+                              AND isnull(c.exRintac, '') = ''
+                         THEN DATEADD(year, 1, TRY_CONVERT( DATE, (C.DataComm)))
+                         WHEN isnull(c.biannI, '') = 'B'
+                              AND isnull(c.RinTac, '') = ''
+                              AND isnull(c.exRintac, '') = ''
+                         THEN DATEADD(year, 2, TRY_CONVERT(DATE, (C.DataComm)))
+                         WHEN isnull(c.biannI, '') = 'C'
+                              AND isnull(c.RinTac, '') = ''
+                              AND isnull(c.exRintac, '') = ''
+                         THEN DATEADD(year, 3, TRY_CONVERT(DATE, (C.DataComm)))
+                         WHEN isnull(c.biannI, '') = 'D'
+                              AND isnull(c.RinTac, '') = ''
+                              AND isnull(c.exRintac, '') = ''
+                         THEN DATEADD(year, 4, TRY_CONVERT(DATE, (C.DataComm)))
+                         WHEN isnull(c.biannI, '') = 'E'
+                              AND isnull(c.RinTac, '') = ''
+                              AND isnull(c.exRintac, '') = ''
+                         THEN DATEADD(year, 5, TRY_CONVERT(DATE, (C.DataComm)))
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) = 0
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 3, TRY_CONVERT(DATE, (c.DataScadRt))), NULL)
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) > 0
+                              AND isnull(c.biannI, '') = ''
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 15, TRY_CONVERT(DATE, (c.DataScadRt))), DATEADD(month, 12, TRY_CONVERT(DATE, (c.DataComm))))
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) > 0
+                              AND isnull(c.biannI, '') = 'B'
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 27, TRY_CONVERT(DATE, (c.DataScadRt))), DATEADD(month, 24, TRY_CONVERT(DATE, (c.DataComm))))
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) > 0
+                              AND isnull(c.biannI, '') = 'C'
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 39, TRY_CONVERT(DATE, (c.DataScadRt))), DATEADD(month, 36, TRY_CONVERT(DATE, (c.DataComm))))
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) > 0
+                              AND isnull(c.biannI, '') = 'D'
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 51, TRY_CONVERT(DATE, (c.DataScadRt))), DATEADD(month, 48, TRY_CONVERT(DATE, (c.DataComm))))
+                         WHEN isnull(c.exRintac, '') = 1
+                              AND isnull(c.importo, 0) > 0
+                              AND isnull(c.biannI, '') = 'E'
+                         THEN IIF(TRY_CONVERT(DATE, c.DataScadRt) IS NOT NULL, DATEADD(month, 63, TRY_CONVERT(DATE, (c.DataScadRt))), DATEADD(month, 60, TRY_CONVERT(DATE, (c.DataComm))))
+                     END AS Data_Fine_Rapporto
+              FROM estrazioni.dbo.commissioni c
+          ) m
+          GROUP BY m.CodPsi),
+          attivisino
+          AS (
+          SELECT DISTINCT
+                 c.codpsi,
+                 c.archivio,
+                 CASE
+                     WHEN estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 1
+                     THEN 'Y'
+                     WHEN estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 0
+                     THEN 'N'
+                 END AS Attivo
+          FROM estrazioni.dbo.commissioni c
+          WHERE c.archivio = 9999)
+          SELECT DISTINCT
+                 CASE
+                     WHEN MAX(cli.Email) IS NOT NULL
+                     THEN MAX(cli.Email)
+                     ELSE IIF(MAX(cli.EmailAlt1) IS NOT NULL, MAX(cli.EmailAlt1), MAX(cli.EmailAlt2))
+                 END AS Email_Cliente,
+                 CASE
+                     WHEN MAX(cli.Firmante) IS NOT NULL
+                     THEN MAX(cli.Firmante)
+                     ELSE ''
+                 END AS Firmante,
+                 CASE
+                     WHEN MAX(cli.Cognome) IS NOT NULL
+                     THEN MAX(cli.Cognome)
+                     ELSE IIF(MAX(cli.firCognome) IS NOT NULL, MAX(cli.firCognome), '')
+                 END AS Cognome_Cliente,
+                 CASE
+                     WHEN MAX(cli.Nome) IS NOT NULL
+                     THEN MAX(cli.Nome)
+                     ELSE IIF(MAX(cli.firNome) IS NOT NULL, MAX(cli.firNome), '')
+                 END AS Nome_Cliente,
+                 CASE
+                     WHEN MAX(cli.RagSoc) IS NOT NULL
+                     THEN MAX(cli.RagSoc)
+                     ELSE ''
+                 END AS Ragione_Sociale,
+                 cli.CodPsi Codice_Cliente,
+                 CASE
+                     WHEN MAX(cli.Tel1) LIKE '0%'
+                     THEN MAX(cli.Tel1)
+                     ELSE IIF(MAX(cli.Tel2) LIKE '0%', MAX(cli.Tel2), '')
+                 END AS Telefono,
+                 CASE
+                     WHEN MAX(cli.Tel1) NOT LIKE '0%'
+                     THEN MAX(cli.Tel1)
+                     ELSE IIF(MAX(cli.Tel2) NOT LIKE '0%', MAX(cli.Tel2), '')
+                 END AS Cellulare,
+                 CASE
+                     WHEN MAX(age.Agente) IS NOT NULL
+                     THEN MAX(age.Agente)
+                     ELSE IIF(MAX(cli.Agente) IS NOT NULL, MAX(cli.Agente), '')
+                 END AS Agente,
+                 CASE
+                     WHEN MAX(coo.Coordinatore) IS NOT NULL
+                     THEN MAX(coo.Coordinatore)
+                     ELSE ''
+                 END AS Coordinatore,
+                 CASE
+                     WHEN MAX(sup.Supervisore) IS NOT NULL
+                     THEN MAX(sup.Supervisore)
+                     ELSE ''
+                 END AS Supervisore,
+                 CASE
+                     WHEN MAX(cli.Prodotti) IS NOT NULL
+                     THEN MAX(cli.Prodotti)
+                     ELSE ''
+                 END AS Prodotti,
+                 CASE
+                     WHEN MAX(cli.Categoria) IS NOT NULL
+                     THEN MAX(cli.Categoria)
+                     ELSE ''
+                 END AS Categoria_Cliente,
+                 CASE
+                     WHEN MAX(macroCat.categoria) IS NOT NULL
+                     THEN MAX(macroCat.categoria)
+                     ELSE ''
+                 END AS Macro_Categoria_Cliente,
+            --CASE
+            --    WHEN MAX(cli.SettoreSub) IS NOT NULL
+            --    THEN MAX(cli.SettoreSub)
+            --    ELSE ''
+            --END AS Settore_Cliente,
+                 CASE
+                     WHEN MAX(cli.Settore) IS NOT NULL
+                     THEN MAX(cli.Settore)
+                     ELSE ''
+                 END AS Macro_Settore_Cliente,
+                 MAX(cli.Comune) Comune_Cliente,
+                 MAX(cli.Provincia) Provincia_Cliente,
+                 MAX(cli.Regione) Regione_Cliente,
+                 MAX(cli.Area) Area_Commissione,
+                 MAX(attivisino.Attivo) Cliente_Attivo,
+                 CASE
+                     WHEN MIN(MinData.MinData) IS NOT NULL
+                     THEN format(MIN(MinData.MinData), 'yyyy')
+                     ELSE ''
+                 END AS Data_Inizio_Rapporto,
+                 CASE
+                     WHEN MAX(attivisino.Attivo) = 'N'
+                     THEN format(MAX(MaxData.Data_Fine_Rapporto), 'yyyy')
+                     ELSE ''
+                 END AS Data_Fine_Rapporto
+          FROM cli
+               LEFT JOIN attivisino ON cli.CodPsi = attivisino.codpsi
+               LEFT JOIN coo ON coo.Coordinatore = cli.Coordinatore
+                                AND coo.area = cli.area
+               LEFT JOIN sup ON sup.supervisore = cli.Supervisore
+                                AND sup.area = cli.area
+               LEFT JOIN age ON age.codpsi = cli.CodPsi
+               LEFT JOIN macroCat ON macroCat.catref = cli.catref
+               LEFT JOIN MinData ON MinData.CodPsi = cli.codpsi
+               LEFT JOIN MaxData ON MaxData.CodPsi = cli.codpsi
+          WHERE cli.Email IS NOT NULL
+                AND attivisino.Attivo = 'Y'
+                OR (attivisino.Attivo = 'N'
+                    AND format(MaxData.Data_Fine_Rapporto, 'yyyy') >= '2018')
+          GROUP BY cli.CodPsi;
+          --ORDER BY Ragione_Sociale;
+	--OPTION(FORCE ORDER);

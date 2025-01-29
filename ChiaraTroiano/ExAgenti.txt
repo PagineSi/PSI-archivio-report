@@ -1,0 +1,94 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            ag.utente,
+            ag.NolavNoi,
+            ang.nome Agente,
+            ang.referente,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+ag1.zone
+                      FROM anagraf.dbo.agenti ag1
+                      WHERE ag1.utente = ag.utente FOR XML PATH('')
+                  ), 1, 2, '')) AS Aree,
+            ags.utenteRif Coordinatore,
+            ags1.utenteRif Regional,
+            ags2.utenteRif Supervisore,
+            format(ang.datanascita, 'dd-MM-yyyy') DataNascita,
+            ang.cfis CodFis,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+agr1.descrizione
+                      FROM anagraf.dbo.agenti ag2
+                           LEFT JOIN anagraf.dbo.agemand agm1 ON agm1.utente = ag2.utente
+                           LEFT JOIN anagraf.dbo.ageruolo agr1 ON agr1.id = agm1.ruolo
+                      WHERE ag2.utente = ag.utente FOR XML PATH('')
+                  ), 1, 2, '')) AS Ruolo,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             '; '+agm2.annotaz
+                      FROM anagraf.dbo.agenti ag3
+                           LEFT JOIN anagraf.dbo.agemand agm2 ON agm2.utente = ag3.utente
+                           LEFT JOIN anagraf.dbo.ageruolo agr2 ON agr2.id = agm2.ruolo
+                      WHERE ag3.utente = ag.utente FOR XML PATH('')
+                  ), 1, 2, '')) AS Note
+     FROM [anagraf].[dbo].[Agenti] ag
+          LEFT JOIN anagraf.dbo.anage ang ON ag.utente = ang.utente
+          LEFT JOIN anagraf.dbo.agemand agm ON agm.utente = ag.utente
+          LEFT JOIN anagraf.dbo.ageRuolo agr ON agr.id = agm.ruolo
+          LEFT JOIN anagraf.dbo.agesicomnew ags ON ags.utenteAge = ag.utente
+                                                   AND ags.iscoordinatore = 1
+          LEFT JOIN anagraf.dbo.agesicomnew ags1 ON ags1.utenteAge = ag.utente
+                                                    AND ags1.isReferente = 1
+          LEFT JOIN anagraf.dbo.agesicomnew ags2 ON ags2.utenteAge = ag.utente
+                                                    AND ags2.isSupervisore = 1
+     WHERE ag.NolavNoi = 1
+           AND ang.nome IS NOT NULL),
+     mandati
+     AS (
+     SELECT agm.utente,
+            format(MIN(agm.dataini), 'dd-MM-yyyy') DataIni,
+            format(MAX(agm.dataFine), 'dd-MM-yyyy') DataFine
+     FROM anagraf.dbo.agemand agm
+     GROUP BY agm.utente),
+     fatturato
+     AS (
+     SELECT ag.utente,
+            ROUND(SUM(c.importo), 2) Fatturato,
+            ROUND(SUM(c.importoinsoluto), 2) Insoluto
+     FROM anagraf.dbo.agenti ag
+          INNER JOIN estrazioni.dbo.commissioni c ON c.gruppo = ag.gruppo
+                                                     AND c.agente = ag.codagente
+     GROUP BY ag.utente),
+     attivi
+     AS (
+     SELECT DISTINCT
+            ag.utente
+     FROM anagraf.dbo.agenti ag
+     WHERE isnull(NolavNoi, '') = '')
+     SELECT DISTINCT
+            base.NolavNoi,
+            base.Agente,
+            base.Referente,
+            base.Aree,
+            base.Coordinatore,
+            base.Regional,
+            base.Supervisore,
+            base.DataNascita,
+            base.CodFis,
+            mandati.DataIni,
+            mandati.DataFine,
+            base.Ruolo,
+            fatturato.Fatturato,
+            fatturato.Insoluto,
+            REPLACE(IIF(isnull(fatturato.Insoluto, 0) <> 0, CONCAT(fatturato.Insoluto * 100 / fatturato.Fatturato, '%'), '-'), '.', ',') PercConsumato,
+            servizi.dbo.udftestospezzato(base.Note) Note
+     FROM base
+          LEFT JOIN mandati ON mandati.utente = base.utente
+          LEFT JOIN fatturato ON fatturato.utente = base.utente
+          LEFT JOIN attivi ON attivi.utente = base.utente
+     WHERE attivi.utente IS NULL
+     ORDER BY base.Agente;

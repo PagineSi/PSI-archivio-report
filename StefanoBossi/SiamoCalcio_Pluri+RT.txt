@@ -1,0 +1,48 @@
+
+
+SELECT DISTINCT
+       c.idcom idCom,
+       c.codpsi CodPsi,
+       ragsoc RagSoc,
+       c.Area,
+       format(datacomm, 'yyyyMMdd') AS DataComm,
+       MAX(format(sic.datapresaincarico, 'yyyyMMdd')) AS DataPresaInCarico,
+       MAX(format(sic.validoal, 'yyyyMMdd')) AS DataValiditàMax,
+       isRinnovoTacito RinTac,
+       bianni BiannI,
+       bianna BiannA,
+       (STUFF(
+             (
+                 SELECT ', '+WOW.tipo_inserz+' (x',
+                        COUNT(WOW.tipo_inserz),
+                        ')'
+                 FROM estrazioni.[dbo].[vAnalisiImportiOGGETTI] wow
+                 WHERE wow.archivio = c.archivio
+                       AND wow.idCom = c.idCom
+                       AND CodiceCategoria = 109
+                 GROUP BY WOW.tipo_inserz FOR XML PATH('')
+             ), 1, 2, '')) AS Oggetti
+FROM estrazioni.dbo.vAnalisiImportiOggetti c
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.CodiceAnagrafica
+     LEFT JOIN servizi.dbo.sicomprod_siamocalcio_oggetti sic ON sic.idcom = c.idcom
+     LEFT JOIN anagraf.dbo.oggetti o ON o.codice = c.codice_oggetto
+WHERE CodiceCategoria = 109
+      AND isnull(o.hastag, '') = ''
+      AND archivio = 9999
+      AND ((isnull(isRinnovoTacito, 0) <> 0
+            AND isnull(biannA, '') <> isnull(bianni, '')
+            OR (isnull(isRinnovoTacito, 0) <> 0
+                AND isnull(bianni, '') = ''))
+           OR (isnull(bianni, '') <> ''
+               AND isnull(biannA, '') <> isnull(bianni, '')))
+      AND format(c.datacomm, 'MMdd') BETWEEN '0501' AND '0631'
+GROUP BY archivio,
+         c.idcom,
+         c.codpsi,
+         ragsoc,
+         c.Area,
+         c.datacomm,
+         isRinnovoTacito,
+         bianni,
+         bianna
+ORDER BY idcom;

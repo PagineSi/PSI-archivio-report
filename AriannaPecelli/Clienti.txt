@@ -1,0 +1,55 @@
+
+
+SELECT DISTINCT
+       c.CodPsi,
+       a.RagSoc,
+       c.PIVA,
+       CONCAT(a.Prefisso, '/', a.Telefono) Telefono,
+       IIF(isnull(a.emailurl, '') <> '', a.emailurl, a.emailAmm) Email,
+       c.Area,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+ang.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Agente,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isCoordinatore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Coordinatore,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isSupervisore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Supervisore,
+       cat.Categoria
+FROM anagraf.dbo.commissioni c
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.Categorie cat ON cat.Codice = a.Categoria
+WHERE servizi.dbo.commissioniattive(c.codpsi, c.id) = 1
+     AND cat.codice IN(474, 1430, 1568, 1590, 1655, 1656)
+ORDER BY a.RagSoc;

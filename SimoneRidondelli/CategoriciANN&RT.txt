@@ -1,0 +1,55 @@
+SELECT DISTINCT
+ Piva
+ ,an.RagSoc
+ ,codpsi
+ ,cat.Categoria
+ ,IdCom
+ ,DataComm
+ ,DataComm_Annoprec
+ ,Area
+ ,CASE
+  when ISNULL(rintac,'')='' and ISNULL(BiannI,'')='' THEN 'Annuale'
+  when ISNULL(rintac,'')<>'' THEN 'Rinnovo Tacito'
+  end as [Tipo Contratto]
+ ,CONCAT(Prefisso,'-',an.Telefono) as Telefono
+ ,CONCAT(Indirizzo,' ',civico) as Indirizzo
+ ,Comune
+ ,IIF(EmailUrl is not NULL, EmailUrl, EmailAmm) as Email
+ ,age.Agente
+ ,stContr as [Stato Contratto]
+ ,IIF(comm.exomaggio=1,'X',NULL) as [Ex Omaggio]
+ ,Consegnato
+ ,Importo
+ ,importoInsoluto
+ ,(STUFF(
+             (
+                 SELECT DISTINCT ', '+tc1.Descrizione
+                 FROM anagraf.dbo.TipoInserz_Categorie_Commerciali as tc1
+				 INNER JOIN anagraf.dbo.TipoInserz as t1 on t1.CodiceCategoriaCommerciale=tc1.Codice
+				 INNER JOIN estrazioni.dbo.Oggetti as ogg1 on ogg1.tipo=t1.Codice
+				 INNER JOIN estrazioni.dbo.Commissioni as comm1 on comm1.id=ogg1.IDcom and comm1.archivio=ogg1.archivio
+                      
+                 WHERE estrazioni.dbo.CommissioniAttive(comm1.archivio,comm1.codpsi,comm1.id)=1
+				 
+				 and comm1.id = comm.id
+				 and comm1.archivio = ogg1.archivio
+				 and comm1.archivio=9999
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS [Ogg. Acquistati]
+
+FROM estrazioni.dbo.Commissioni as comm
+INNER JOIN estrazioni.dbo.Oggetti as ogg on ogg.idcom=comm.id and ogg.archivio=comm.archivio
+INNER JOIN anagraf.dbo.TipoInserz as t on t.codice=ogg.Tipo
+INNER JOIN anagraf.dbo.TipoInserz_Categorie_Commerciali as tc on tc.codice=t.CodiceCategoriaCommerciale
+INNER JOIN anagraf.dbo.Anagrafica as an on an.codice=comm.codice
+INNER JOIN anagraf.dbo.agenti as age on age.gruppo=comm.gruppo and age.codagente=comm.agente
+INNER JOIN anagraf.dbo.anage as anag on anag.utente=age.utente
+INNER JOIN anagraf.dbo.Categorie as cat on cat.codice=an.Categoria
+
+
+where estrazioni.dbo.CommissioniAttive(comm.archivio,comm.codpsi,comm.id)=1
+and t.CodiceCategoria=5
+and comm.archivio=9999
+and ((ISNULL(rintac,'')='' and ISNULL(BiannI,'')='') or (ISNULL(rintac,'')<>''))
+
+order by an.RagSoc

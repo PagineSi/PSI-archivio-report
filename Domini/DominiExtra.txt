@@ -1,0 +1,195 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+SELECT DISTINCT
+     co.CodPsi
+       ,co.[Id]
+      ,d.[ID_ModuloC]
+	 ,(STUFF(
+             (
+                 SELECT ', '+tp1.tipo
+		
+			  
+                 FROM [anagraf].[dbo].[TipoInserz] tp1
+                      inner join anagraf.dbo.web_moduloc_oggetti mco1 on mco1.codice_oggetto=tp1.Codice
+                 
+			  inner join anagraf.dbo.web_moduloc c1 on c1.id=mco1.ID_ModuloC
+			  --inner join anagraf.dbo.WEB_ModuloC_Domini d1 on d1.ID_ModuloC=c1.ID
+  inner join anagraf.dbo.Commissioni co1 on co1.id=c1.IDcom
+  WHERE 
+  c1.id=c.id and co.id=co1.id 
+  --and mco1.id=mco.id
+  and tp1.codice IN (713,
+1539,
+1690, 
+931, 
+1219, 
+1220, 
+930, 
+1221, 
+1222, 
+480, 
+481, 
+482, 
+597, 
+483, 
+599, 
+484, 
+600, 
+632, 
+634, 
+486, 
+633, 
+1225, 
+1226, 
+1014, 
+1215, 
+1216, 
+704, 
+1189, 
+1190, 
+1465, 
+1466, 
+1464, 
+844, 
+1217, 
+1218, 
+706, 
+1193, 
+1194, 
+705, 
+1191, 
+1192, 
+900, 
+1211, 
+1212, 
+841, 
+1752, 
+1753, 
+1461, 
+1462, 
+1463, 
+908, 
+1213, 
+1214, 
+1209, 
+1210, 
+995, 
+1207, 
+1208, 
+1187, 
+1188, 
+1229, 
+1360, 
+1230, 
+1361, 
+68, 
+69, 
+341)
+--and isnull(d1.tipoAnnullamento,0) = 2
+--and servizi.dbo.CommissioniAttive(co1.codpsi,co1.id)=1
+ 
+                        FOR XML PATH('')
+				    ), 1, 2, '')) AS tipo
+      ,(STUFF(
+             (
+                 SELECT DISTINCT ', '+d2.www
+			  
+                 FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d2
+                      
+                 
+			  inner join anagraf.dbo.web_moduloc c1 on c1.id=d2.ID_ModuloC
+			  inner join anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.id_moduloc=c1.ID
+  inner join anagraf.dbo.Commissioni co1 on co1.id=c1.IDcom
+  WHERE 
+  c1.id=c.id and co.id=co1.id
+ and isnull(d2.tipoAnnullamento,0) = 2
+ 
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS www
+
+		   
+      
+  FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d 
+  inner join anagraf.dbo.web_moduloc c on c.id=d.ID_ModuloC
+  inner join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=c.ID
+  inner join anagraf.dbo.Commissioni co on co.id=c.IDcom
+  inner join anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+  where isnull(tipoAnnullamento,0) = 2
+  and isnull(d.datadomdel,'')=''
+  --and servizi.dbo.CommissioniAttive(co.codpsi,co.id)=1
+
+  and tp.codice IN (713,
+1539,
+1690, 
+931, 
+1219, 
+1220, 
+930, 
+1221, 
+1222, 
+480, 
+481, 
+482, 
+597, 
+483, 
+599, 
+484, 
+600, 
+632, 
+634, 
+486, 
+633, 
+1225, 
+1226, 
+1014, 
+1215, 
+1216, 
+704, 
+1189, 
+1190, 
+1465, 
+1466, 
+1464, 
+844, 
+1217, 
+1218, 
+706, 
+1193, 
+1194, 
+705, 
+1191, 
+1192, 
+900, 
+1211, 
+1212, 
+841, 
+1752, 
+1753, 
+1461, 
+1462, 
+1463, 
+908, 
+1213, 
+1214, 
+1209, 
+1210, 
+995, 
+1207, 
+1208, 
+1187, 
+1188, 
+1229, 
+1360, 
+1230, 
+1361, 
+68, 
+69, 
+341)
+--and www like '%%'
+  group by d.ID_ModuloC,
+          co.id,
+		www,
+		c.id,
+		co.codpsi,
+		tp.tipo
+		--mco.id
+		order by codpsi

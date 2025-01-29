@@ -1,0 +1,51 @@
+WITH impo
+     AS (
+     SELECT SUM(consegnato) TotConsegnato,
+            SUM(importo) TotImporto,
+            MAX(IIF(DataComm IS NOT NULL, DataComm, DataComm_Annoprec)) MaxDataComm,
+            codpsi,
+            area
+     FROM estrazioni.dbo.commissioni c
+     WHERE archivio = 9999
+           AND estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     GROUP BY codpsi,
+              area),
+     cli
+     AS (
+     SELECT DISTINCT
+            [CodPsi],
+            a.RagSoc,
+            ang.nome Agente,
+            [Area],
+            estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi) Oggetti,
+            Importo
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+          INNER JOIN anagraf.dbo.WEB_ModuloC_Oggetti mco ON mco.id_moduloc = mc.ID
+          INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          INNER JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+          INNER JOIN anagraf.dbo.agenti ag ON ag.Gruppo = c.Gruppo
+                                              AND ag.Codagente = c.Agente
+          LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+          INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+          INNER JOIN anagraf.dbo.TipoInserz_Categorie_Commerciali cc ON cc.codice = tp.CodiceCategoriaCommerciale
+     WHERE cc.MacroCategoria = 'siti web'
+           AND isnull(tp.siglaSecondaria, '') = ''
+           AND cat.catref = 393
+           AND c.area IN('BG', 'BS', 'CR', 'VI', 'VR')
+          AND estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND archivio = 9999)
+     SELECT DISTINCT
+            cli.[CodPsi],
+            cli.RagSoc,
+            cli.[Area],
+            cli.Agente,
+            impo.MaxDataComm,
+            impo.TotConsegnato,
+            impo.TotImporto,
+            cli.Oggetti
+     FROM cli
+          LEFT JOIN impo ON cli.codpsi = impo.codpsi
+                            AND cli.area = impo.area
+          INNER JOIN servizi.[dbo].[vTipoVIC] ON [vTipoVIC].codpsi = cli.codpsi
+     ORDER BY ragsoc;

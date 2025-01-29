@@ -1,0 +1,405 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            Area,
+            IIF(ISNULL(DataComm, '') <> '', SUBSTRING(DataComm, 5, 2), SUBSTRING(datacomm_annoprec, 5, 2)) AS Mese
+     FROM [anagraf].[dbo].[Commissioni]),
+     daRinnovare
+     AS (
+     SELECT Area,
+            Mese,
+            COUNT(m.CommDaRinnovare) CommDaRinnovare,
+            SUM(m.TOT_ImpoDaRinnovare) TOT_ImpoDaRinnovare
+     FROM
+     (
+         SELECT [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommDaRinnovare,
+                isnull(Consegnato, 0) TOT_ImpoDaRinnovare
+         FROM [anagraf].[dbo].[Commissioni] c
+         WHERE SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 5, 2) = '07'
+               AND SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 0, 5) NOT IN('2023')
+         AND consegnato > 9
+         AND isnull(importo, '') = ''
+         AND isnull(rintac, '') = ''
+         AND isnull(biannA, '') = ''
+         AND (stcontr IS NULL
+              OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+     ) AS m
+     GROUP BY Area,
+              mese),
+     rinnovate
+     AS (
+     SELECT DISTINCT
+            Area,
+            Mese,
+            COUNT(m.CommRinnovate) CommRinnovate,
+            SUM(m.TOT_ImpoRinnovato) TOT_ImpoRinnovato,
+            SUM(m.TOT_Consegnato) TOT_Consegnato
+     FROM
+     (
+         SELECT DISTINCT
+                [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommRinnovate,
+                IIF(isnull(importo, 0) > 0, isnull(importo, 0), isnull(consegnato, 0)) TOT_ImpoRinnovato,
+                isnull(consegnato, 0) TOT_Consegnato
+         FROM [estrazioni].[dbo].[Commissioni] c
+              INNER JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.CommissionePrec = c.Riferimento
+         WHERE(ISNULL(c.DataComm, '') BETWEEN 20230701 AND 20230731
+               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20230701 AND 20230731)
+              AND SUBSTRING(cr.DataCommPrec, 5, 2) = '07'
+              AND ISNULL(c.DataComm_Annoprec, '') <> ISNULL(cr.DataCommPrec, '')
+              AND ISNULL(c.DataComm, '') <> ISNULL(cr.DataCommPrec, '')
+              AND consegnato > 0
+              AND (stcontr IS NULL
+                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+     ) AS m
+     GROUP BY Area,
+              mese),
+     consumato
+     AS (
+     SELECT DISTINCT
+            Area,
+            Mese,
+            COUNT(m.CommRinnovate) CommRinnovate,
+            SUM(m.TOT_Consumato) TOT_Consumato
+     FROM
+     (
+         SELECT DISTINCT
+                [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommRinnovate,
+                IIF(isnull(importo, 0) > 0, isnull(consegnato, 0), 0) TOT_Consumato
+         FROM [estrazioni].[dbo].[Commissioni] c
+              INNER JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.CommissionePrec = c.Riferimento
+         WHERE(ISNULL(c.DataComm, '') BETWEEN 20230701 AND 20230731
+               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20230701 AND 20230731)
+              AND SUBSTRING(cr.DataCommPrec, 5, 2) = '07'
+              AND ISNULL(c.DataComm_Annoprec, '') <> ISNULL(cr.DataCommPrec, '')
+              AND ISNULL(c.DataComm, '') <> ISNULL(cr.DataCommPrec, '')
+              AND consegnato > 0
+              AND (stcontr IS NULL
+                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+     ) AS m
+     GROUP BY Area,
+              mese),
+     altreRinnovate
+     AS (
+     SELECT DISTINCT
+            Area,
+            Mese,
+            COUNT(m.CommRinnovate) CommRinnovate,
+            SUM(m.TOT_ImpoRinnovato) TOT_ImpoRinnovato
+     FROM
+     (
+         SELECT DISTINCT
+                [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommRinnovate,
+                IIF(isnull(importo, 0) > 0, isnull(importo, 0), isnull(consegnato, 0)) TOT_ImpoRinnovato
+         FROM [estrazioni].[dbo].[Commissioni] c
+              INNER JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.CommissionePrec = c.Riferimento
+         WHERE(ISNULL(c.DataComm, '') BETWEEN 20230701 AND 20230731
+               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20230701 AND 20230731)
+              AND SUBSTRING(cr.DataCommPrec, 5, 2) NOT IN('07')
+              AND ISNULL(c.DataComm_Annoprec, '') <> ISNULL(cr.DataCommPrec, '')
+              AND ISNULL(c.DataComm, '') <> ISNULL(cr.DataCommPrec, '')
+              AND ISNULL(cr.DataCommPrec, '') <> ''
+              AND consegnato > 0
+              AND (stcontr IS NULL
+                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+     ) AS m
+     GROUP BY Area,
+              mese),
+     rinnovateNoRif
+     AS (
+     SELECT DISTINCT
+            Area,
+            Mese,
+            COUNT(m.CommRinnovate) CommRinnovate,
+            SUM(m.TOT_ImpoRinnovato) TOT_ImpoRinnovato
+     FROM
+     (
+         SELECT DISTINCT
+                [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommRinnovate,
+                IIF(isnull(importo, 0) > 0, isnull(importo, 0), isnull(consegnato, 0)) TOT_ImpoRinnovato,
+                isnull(consegnato, 0) TOT_Consegnato
+         FROM [estrazioni].[dbo].[Commissioni] c
+              LEFT JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.CommissionePrec = c.Riferimento
+         WHERE(ISNULL(c.DataComm, '') BETWEEN 20230701 AND 20230731
+               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20230701 AND 20230731)
+              AND ISNULL(cr.DataCommPrec, '') = ''
+              AND consegnato > 0
+              AND (stcontr IS NULL
+                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+              AND isnull(cr.commissioneprec, '') = ''
+     ) AS m
+     GROUP BY Area,
+              mese),
+     daRinnovareSucc
+     AS (
+     SELECT Area,
+            Mese,
+            COUNT(m.CommDaRinnovareSucc) CommDaRinnovareSucc,
+            SUM(m.TOT_ImpoDaRinnovareSucc) TOT_ImpoDaRinnovareSucc
+     FROM
+     (
+         SELECT [Area],
+                IIF(ISNULL(c.DataComm, '') <> '', SUBSTRING(c.DataComm, 5, 2), SUBSTRING(c.datacomm_annoprec, 5, 2)) AS Mese,
+                id CommDaRinnovareSucc,
+                isnull(Consegnato, 0) TOT_ImpoDaRinnovareSucc
+         FROM [anagraf].[dbo].[Commissioni] c
+         WHERE SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 5, 2) = '08'
+               AND consegnato > 9
+               AND isnull(importo, '') = ''
+               AND isnull(rintac, '') = ''
+               AND isnull(biannA, '') = ''
+               AND (stcontr IS NULL
+                    OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+     ) AS m
+     GROUP BY Area,
+              mese)
+     SELECT base.Area,
+            base.Mese,
+            SUM(isnull(daRinnovare.CommDaRinnovare, 0)) + SUM(isnull(rinnovate.CommRinnovate, 0)) CommDaRinnovare,
+            SUM(isnull(daRinnovare.TOT_ImpoDaRinnovare, 0)) + SUM(isnull(rinnovate.TOT_Consegnato, 0)) TOT_ImpoDaRinnovare,
+            SUM(isnull(rinnovate.CommRinnovate, 0)) CommRinnovate,
+            SUM(isnull(rinnovate.TOT_ImpoRinnovato, 0)) TOT_ImpoRinnovato,
+            SUM(isnull(consumato.TOT_Consumato, 0)) TOT_Consumato,
+            SUM(isnull(altreRinnovate.CommRinnovate, 0)) AltreCommRinnovate,
+            SUM(isnull(altreRinnovate.TOT_ImpoRinnovato, 0)) AltroTOT_ImpoRinnovato,
+            SUM(isnull(rinnovateNoRif.CommRinnovate, 0)) CommRinnovateNoRif,
+            SUM(isnull(rinnovateNoRif.TOT_ImpoRinnovato, 0)) NoRifTOT_ImpoRinnovato,
+            IIF(SUM(rinnovate.CommRinnovate) * 100 / (SUM(daRinnovare.CommDaRinnovare) + SUM(rinnovate.CommRinnovate)) <> 0, CONCAT(SUM(rinnovate.CommRinnovate) * 100 / (SUM(daRinnovare.CommDaRinnovare) + SUM(rinnovate.CommRinnovate)), '%'), '-') PercCommRinn,
+            REPLACE(IIF(SUM(rinnovate.TOT_ImpoRinnovato) * 100 / (SUM(daRinnovare.TOT_ImpoDaRinnovare) + SUM(rinnovate.TOT_ImpoRinnovato)) <> 0, CONCAT(SUM(rinnovate.TOT_ImpoRinnovato) * 100 / (SUM(daRinnovare.TOT_ImpoDaRinnovare) + SUM(rinnovate.TOT_ImpoRinnovato)), '%'), '-'), '.', ',') PercImpoRinn,
+            REPLACE(IIF(SUM(consumato.TOT_Consumato) * 100 / (SUM(daRinnovare.TOT_ImpoDaRinnovare) + SUM(consumato.TOT_Consumato)) <> 0, CONCAT(SUM(consumato.TOT_Consumato) * 100 / (SUM(daRinnovare.TOT_ImpoDaRinnovare) + SUM(consumato.TOT_Consumato)), '%'), '-'), '.', ',') PercConsumato,
+            SUM(isnull(daRinnovareSucc.CommDaRinnovareSucc, 0)) CommDaRinnovareSucc,
+            SUM(isnull(daRinnovareSucc.TOT_ImpoDaRinnovareSucc, 0)) TOT_ImpoDaRinnovareSucc
+     FROM base
+          LEFT JOIN daRinnovare ON base.Area = daRinnovare.Area
+                                   AND base.mese = daRinnovare.mese
+          LEFT JOIN rinnovate ON base.Area = rinnovate.Area
+                                 AND base.mese = rinnovate.mese
+          LEFT JOIN altreRinnovate ON base.Area = altreRinnovate.Area
+                                      AND base.mese = altreRinnovate.mese
+          LEFT JOIN daRinnovareSucc ON base.Area = daRinnovareSucc.Area
+                                       AND base.mese = daRinnovareSucc.mese
+          LEFT JOIN consumato ON base.Area = consumato.Area
+                                 AND base.mese = consumato.mese
+          LEFT JOIN rinnovateNoRif ON base.Area = rinnovateNoRif.Area
+                                      AND base.mese = rinnovateNoRif.mese
+     WHERE base.area IS NOT NULL
+           AND base.mese IN(07, 08)
+     GROUP BY base.area,
+              base.mese
+     ORDER BY base.Mese,
+              base.Area;
+
+
+
+
+------------------------------------
+
+
+
+SELECT DISTINCT
+       --c.archivio,
+       [stContr],
+       [id],
+       [Codice],
+       [comweb],
+       [Piva],
+       [Firmante],
+       [Qualifica],
+       [CodFiscale],
+       [Gruppo],
+       [Agente],
+       c.[Riferimento],
+       c.[CodPsi],
+       [Luogo],
+       --cr.DataCommPrec,
+       [DataComm_Annoprec],
+       c.[DataComm],
+       [Commissione],
+       [Anno],
+       [DataPrRata],
+       [Rate],
+       [Cadenza],
+       [Acconto],
+       [Consegnato],
+       [ModConsegnato],
+       [Importo],
+       [aliqIva],
+       [Causale],
+       [BancAbi],
+       [BancCab],
+       [ContoCor],
+       [IntFat],
+       [IntCoDes],
+       [IntCoInd],
+       [IntCoCap],
+       [IntCoLoc],
+       [Modificato],
+       [Visitato],
+       [ModPagam],
+       [Contabil],
+       [StampaFat],
+       [DataFat],
+       [CrystalFat],
+       [Biann],
+       [BiannI],
+       c.[BiannA],
+       c.[RinTac],
+       --[Annotaz],
+       [TipoCli],
+       [NcImpo],
+       [NcNum],
+       [NcData],
+       [AutRidSped],
+       [AutRidRic],
+       [Lng1],
+       [Lng2],
+       [WarnIns],
+       [Validaz],
+       [Grafico],
+       [InAgenzia],
+       [Attesa],
+       --[MotivoAtt],
+       [DataLavoraz],
+       [SpedBozza],
+       [DataModif],
+       --[NoteStorico],
+       [StornoRid],
+       [DataProv],
+       [Impo2],
+       [CrdStato],
+       [CrdScade],
+       [ExGruppo],
+       [ExAgente],
+       --[Diciture],
+       [Area],
+       [Azienda],
+       [Prezzo],
+       [PraticaErr],
+       [regdom],
+       [NoSpInc],
+       [GruppoR],
+       [AgenteR],
+       [Iban],
+       [daVer],
+       [fatbloc],
+       [comBgl],
+       [comTus],
+       [GruppoTus],
+       [AgenteTus],
+       [ncbloc],
+       [dataCrt],
+       [oraCrt],
+       [pcCrt],
+       [opCrt],
+       [bgldata],
+       [negativo],
+       [DataAccet],
+       [DataRegDom],
+       [ModalAccet],
+       [CauDinRid],
+       --[AnnotGraf],
+       [dataCaric],
+       [importoWeb],
+       [ggScadRt],
+       [dataScadRt],
+       [dataAccetPrec],
+       [dittaIndiv],
+       [codPremio],
+       [sottoTar],
+       [ageRiassIniCamp],
+       [exRinTac],
+       [dataCampagna],
+       [chkScad],
+       [prodConc],
+       [oggPostic],
+       [exConsegnato],
+       [autfattinv],
+       [autfattric],
+       [mailWelcome],
+       [fatpa],
+       [ridfirst],
+       [annsostid],
+       [competenzaDa],
+       [competenzaA],
+       [dataPrecaricamento],
+       [ImpoAnnullato],
+       [socRecupero],
+       [nuovoiban],
+       [exPluriennale],
+       [dataVers],
+       [exOmaggio],
+       [dataAffid],
+       [tariffaMensile],
+       [fattAutom],
+       [propPrio],
+       [verChius],
+       [tipoSocieta],
+       [inAttesaRiass],
+                --[firmanteNome],
+                --[firmanteCognome],
+       [creditoAss],
+       [pagPos]
+                --[creditoAssData],
+                --[annotris],
+                --[ridMandato],
+                --[cfRespTratt],
+                --[nomeRespTratt],
+                --[cognomeRespTratt],
+                --[idPreventivo],
+                --[noteNonValidazione]
+ FROM [anagraf].[dbo].[Commissioni] c
+
+
+WHERE
+	    --((ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+     --           AND ISNULL(DataComm_annoprec, '') = '')
+     --          OR (ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+     --              AND SUBSTRING(DataComm_Annoprec, 5, 2) = '04')
+     --          OR (ISNULL(DataComm_Annoprec, '') BETWEEN 20230401 AND 20230430
+     --              AND ISNULL(c.DataComm, '') = ''))
+ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+  --OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20230401 AND 20230430)
+ --AND SUBSTRING(cr.DataCommPrec, 5, 2) = '04')
+ --AND SUBSTRING(cr.DataCommPrec, 5, 2) IN ('04'))
+AND consegnato > 9
+               --AND isnull(importo, '') <> ''
+AND isnull(c.rintac, '') = ''
+               --AND isnull(biannA, '') = ''
+AND (stcontr IS NULL
+     OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO'))
+	and cr.idcom is null
+ORDER BY c.id;
+
+
+--WHERE 
+----((ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+----                AND ISNULL(DataComm_annoprec, '') = '')
+----               OR (ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+----                   AND SUBSTRING(DataComm_Annoprec, 5, 2) = '04')
+----               OR (ISNULL(DataComm_Annoprec, '') BETWEEN 20230401 AND 20230430
+--                   --AND ISNULL(c.DataComm, '') = ''))
+--			    ISNULL(c.DataComm, '') BETWEEN 20230401 AND 20230430
+--              AND consegnato > 9
+--               --AND isnull(importo, '') <> ''
+--              AND isnull(c.rintac, '') = ''
+--               --AND isnull(biannA, '') = ''
+--              AND (stcontr IS NULL
+--                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO'))
+
+			   
+			   
+			   
+			   
+			    --rintac esclusi su rinnovate
+			    --rintac su altre rinnovate			   
+
+			    --comm rinnovate devono essere 475

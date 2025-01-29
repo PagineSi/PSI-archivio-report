@@ -1,0 +1,23 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT DISTINCT
+       c.codpsi,
+       [urlProvvisorio],
+       Format([data_provvisorio], 'yyyyMMdd') DataProvv,
+       d.www URL_DEF,
+       CASE
+           WHEN isnull(ps.online_data, '') <> ''
+                AND isnull(ps.online_costruz, 0) = 0
+           THEN format(ps.online_data, 'yyyyMMdd')
+           WHEN isnull(ps.online_data, '') <> ''
+                AND isnull(ps.online_costruz, 0) = 1
+           THEN format(ps.pubb_dopocostr_data, 'yyyyMMdd')
+       END AS DataOnline
+FROM [servizi].[dbo].[SICOMPROD_SI2SITE] s
+     LEFT JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id = s.idsi2site
+     LEFT JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+     LEFT JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti ps ON ps.idWebModcOggetto = s.idsi2site
+     LEFT JOIN anagraf.dbo.web_moduloc_domini d ON d.ID_ModuloC_Oggetti = s.idsi2site
+WHERE isnull([urlProvvisorio], '') <> ''
+      AND format(data_provvisorio, 'yyyy') >= '2019';

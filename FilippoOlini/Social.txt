@@ -1,0 +1,122 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+SELECT
+--[archivio]
+--      ,[nomeArchivio]
+--      ,[idCom]
+      [CodPsi]
+--      ,[CodiceAnagrafica]
+--      ,[Commissione]
+--      ,[DataComm]
+	 ,[tipo_inserz] Sigla
+      ,format(datacompetenza, 'yyyy-MM-dd') [Data]
+	 ,[tipo_importo] Tipo_Importo
+--      ,[anno]
+--      ,[mese]
+--      ,[Area]
+--      ,[Gruppo]
+--      ,[CodAgente]
+--      ,[utenteAgente]
+--      ,[nomeAgente]
+--      ,[BiannI]
+--      ,[BiannA]
+--      ,[isRinnovoTacito]
+--      ,[isPluriennale]
+--      ,[StatoContratto]
+--      ,[SAS]
+--      ,[futuro]
+--      ,[aliqIva]
+
+--      ,[codice_oggetto]
+--      ,[importo_commissione]
+--      ,[consegnato_commissione]
+--      ,[importo_scaduto_commissione]
+--      ,[importo_insoluto_commissione]
+--      ,[codice_tipo_inserz]
+      
+--      ,[edizione]
+--      ,[webTag]
+--      ,[ObjNote]
+--      ,[DescrizioneTipoInserz]
+--      ,[CodiceCategoria]
+--      ,[Categoria]
+--      ,[MacroCategoria]
+--      ,[CodiceCategoriaCommerciale]
+--      ,[CategoriaCommerciale]
+--      ,[MacroCategoriaCommerciale]
+--      ,[ExMacroCategoriaCommerciale]
+--      ,[MacroCategoriaProdotti]
+--      ,[mantenimento_codice]
+--      ,[mantenimento_tipo]
+--      ,[restyling_codice]
+--      ,[restyling_tipo]
+--      ,[consegnato_presente]
+--      ,[isOggettoNuovo]
+--      ,[isNuovoCliente]
+--      ,[isConcessione]
+--      ,[isCartaceo]
+--      ,[supporto]
+--      ,[MKTG]
+--      ,[Fornitore]
+--      ,[isMantenimento]
+--      ,[prezzo_da_tariffario]
+--      ,[prezzo_da_tariffario_property]
+--      ,[prezzo_da_tariffario_concessione]
+--      ,[tot_acquisito]
+--      ,[acquisito_property]
+--      ,[acquisito_concessione]
+--      ,[acquisito_SAS]
+--      ,[tot_firmato]
+--      ,[firmato_nuovi]
+--      ,[firmato_rinnovi]
+--      ,[firmato_nuovi_property]
+--      ,[firmato_rinnovi_property]
+--      ,[firmato_nuovi_concessione]
+--      ,[firmato_rinnovi_concessione]
+--      ,[firmato_property]
+--      ,[firmato_concessione]
+--      ,[firmato_SAS]
+--      ,[tot_maturato]
+--      ,[maturato_property]
+--      ,[maturato_concessione]
+--      ,[maturato_SAS]
+--      ,[tot_da_maturare]
+--      ,[da_maturare_property]
+--      ,[da_maturare_concessione]
+--      ,[da_maturare_SAS]
+--      ,[dataCrt]
+--      ,[tot_acquisito_scaduto]
+--      ,[tot_acquisito_insoluto]
+--      ,[tot_acquisito_property_scaduto]
+--      ,[tot_acquisito_property_insoluto]
+--      ,[tot_acquisito_concessione_scaduto]
+--      ,[tot_acquisito_concessione_insoluto]
+  FROM [estrazioni].[dbo].[vAnalisiImportiOggetti]
+  where codice_tipo_inserz IN(616, 804, 890, 902, 932, 945, 964, 1170, 1204, 1231, 1435,1436, 944, 946, 947, 948, 1181, 1468, 1250, 1608, 1266, 1412, 1267, 1268, 1419, 1269, 1420, 1607,1270,1413,1271,1421,1272,1422,1273,1423,1609)
+  and format(datacompetenza, 'yyyy-MM-dd') between '2018-01-01' and '2021-12-31'
+  order by DataCompetenza
+
+
+----------------------------------------------------------------
+
+/***** Script for SelectTopNRows command from SSMS  *****/
+WITH base as (SELECT 
+      [Sigla]
+     ,[CodiceSigla]
+     ,datepart(year,[DataLavorazione]) as AnnoLav
+	,datepart(month,[DataLavorazione]) as MeseLav
+	,[DataLavorazione]
+     
+  FROM [estrazioni].[dbo].[vprogSocial]
+
+  )
+
+  SELECT 
+  [Sigla],
+  SUM(IIF(MeseLav=9 and AnnoLav=2018,1,0)) Sett_2018,
+  SUM(IIF(MeseLav=9 and AnnoLav=2019,1,0)) Sett_2019,
+  SUM(IIF(MeseLav=9 and AnnoLav=2020,1,0)) Set_2020,
+  SUM(IIF(MeseLav=9 and AnnoLav=2021,1,0)) Sett_2021
+  
+  FROM base
+
+  GROUP BY sigla

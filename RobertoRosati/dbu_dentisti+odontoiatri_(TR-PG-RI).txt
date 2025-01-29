@@ -1,0 +1,88 @@
+
+SELECT DISTINCT
+       [pivacf],
+       CASE
+           WHEN isnull(commissioni.codpsi, '') <> ''
+                AND anagrafica.comune = elenco.comune
+           THEN 'CL'
+       END AS Cliente,
+       MAX(CASE
+               WHEN((isnull(importo, 0) > 0
+                     OR isnull(consegnato, 0) > 0
+                     OR isnull(exconsegnato, 0) > 0
+                     OR isnull(commissioni.StContr, '') IN('oma', 'omb', 'omrt'))
+           AND isnull(commissioni.StContr, '') NOT IN('a', 'as'))
+AND anagrafica.comune = elenco.comune
+               THEN 'Attivo'
+           END) AS attivo,
+       categorie.Categoria,
+       elenco.ragsoc,
+       ragtit,
+       rsnome,
+       elenco.parttop,
+       elenco.indirizzo,
+       elenco.civico,
+       locali,
+       elenco.prefisso,
+       elenco.telefono,
+       elenco.cap,
+       comuni.comune,
+       prov,
+       elenco.keys,
+       elenco.email,
+       [consensi],
+       anage.nome
+FROM klingon.lele.dbo.elenco
+     LEFT JOIN bark2.anagraf.dbo.Categorie ON categorie.codice = elenco.categoria
+     LEFT JOIN bark2.anagraf.dbo.commissioni ON elenco.pivacf COLLATE SQL_Latin1_General_CP1_CI_AS = commissioni.piva COLLATE SQL_Latin1_General_CP1_CI_AS
+     INNER JOIN bark2.anagraf.dbo.comuni ON elenco.comune = comuni.codice
+     LEFT JOIN bark2.anagraf.dbo.anagrafica ON Commissioni.Codice = Anagrafica.Codice
+     LEFT JOIN bark2.anagraf.dbo.province ON province.sigla = comuni.Provincia
+     LEFT JOIN bark2.anagraf.dbo.agenti ON agenti.[Codagente] = commissioni.agente
+                                           AND commissioni.gruppo = Agenti.gruppo
+     LEFT JOIN bark2.anagraf.dbo.anage anage ON anage.utente = agenti.utente
+WHERE --categorie.codice in ('175','1182','1190','1183','43','1189','569','1014')
+categorie.catref IN
+(175
+)
+AND prov IN('TR', 'PG', 'RI')
+       --comuni.edizione='py'
+       --and comuni.codice in (4390,4399,4422,4404,4387,4377,4383)
+       --codreg in ('cal','bas','pug','mol','cam')
+	   --and codreg in ('tos')
+     AND (elenco.azienda = 1)
+     AND consensi NOT IN(81)
+	   --AND case  
+    --         when isnull(commissioni.codpsi,'')<>'' and anagrafica.comune=elenco.comune then 'CL'
+    --         end  IS  NULL
+GROUP BY pivacf,
+         CASE
+             WHEN isnull(commissioni.codpsi, '') <> ''
+                  AND anagrafica.comune = elenco.comune
+             THEN 'CL'
+         END,
+         CASE
+             WHEN isnull(commissioni.codpsi, '') <> ''
+                  AND anagrafica.comune = elenco.comune
+             THEN commissioni.id
+         END,
+         elenco.ragsoc,
+         ragtit,
+         rsnome,
+         categorie.Categoria,
+         elenco.parttop,
+         elenco.indirizzo,
+         elenco.civico,
+         locali,
+         elenco.prefisso,
+         elenco.telefono,
+         elenco.cap,
+         comuni.comune,
+         prov,
+         elenco.keys,
+         elenco.email,
+         [consensi],
+         anage.nome
+ORDER BY PROV,
+         comuni.comune,
+         ragsoc;

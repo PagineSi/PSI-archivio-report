@@ -1,0 +1,94 @@
+
+WITH cli
+     AS (
+     SELECT DISTINCT
+            c.archivio,
+            c.id idCom,
+            [CodPsi],
+            a.RagSoc,
+            IIF(c.DataComm IS NOT NULL, c.DataComm, c.DataComm_Annoprec) AS DataComm,
+            STUFF(
+                 (
+                     SELECT ', '+t1.tipo
+                     FROM anagraf.dbo.TipoInserz t1
+                          INNER JOIN anagraf.dbo.oggetti mco1 ON mco1.tipo = t1.Codice
+                          INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = mco1.IdCom
+                     WHERE c1.id = c.id
+                           AND c1.archivio = c.archivio
+                           AND c1.archivio = 9999
+                           AND estrazioni.dbo.commissioniattive(c1.archivio, c1.codpsi, c1.id) = 1
+                          AND t1.codicecategoriacommerciale IN(166, 165, 121, 95, 94, 18, 179) FOR XML PATH('')
+                 ), 1, 2, '') AS Sigle,
+            c.Area,
+            ang.nome Agente
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloC = mc.id
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+          INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = mco.codice_oggetto
+          INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                              AND ag.codagente = c.agente
+          LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+     WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+          AND c.archivio = 9999
+          AND t.codicecategoriacommerciale IN(166, 165, 121, 95, 94, 18, 179)
+AND ISNULL(c.codpsi, 0) <> 37774),
+     impocomm
+     AS (
+     SELECT id,
+            area,
+            importo,
+            consegnato
+     FROM estrazioni.dbo.commissioni ulc
+     WHERE archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1),
+     impoSigleArch
+     AS (
+     SELECT idCom,
+            area,
+            codpsi,
+            archivio,
+            ROUND(SUM(tot_acquisito), 2) AS ImportoSigla
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE archivio = 9999
+           AND codicecategoriacommerciale IN(166, 165, 121, 95, 94, 18, 179)
+     GROUP BY idcom,
+              area,
+              codpsi,
+              archivio),
+     impoSigle
+     AS (
+     SELECT aio.idCom,
+            aio.area,
+            aio.codpsi,
+            MAX(aio.archivio) archivio,
+            ROUND(SUM(aio.tot_acquisito), 2) AS ImportoSigla
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN estrazioni.dbo.vcommissioniultimecampagne cu ON cu.id = aio.idcom
+                                                                     AND cu.archivio = aio.archivio
+     WHERE aio.codicecategoriacommerciale IN(166, 165, 121, 95, 94, 18, 179) 
+	--and aio.idcom=681675
+     GROUP BY aio.idcom,
+              aio.area,
+              aio.codpsi)
+     SELECT DISTINCT
+            cli.archivio,
+            cli.idCom,
+            cli.[CodPsi],
+            cli.RagSoc,
+            cli.DataComm,
+            impocomm.Consegnato,
+            impocomm.Importo,
+            cli.Sigle,
+            IIF(imposigleArch.ImportoSigla IS NOT NULL, imposigleArch.ImportoSigla, impoSigle.ImportoSigla) ImportoSigle,
+            cli.Area,
+            cli.Agente
+     FROM cli
+          LEFT JOIN impocomm ON impocomm.id = cli.idcom
+                                AND impocomm.area = cli.area
+          LEFT JOIN impoSigleArch ON impoSigleArch.idcom = cli.idcom
+                                     AND impoSigleArch.area = cli.area
+          LEFT JOIN impoSigle ON impoSigle.idcom = cli.idcom
+                                 AND imposigle.area = cli.area
+     WHERE cli.sigle IS NOT NULL
+     ORDER BY cli.codpsi;

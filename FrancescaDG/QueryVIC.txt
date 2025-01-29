@@ -1,0 +1,31 @@
+SELECT DISTINCT
+  codpsi
+ ,ragsoc
+ ,t.tipo
+ ,area
+ ,provincia
+ ,(STUFF(
+             (
+                 SELECT ', '+t1.tipo
+                 FROM anagraf.dbo.TipoInserz as t1
+				 INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti as mco1 on mco1.Codice_Oggetto=t1.Codice
+				 INNER JOIN anagraf.dbo.WEB_ModuloC as mc1 on mc1.id=mco1.id_moduloc
+				 INNER JOIN anagraf.dbo.Commissioni as comm1 on comm1.id=mc1.IDcom
+                      
+                 WHERE comm1.codpsi = comm.codpsi AND t1.tipo IN ('SIN', 'SC', 'SSO', 'SM5COM', 'SM5MET', 'SM5REG', 'SPCOM', 'SP5MET', 'SP5REG', 'ADD')
+				 and servizi.dbo.CommissioniAttive(comm1.codpsi,comm1.id)=1
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS [Oggetti]
+ 
+FROM anagraf.dbo.commissioni as comm
+INNER JOIN anagraf.dbo.Anagrafica as a on a.codice=comm.codice
+INNER JOIN anagraf.dbo.Comuni as c on c.codice=a.comune
+INNER JOIN anagraf.dbo.WEB_ModuloC as mc on mc.idcom=comm.id
+INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti as mco on mco.id_moduloc=mc.id
+INNER JOIN anagraf.dbo.TipoInserz as t on t.codice=mco.Codice_Oggetto
+
+where servizi.dbo.CommissioniAttive(comm.codpsi,comm.id)=1
+and altoSp=1
+and tipo IN ('SIN', 'SC', 'SSO', 'SM5COM', 'SM5MET', 'SM5REG', 'SPCOM', 'SP5MET', 'SP5REG', 'ADD')
+
+order by area

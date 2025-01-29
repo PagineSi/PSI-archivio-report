@@ -1,0 +1,218 @@
+
+WITH cli
+     AS (
+     SELECT DISTINCT
+            c.Codpsi,
+            c.Area,
+            a.RagSoc
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+          LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     WHERE tp.codice IN(1747, 1748, 1749, 1750, 1751)
+          AND estrazioni.dbo.commissioniattive(c.archivio, c.codpsi, c.id) = 1),
+     impo20
+     AS (
+     SELECT codpsi,
+            --archivio,
+            ROUND(SUM(tot_acquisito), 2) ImpoSigla,
+            format(datacomm, 'yyyyMMdd') datacomm
+     FROM estrazioni.dbo.vAnalisiImportiOggetti
+     WHERE codice_tipo_inserz IN(1747, 1748, 1749, 1750, 1751)
+     AND tipo_importo = 'FIRMATO'
+     AND format(datacomm, 'yyyy') = 2020
+     GROUP BY codpsi,
+              datacomm),
+     impo21
+     AS (
+     SELECT codpsi,
+            --archivio,
+            ROUND(SUM(tot_acquisito), 2) ImpoSigla,
+            format(datacomm, 'yyyyMMdd') datacomm
+     FROM estrazioni.dbo.vAnalisiImportiOggetti
+     WHERE codice_tipo_inserz IN(1747, 1748, 1749, 1750, 1751)
+     AND tipo_importo = 'FIRMATO'
+     AND format(datacomm, 'yyyy') = 2021
+     GROUP BY codpsi,
+              datacomm),
+     impo22
+     AS (
+     SELECT codpsi,
+            --archivio,
+            ROUND(SUM(tot_acquisito), 2) ImpoSigla,
+            format(datacomm, 'yyyyMMdd') datacomm
+     FROM estrazioni.dbo.vAnalisiImportiOggetti
+     WHERE codice_tipo_inserz IN(1747, 1748, 1749, 1750, 1751)
+     AND tipo_importo = 'FIRMATO'
+     AND format(datacomm, 'yyyy') = 2022
+     GROUP BY codpsi,
+              datacomm),
+     impo23
+     AS (
+     SELECT codpsi,
+            --archivio,
+            ROUND(SUM(tot_acquisito), 2) ImpoSigla,
+            format(datacomm, 'yyyyMMdd') datacomm
+     FROM estrazioni.dbo.vAnalisiImportiOggetti
+     WHERE codice_tipo_inserz IN(1747, 1748, 1749, 1750, 1751)
+     AND tipo_importo = 'FIRMATO'
+     AND format(datacomm, 'yyyy') = 2023
+     GROUP BY codpsi,
+              datacomm),
+     uno
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.codice IN(1747, 1748, 1749, 1750, 1751)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2020
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2020,
+            impo20.ImpoSigla,
+            NULL AS Annualità_2021,
+            NULL AS Annualità_2022,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+          LEFT JOIN impo20 ON impo20.CodPsi = c.codpsi
+                              AND impo20.datacomm = c.datacomm
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2020
+           AND tp.codice IN(1747, 1748, 1749, 1750, 1751)),
+     due
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.codice IN(1747, 1748, 1749, 1750, 1751)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2021
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2021,
+            impo21.ImpoSigla,
+            NULL AS Annualità_2022,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+          LEFT JOIN impo21 ON impo21.CodPsi = c.codpsi
+                              AND impo21.datacomm = c.datacomm
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2021
+           AND tp.codice IN(1747, 1748, 1749, 1750, 1751)),
+     tre
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            NULL AS Annualità_2021,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.codice IN(1747, 1748, 1749, 1750, 1751)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2022
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2022,
+            impo22.ImpoSigla,
+            NULL AS Annualità_2023
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+          LEFT JOIN impo22 ON impo22.CodPsi = c.codpsi
+                              AND impo22.datacomm = c.datacomm
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2022
+           AND tp.codice IN(1747, 1748, 1749, 1750, 1751)),
+     quattro
+     AS (
+     SELECT DISTINCT
+            c.[CodPsi],
+            c.Area,
+            NULL AS Annualità_2020,
+            NULL AS Annualità_2021,
+            NULL AS Annualità_2022,
+            (STUFF(
+                  (
+                      SELECT ', '+m.tipo
+                      FROM
+                      (
+                          SELECT DISTINCT
+                                 tp.tipo,
+                                 o.codice
+                          FROM estrazioni.dbo.oggetti o
+                               INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = o.IdCom
+                               LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = o.Tipo
+                          WHERE c1.codpsi = c.codpsi
+                                AND tp.codice IN(1747, 1748, 1749, 1750, 1751)
+                               --AND c1.archivio = c.archivio
+                               AND SUBSTRING(c1.DataComm, 0, 5) = 2023
+                      ) m FOR XML PATH('')
+                  ), 1, 2, '')) AS Annualità_2023,
+            impo23.ImpoSigla
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+          LEFT JOIN impo23 ON impo23.CodPsi = c.codpsi
+                              AND impo23.datacomm = c.datacomm
+     WHERE SUBSTRING(c.DataComm, 0, 5) = 2023
+           AND tp.codice IN(1747, 1748, 1749, 1750, 1751))
+     SELECT cli.CodPsi,
+            cli.RagSoc,
+            uno.Annualità_2020,
+            SUM(uno.ImpoSigla) ImpoSigla,
+            due.Annualità_2021,
+            SUM(due.ImpoSigla) ImpoSigla,
+            tre.Annualità_2022,
+            SUM(tre.ImpoSigla) ImpoSigla,
+            quattro.Annualità_2023,
+            SUM(quattro.ImpoSigla) ImpoSigla
+     FROM cli
+          LEFT JOIN uno ON uno.codpsi = cli.CodPsi
+                           AND uno.area = cli.Area
+          LEFT JOIN due ON due.codpsi = cli.CodPsi
+                           AND due.area = cli.Area
+          LEFT JOIN tre ON tre.codpsi = cli.CodPsi
+                           AND tre.area = cli.Area
+          LEFT JOIN quattro ON quattro.codpsi = cli.CodPsi
+                               AND quattro.area = cli.Area
+     GROUP BY cli.codpsi,
+              cli.ragsoc,
+              uno.Annualità_2020,
+              due.Annualità_2021,
+              tre.Annualità_2022,
+              quattro.Annualità_2023;

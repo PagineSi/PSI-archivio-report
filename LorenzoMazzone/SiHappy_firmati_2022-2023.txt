@@ -1,0 +1,14 @@
+SELECT DATEPART(year, datacompetenza) Anno,
+       DATEPART(month, datacompetenza) Mese,
+       COUNT(tipo_inserz) AS nOgg,
+       ROUND(SUM(ISNULL(tot_acquisito, 0)), 2) AS Importo
+       --tipo_importo AS [Tipo Importo] 
+       --area AS Area
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti]
+WHERE CodiceCategoriaCommerciale = 23
+      AND DATEPART(year, datacompetenza) IN(2022, 2023)
+AND tipo_importo = 'FIRMATO'
+GROUP BY DATEPART(year, datacompetenza),
+         DATEPART(month, datacompetenza)
+ORDER BY anno,
+         mese;

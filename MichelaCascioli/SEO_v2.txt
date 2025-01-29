@@ -1,0 +1,23 @@
+SELECT DISTINCT 
+       aio.archivio, 
+       aio.Area, 
+       aio.tipo_inserz AS sigla, 
+       COUNT(aio.tipo_inserz) nSigle, 
+       ROUND(SUM(aio.tot_acquisito), 2) impo,
+       CASE
+           WHEN ISNULL(aio.isOggettoNuovo, 0) = 1
+           THEN 'NUOVO'
+           WHEN ISNULL(aio.isOggettoNuovo, 0) = 0
+           THEN 'RINNOVO'
+       END AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.codicecategoria IN(27, 28, 29, 30, 87, 112, 156)
+AND aio.tipo_importo = 'FIRMATO'
+AND ISNULL(aio.tot_acquisito, 0) > 0
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20201201 AND 20210318
+GROUP BY aio.archivio, 
+         aio.Area, 
+         aio.tipo_inserz, 
+         aio.isOggettoNuovo
+ORDER BY aio.area, 
+         sigla;

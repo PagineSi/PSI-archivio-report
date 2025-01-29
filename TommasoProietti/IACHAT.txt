@@ -1,0 +1,17 @@
+SELECT [archivio], 
+       [idCom], 
+       [CodPsi], 
+       [Commissione], 
+       a.RagSoc, 
+       a.Insegna, 
+       format([DataComm], 'yyy-MM-dd') DataComm, 
+       [Area], 
+       [nomeAgente], 
+       [tipo_importo], 
+       [tipo_inserz], 
+       ROUND([tot_acquisito], 2) tot_acquisito
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aio.CodiceAnagrafica
+WHERE tipo_inserz = 'Iachat'
+ORDER BY codpsi, 
+         archivio;

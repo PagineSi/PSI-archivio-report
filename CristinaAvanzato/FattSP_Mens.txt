@@ -1,0 +1,43 @@
+
+
+SELECT DISTINCT
+       commissioni.codpsi,
+       commissioni.intfat,
+       commissioni.importo,
+       concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AS datarata,
+       commissioni.fatpa
+       --commissioni.stampafat,
+       --commissioni.datafat
+FROM commissioni
+     INNER JOIN Comm2 ON commissioni.id = comm2.idCommis
+WHERE commissioni.importo > 1
+      AND commissioni.fatpa = 2
+      AND commissioni.fattAutom = 1
+      --AND (commissioni.stampafat = 0
+      --     OR commissioni.stampafat IS NULL)
+      --AND (commissioni.datafat = 0
+      --     OR commissioni.datafat IS NULL)
+      AND ((comm2.drid0 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat0,'') = '')
+           OR (comm2.drid1 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat1,'') = '')
+           OR (comm2.drid2 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat2,'') = '')
+           OR (comm2.drid3 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat3,'') = '')
+           OR (comm2.drid4 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat4,'') = '')
+           OR (comm2.drid5 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat5,'') = '')
+           OR (comm2.drid6 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat6,'') = '')
+           OR (comm2.drid7 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat7,'') = '')
+           OR (comm2.drid8 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat8,'') = '')
+           OR (comm2.drid9 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat9,'') = '')
+           OR (comm2.drid10 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat10,'') = '')
+           OR (comm2.drid11 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat11,'') = '')
+           OR (comm2.drid12 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat12,'') = '')
+           OR (comm2.drid13 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat13,'') = '')
+           OR (comm2.drid14 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat14,'') = '')
+           OR (comm2.drid15 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat15,'') = '')
+           OR (comm2.drid16 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat16,'') = '')
+           OR (comm2.drid17 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat17,'') = '')
+           OR (comm2.drid18 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat18,'') = '')
+           OR (comm2.drid19 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat19,'') = '')
+           OR (comm2.drid20 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat20,'') = '')
+           OR (comm2.drid21 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat21,'') = '')
+           OR (comm2.drid22 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat22,'') = '')
+           OR (comm2.drid23 = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30')) AND isnull(comm2.fatMensDat23,'') = ''))

@@ -1,0 +1,25 @@
+SELECT 
+       DATEPART(month, c.DataComm) AS Mese,
+       c.area Area,
+       SUM(IIF(isnull(c.DataComm, '') <> '', 1, 0)) AS Firmati,
+	  c.tipo_inserz Sigla,
+	  c.tipo_importo,
+	  SUM(p.ore) SommaPD
+		--SUM(CASE
+		--WHEN isnull(p.oreCM,0)<>0
+		--THEN p.oreCM
+		--WHEN isnull(p.oreCM,0)=0
+		--THEN 0.16
+		--END) AS SommaPD
+        
+FROM estrazioni.dbo.vAnalisiImportiOggetti c
+     LEFT JOIN servizi.dbo.prodottiore p on p.codiceSigla=c.codice_tipo_inserz
+
+WHERE --c.area IN ('CA','OR','NG','OS','SS','S1')
+      DATEPART(year, c.DataComm) = 2021
+	 --AND isnull(c.tipo_importo,'')='firmato'
+	 AND c.codice_tipo_inserz IN(730, 731, 732, 733, 745, 746, 747, 748, 868, 869, 870, 871, 1146, 1147, 923, 924, 921, 922, 925, 926, 881, 883, 882, 884, 987, 1008, 850, 851)
+	 --AND c.codicecategoria = 223
+
+GROUP BY DATEPART(month, c.DataComm), c.area, c.tipo_inserz, c.tipo_importo
+ORDER BY mese, area ASC

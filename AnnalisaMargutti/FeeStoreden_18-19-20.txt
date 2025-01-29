@@ -1,0 +1,226 @@
+WITH archivi
+     AS (
+     SELECT DISTINCT
+            c.archivio,
+            c.piva,
+            c.codpsi
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN estrazioni.dbo.oggetti o ON c.id = o.IdCom
+                                                 AND c.archivio = o.archivio
+     WHERE o.tipo IN(970, 1458, 971, 1459, 972, 1460, 1122, 1337, 1123, 1339, 1437, 1440, 1556, 1438, 1441, 1553, 1439, 1442, 1554, 668, 666, 1082, 665, 667, 618, 1449, 1450, 1555, 1499, 1501, 1498, 1489, 833, 1227, 1228)
+          AND isnull(c.codpsi, 0) <> 37774
+          AND (isnull(c.importo, 0) > 0
+               OR isnull(c.consegnato, 0) > 0
+               OR isnull(c.impo2, 0) > 0
+               OR isnull(c.StContr, '') IN('oma', 'omb', 'omrt'))
+     AND isnull(c.StContr, '') NOT IN('a', 'as', 'precaricato', 'non_validato')),
+     com
+     AS (
+     SELECT MAX(archivi.archivio) archivio,
+            archivi.codpsi,
+            archivi.piva
+     FROM archivi
+     GROUP BY archivi.codpsi,
+              archivi.piva),
+     estr
+     AS (
+     SELECT [codiceStoreden] AS Negozio,
+            IIF(isnull(storedenDownOrdini.codpsi, 0) = 0, com.codpsi, storedenDownOrdini.codpsi) [codPsi],
+        --    storedenDownOrdini.pIva,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 1, [importoOrdini], 0)) AS importoOrdini_gen_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 2, [importoOrdini], 0)) AS importoOrdini_feb_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 3, [importoOrdini], 0)) AS importoOrdini_mar_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 4, [importoOrdini], 0)) AS importoOrdini_apr_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 5, [importoOrdini], 0)) AS importoOrdini_mag_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 6, [importoOrdini], 0)) AS importoOrdini_giu_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 7, [importoOrdini], 0)) AS importoOrdini_lug_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 8, [importoOrdini], 0)) AS importoOrdini_ago_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 9, [importoOrdini], 0)) AS importoOrdini_sett_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 10, [importoOrdini], 0)) AS importoOrdini_ott_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 11, [importoOrdini], 0)) AS importoOrdini_nov_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif = 12, [importoOrdini], 0)) AS importoOrdini_dic_2018,
+            SUM(IIF(annorif = 2018
+                    AND meserif BETWEEN 1 AND 12, [importoOrdini], 0)) AS importoOrdini_TOT_2018
+     FROM [servizi].[dbo].[storedenDownOrdini]
+          LEFT JOIN com ON com.piva = storedenDownOrdini.pIva
+     WHERE(isnull(storedenDownOrdini.piva, '') <> ''
+           OR isnull(storedenDownOrdini.codpsi, 0) > 0)
+     GROUP BY [codiceStoreden],
+              IIF(isnull(storedenDownOrdini.codpsi, 0) = 0, com.codpsi, storedenDownOrdini.codpsi)
+            --  storedenDownOrdini.pIva
+     HAVING SUM(IIF(annorif = 2018
+                    AND meserif BETWEEN 1 AND 12, [importoOrdini], 0)) > 0),
+     ana
+     AS (
+     SELECT DISTINCT
+            c.piva,
+            c.codpsi,
+            a.RagSoc,
+            c.codice,
+            o.tipo,
+            CASE o.tipo
+		      --EC-Acc
+                WHEN 970
+                THEN 2
+			 --EC-AccM
+                WHEN 1458
+                THEN 2
+			 --EC-Med
+                WHEN 971
+                THEN 1
+			 --EC-MedM
+                WHEN 1459
+                THEN 1
+			 --EC-Bus
+                WHEN 972
+                THEN 0
+			 --EC-BusM
+                WHEN 1460
+                THEN 0
+			 --EC-Flex
+                WHEN 1122
+                THEN 2
+                         --EC-FlexM
+                WHEN 1337
+                THEN 2
+			 --EC-Flex0F
+                WHEN 1123
+                THEN 0
+			 --EC-Flex0FM
+                WHEN 1339
+                THEN 0
+			 --EC-FlexS
+                WHEN 1437
+                THEN 5
+			 --EC-FlexSM
+                WHEN 1440
+                THEN 5
+			 --EC-FlexSR
+                WHEN 1556
+                THEN 5
+			 --EC-FlexL
+                WHEN 1438
+                THEN 2
+			 --EC-FlexLM
+                WHEN 1441
+                THEN 2
+			 --EC-FlexLR
+                WHEN 1553
+                THEN 2
+			 --EC-FlexXL
+                WHEN 1439
+                THEN 0
+			 --EC-FlexXLM
+                WHEN 1442
+                THEN 0
+			 --EC-FlexXLR
+                WHEN 1554
+                THEN 0
+			 --EC-biz
+                WHEN 668
+                THEN 0
+			 --EC-entry
+                WHEN 666
+                THEN 0
+			 --EC-Light
+                WHEN 1082
+                THEN 0
+			 --EC-start
+                WHEN 665
+                THEN 0
+			 --EC-stnd
+                WHEN 667
+                THEN 0
+			 --ECTX
+                WHEN 618
+                THEN 0
+			 --EC-FlexB2B
+                WHEN 1449
+                THEN 0
+			 --EC-FlexB2BM
+                WHEN 1450
+                THEN 0
+			 --EC-FlexB2BR
+                WHEN 1555
+                THEN 0
+			 --EC-LOCC
+                WHEN 1499
+                THEN 0
+			 --EC-LOCCM
+                WHEN 1501
+                THEN 0
+			 --EC-LOCS
+                WHEN 1498
+                THEN 0
+			 --EC-LOCSM
+                WHEN 1489
+                THEN 0
+			 --EC-Pro
+                WHEN 833
+                THEN 0
+			 --EC-ProM
+                WHEN 1227
+                THEN 0
+			 --EC-ProR
+                WHEN 1228
+                THEN 0
+            END AS percFee
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN estrazioni.dbo.oggetti o ON c.id = o.IdCom
+                                                 AND c.archivio = o.archivio
+          INNER JOIN com ON com.archivio = c.archivio
+                            AND com.codpsi = c.codpsi
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     WHERE o.tipo IN(970, 1458, 971, 1459, 972, 1460, 1122, 1337, 1123, 1339, 1437, 1440, 1556, 1438, 1441, 1553, 1439, 1442, 1554, 668, 666, 1082, 665, 667, 618, 1449, 1450, 1555, 1499, 1501, 1498, 1489, 833, 1227, 1228)
+          AND isnull(c.codpsi, 0) <> 37774
+          AND (isnull(c.importo, 0) > 0
+               OR isnull(c.consegnato, 0) > 0
+               OR isnull(c.impo2, 0) > 0
+               OR isnull(c.StContr, '') IN('oma', 'omb', 'omrt'))
+     AND isnull(c.StContr, '') NOT IN('a', 'as', 'precaricato', 'non_validato'))
+     SELECT DISTINCT
+            ana.codpsi,
+		--  ana.piva,
+            ana.RagSoc,
+            ana.percFee,
+            estr.importoOrdini_gen_2018,
+            ROUND(estr.importoOrdini_gen_2018 / 100 * ana.percFee, 2) importoFee_gen_2018,
+            estr.importoOrdini_feb_2018,
+            ROUND(estr.importoOrdini_feb_2018 / 100 * ana.percFee, 2) importoFee_feb_2018,
+            estr.importoOrdini_mar_2018,
+            ROUND(estr.importoOrdini_mar_2018 / 100 * ana.percFee, 2) importoFee_mar_2018,
+            estr.importoOrdini_apr_2018,
+            ROUND(estr.importoOrdini_apr_2018 / 100 * ana.percFee, 2) importoFee_apr_2018,
+            estr.importoOrdini_mag_2018,
+            ROUND(estr.importoOrdini_mag_2018 / 100 * ana.percFee, 2) importoFee_mag_2018,
+            estr.importoOrdini_giu_2018,
+            ROUND(estr.importoOrdini_giu_2018 / 100 * ana.percFee, 2) importoFee_giu_2018,
+            estr.importoOrdini_lug_2018,
+            ROUND(estr.importoOrdini_lug_2018 / 100 * ana.percFee, 2) importoFee_lug_2018,
+            estr.importoOrdini_ago_2018,
+            ROUND(estr.importoOrdini_ago_2018 / 100 * ana.percFee, 2) importoFee_ago_2018,
+            estr.importoOrdini_sett_2018,
+            ROUND(estr.importoOrdini_sett_2018 / 100 * ana.percFee, 2) importoFee_sett_2018,
+            estr.importoOrdini_ott_2018,
+            ROUND(estr.importoOrdini_ott_2018 / 100 * ana.percFee, 2) importoFee_ott_2018,
+            estr.importoOrdini_nov_2018,
+            ROUND(estr.importoOrdini_nov_2018 / 100 * ana.percFee, 2) importoFee_nov_2018,
+            estr.importoOrdini_dic_2018,
+            ROUND(estr.importoOrdini_dic_2018 / 100 * ana.percFee, 2) importoFee_dic_2018,
+            estr.importoOrdini_TOT_2018,
+            ROUND(estr.importoOrdini_TOT_2018 / 100 * ana.percFee, 2) importoFee_TOT_2018
+     FROM estr
+          LEFT JOIN ana ON ana.codpsi = estr.codpsi
+     WHERE ana.codpsi IS NOT NULL

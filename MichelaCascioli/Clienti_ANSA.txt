@@ -1,0 +1,111 @@
+WITH cli
+     AS (
+     SELECT DISTINCT
+            --c.archivio,
+            --IIF(isnull(c.datacomm, '') <> '', c.datacomm, c.datacomm_annoprec) DataComm,
+            c.CodPsi,
+            a.RagSoc,
+            cu.Comune,
+            pro.NomeProv Provincia,
+            CONCAT(a.Prefisso, '-', a.Telefono) AS Telefono,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+ang.nome
+                      FROM anagraf.dbo.anage AS ang
+                           INNER JOIN anagraf.dbo.Agenti ag ON ag.utente = ang.utente
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.gruppo = ag.gruppo
+                                                                       AND c1.agente = ag.Codagente
+                      WHERE c.codpsi = c1.CodPsi
+                            AND c.archivio = c1.archivio
+                       --AND estrazioni.dbo.CommissioniAttive(c1.archivio, c1.CodPsi, c1.id) = 1
+                      --AND c1.archivio = 9999 
+                      FOR XML PATH('')
+                  ), 1, 2, '')) AS [Agente],
+            c.Area,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           --INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN anagraf.dbo.oggetti o ON o.tipo = tp1.codice
+                           --INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = o.IdCom
+                      WHERE ulc1.codpsi = c.codpsi
+                            AND ulc1.archivio = c.archivio
+                            AND ulc1.archivio = 9999
+                            AND estrazioni.dbo.commissioniattive(ulc1.archivio, ulc1.CodPsi, ulc1.id) = 1
+                           AND tp1.Codice IN(991, 992, 993, 1005)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.codpsi = c.codpsi
+                            AND ulc1.archivio = c.archivio
+                            --AND ulc1.archivio = 9999
+                            --AND estrazioni.dbo.commissioniattive(ulc1.archivio, ulc1.CodPsi, ulc1.id) = 1
+                            AND tp1.Codice IN(991, 992, 993, 1005)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS SigleOLD
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.comuni cu ON cu.Codice = a.Comune
+          LEFT JOIN anagraf.dbo.Province pro ON pro.Sigla = cu.Provincia
+          LEFT JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.Gruppo
+                                             AND ag.Codagente = c.Agente
+          LEFT JOIN anagraf.dbo.anAge agn ON agn.utente = ag.utente
+     WHERE mco.codice_oggetto IN(991, 992, 993, 1005)
+          --AND IIF(isnull(c.dataComm, '') <> '', c.dataComm, c.DataComm_annoprec) >= '20170101'
+--estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+          AND c.archivio = 9999),
+     attivisino
+     AS (
+     SELECT DISTINCT
+            c.codpsi,
+            c.archivio,
+            CASE
+                WHEN estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 1
+                THEN 'X'
+                WHEN estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 0
+                THEN ''
+            END AS Attivo
+     FROM estrazioni.dbo.commissioni c
+     WHERE estrazioni.dbo.commissioniattive(c.archivio, c.CodPsi, c.id) = 1
+AND c.archivio = 9999),
+     dataComm
+     AS (
+     SELECT DISTINCT
+            [CodPsi]
+     FROM [estrazioni].[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+     WHERE mco.codice_oggetto IN(991, 992, 993, 1005)
+          AND IIF(isnull(c.dataComm, '') <> '', c.dataComm, c.DataComm_annoprec) >= '20170101')
+     SELECT DISTINCT
+            --cli.Archivio,
+		  --cli.DataComm,
+            cli.CodPsi,
+            cli.RagSoc,
+            cli.Comune,
+            cli.Provincia,
+            cli.Telefono,
+            cli.[Agente],
+            cli.Area,
+            attivisino.Attivo,
+            cli.Sigle,
+            cli.SigleOLD
+     FROM cli
+          LEFT JOIN attivisino ON cli.CodPsi = attivisino.CodPsi
+                                  --AND cli.archivio = attivisino.archivio
+          INNER JOIN dataComm ON dataComm.codpsi = cli.codpsi
+     --WHERE attivisino.archivio = 9999
+
+     ORDER BY cli.RagSoc;

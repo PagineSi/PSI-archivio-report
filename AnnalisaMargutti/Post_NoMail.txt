@@ -1,0 +1,28 @@
+SELECT DISTINCT 
+       c.codpsi, 
+       s.[idWebModcOggetto], 
+       [assegnazione_data], 
+       [assegnazione_operatore], 
+       [in_produzione_operatore], 
+       [in_produzione_data], 
+       [numero_link_tot], 
+       [numero_redazionali_tot], 
+       [invio_cliente_data], 
+       [invio_cliente_operatore]
+FROM [servizi].[dbo].[SICOMPROD_SOCIAL] s
+     INNER JOIN servizi.dbo.SICOMPROD_SOCIAL_ANNO_MESE sam ON sam.idWebModcOggetto = s.idWebModcOggetto
+     --INNER JOIN servizi.dbo.SICOMPROD_SOCIAL_ANNOMESE_POSTRED sapr ON sapr.idWebModcOggetto = sam.idWebModcOggetto
+     --                                                                 AND sapr.idannomese = sam.idannomese
+     INNER JOIN servizi.dbo.SICOMPROD_SOCIAL_ANNOMESE_POSTLINK sapl ON sapl.idWebModcOggetto = sam.idWebModcOggetto
+                                                                       AND sapl.idannomese = sam.idannomese
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = s.idWebModcOggetto
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+WHERE --ISNULL(s.numero_redazionali_tot, 0) > 0
+--and 
+ISNULL(s.numero_link_tot, 0) > 0
+
+--AND sapr.invio_bozza_data IS NOT NULL
+AND sapl.creazione_data IS NOT NULL
+AND s.invio_cliente_data IS NULL
+AND codpsi <> 37774
+ORDER BY codpsi;

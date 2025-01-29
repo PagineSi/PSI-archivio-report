@@ -1,0 +1,156 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+WITH az
+     AS (
+     SELECT DISTINCT
+            wb.Codpsi,
+            wb.[id],
+      --,[da]
+      --,[a]
+      --,[priorita]
+      --,[settore]
+      --,[spider]
+      --,[cod_com]
+           -- [titolo],
+      --,[link]
+      --,[foto1]
+      --,[descrizione]
+      --,[kwords]
+      --,[mup]
+      --,[foto2]
+            --[tipo]
+      --,[puretext]
+      --,[comune]
+      --,[articoli]
+      --,[tipoForm]
+      --,[indictit]
+      --,[idcli]
+      --,[prionorm]
+      --,[casualiz]
+      --,[idext]
+      --,[locurl]
+      --,[emailAdr]
+      --,[impo]
+      --,[clickToday]
+      --,[clickWeek]
+      --,[clickTotal]
+      --,[indirizzo]
+      --,[catprin]
+      --,[nomappa]
+      --,[wcap]
+      --,[infotext]
+      --,[anacat]
+      --,[codpsi]
+      --,[linkmob]
+      --,[prefisso]
+      --,[telefono]
+      --,[anacat_TA]
+      --,[piva]
+      --,[allineam]
+      --,[idSchedaAziende]
+      --,[cooLat]
+      --,[cooLon]
+      --,[daCancellare]
+      --,[titoloalt]
+      --,[tstamp]
+      --,[ragsoc]
+      --,[cancellato]
+      --,[canonicalUrl]
+      --,[canonicalId]
+      --,[dataAggiornamento]
+      --,[prefax]
+      --,[fax]
+      --,[emailUrl]
+      --,[contattoSkype]
+      --,[facebook]
+      --,[twitter]
+      --,[linkedIn]
+      --,[youtube]
+      --,[staff]
+      --,[altriSiti]
+      --,[altriNumeri]
+      --,[press]
+      --,[altreFoto]
+      --,[altriVideo]
+      --,[operatore]
+      --,[bloccato]
+      --,[dataBlocco]
+      --,[urlInesistente]
+      --,[datiAnagModif]
+      --,[cellulare]
+      --,[urlModificata]
+      --,[user]
+      --,[pwd]
+      --,[logged]
+      --,[session_id]
+      --,[attivazione]
+      --,[dataUltimaModifica]
+      --,[numeroModifiche]
+      --,[instagram]
+      --,[whatsapp]
+      --,[orari]
+      --,[marchi]
+      --,[prodotti]
+      --,[tour]
+      --,[bu]
+      --,[servizi]
+      --,[idPadre]
+      --,[id0]
+      --,[categorico]
+            [tipoScheda]
+      --,[modificaUtente]
+      --,[titoloKeyword]
+      --,[listaKeyword]
+      --,[id_copy]
+      --,[note]
+      --,[tag]
+      --,[showBreadcrumb]
+      --,[altriServizi]
+      --,[oldstyle]
+      --,[precaricato]
+      --,[datacreazione]
+      --,[isAltreRic]
+            --[insegna]
+      --,[tagtitle]
+      --,[tagh1]
+      --,[tagmetadescription]
+      --,[hideBreadcrumb]
+      --,[priorita_acq]
+      --,[priorita_app]
+      --,[alternativaCategorie]
+      --,[alternativacategorielabel]
+      --,[camilio]
+      --,[scheda_app]
+      --,[kwords_app]
+      --,[servitiqui_url]
+      --,[showrecensioni]
+     FROM KLINGON.[anagraf].[dbo].[Webext] wb
+          INNER JOIN anagraf.dbo.Commissioni c ON c.codpsi = wb.codpsi
+     WHERE servizi.dbo.commissioniattive(c.codpsi, c.id) = 1
+          AND isnull(wb.priorita, 0) < 0),
+     gmb
+     AS (
+     SELECT DISTINCT
+            c.codpsi,
+            a.RagSoc,
+            a.Insegna
+     FROM anagraf.dbo.commissioni c
+          INNER JOIN anagraf.dbo.oggetti o ON o.idcom = c.id
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+          LEFT JOIN anagraf.dbo.tipoinserz t ON t.codice = o.tipo
+     WHERE servizi.dbo.commissioniattive(c.codpsi, c.id) = 1
+          AND t.CodiceCategoriacommerciale = 76)
+     SELECT DISTINCT
+            az.CodPsi,
+            az.id idScheda,
+            az.TipoScheda
+            --az.Titolo [Titolo (webext)],
+            --az.Insegna [Insegna (webext)],
+            --gmb.RagSoc [RagSoc (bark.anagraf)],
+            --gmb.Insegna [Insegna (bark.anagraf)]
+     FROM az
+          INNER JOIN gmb ON gmb.codpsi = az.codpsi
+     --WHERE az.codpsi = 174961;
+     ORDER BY codpsi,
+              tiposcheda;

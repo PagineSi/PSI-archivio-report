@@ -1,0 +1,28 @@
+
+
+SELECT DISTINCT --[Id],
+       [ID_ModuloC],
+       c.CodPsi,
+       [email],
+       m.[user],
+       --[user],
+       --[pwd],
+       --[note],
+       --[dataInserimento],
+       --[operatore],
+       [mailDaAnnullare],
+       format([datamaildel], 'yyyy-MM-dd') datamaildel,
+       --[operatoremaildel],
+       [datamailrip]
+       --[operatoremailrip],
+       --[dataCopiaInGeco],
+       --[isPec],
+       --[dataInvioCredenziali],
+       --[operatoreInvioCredenziali]
+FROM [anagraf].[dbo].[WEB_ModuloC_Mail] m
+     LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = m.ID_ModuloC
+     LEFT JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+WHERE(format(datamaildel, 'yyyy') = '2023'
+      AND isnull(datamailrip, '') = '')
+     AND isnull(maildaannullare, 0) <> 3
+     AND m.email = m.[user];

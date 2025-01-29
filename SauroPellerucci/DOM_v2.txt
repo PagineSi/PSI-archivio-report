@@ -1,0 +1,529 @@
+SELECT DISTINCT
+       servizi.dbo.udfTestoSpezzato(m.[Dominio]) Dominio,
+       servizi.dbo.udfTestoSpezzato(m.[Provider]) Provider,
+       servizi.dbo.udfTestoSpezzato(m.[Proprietario]) Proprietario,
+       servizi.dbo.udfTestoSpezzato(m.DataDEF) DataDEF,
+       CASE     
+
+	      --RinTac=''
+	     
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+
+		 --RinTac=1
+
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+       END AS DataScad,
+       NULL AS DataScadCli,
+       m.RinTac,
+       m.[PrezzoIniziale],
+       m.[PrezzoAnniSucc],
+       m.[ProprietaPsi],
+       m.[Categoria]
+FROM
+(
+    SELECT [Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           IIF(ISNULL(d.[DataCreazione], '') <> '', d.[DataCreazione], do.datareg) DataDEF,
+           IIF(isnull(d.[DataScadenza], '') <> '', d.[DataScadenza], d.[DataScadenzaCar]) DataScad,
+           bianna,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+           CASE
+               WHEN ISNULL([DominioPsi], '') <> ''
+               THEN 'AZIENDALI'
+               ELSE 'CLIENTI'
+           END AS [Categoria]
+    FROM [servizi].[dbo].[domini] d
+         LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini do ON do.id = d.idWebModCDominio OR do.www=d.dominio
+         LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = do.ID_ModuloC
+         LEFT JOIN anagraf.dbo.Commissioni c ON c.id = mc.idcom
+    WHERE(ISNULL(do.datadomdel, '') = ''
+          OR (ISNULL(do.datadomdel, '') <> ''
+              AND ISNULL(do.datadomrip, '') <> ''))
+         AND ISNULL(do.cpout, '') = ''
+         AND ISNULL(do.pubblicazionePerIP, '') = ''
+         AND ISNULL(do.cpin, '') = ''
+         AND (ISNULL(do.cpSeat, '') = ''
+              OR (ISNULL(do.cpSeat, '') <> ''
+                  AND ISNULL(do.datareg, '') <> ''))
+         AND (ISNULL(d.idAdDomain, '') = ''
+              AND ISNULL(idmadblog, '') = '')
+		    AND ISNULL(DataAnnullamentoContratto,'') = ''
+		    AND ISNULL(DataRilascio,'') = ''
+) AS m
+UNION
+SELECT DISTINCT
+       servizi.dbo.udfTestoSpezzato(m.[Dominio]) Dominio,
+       servizi.dbo.udfTestoSpezzato(m.[Provider]) Provider,
+       servizi.dbo.udfTestoSpezzato(m.[Proprietario]) Proprietario,
+       servizi.dbo.udfTestoSpezzato(m.DataDEF) DataDEF,
+       CASE     
+
+	     --RinTac=''
+	     
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+
+		 --RinTac=1
+
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+       END AS DataScad,
+       m.DataScadenzaCli,
+       m.RinTac,
+       m.[PrezzoIniziale],
+       m.[PrezzoAnniSucc],
+       m.[ProprietaPsi],
+       m.[Categoria]
+FROM
+(
+    SELECT [Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           IIF(isnull(d.[DataCreazione], '') <> '', d.[DataCreazione], d.DataCreazioneCar) DataDEF,
+           IIF(isnull(d.[DataScadenza], '') <> '', d.[DataScadenza], d.DataScadenzaCar) DataScad,
+           c.BiannA,
+           MAX(format(cd.data_scadenza, 'yyyy-MM-dd')) AS DataScadenzaCli,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+           CASE
+               WHEN ISNULL([DominioPsi], '') <> ''
+               THEN 'AZIENDALI'
+               ELSE 'ADD/MAD/BLOG'
+           END AS [Categoria]
+    FROM [servizi].[dbo].[domini] d
+         LEFT JOIN lisa.addomain.dbo.addomain a ON d.idAdDomain = a.id
+         LEFT JOIN lisa.addomain.dbo.clientidomini cd ON cd.iddominio = a.id
+         LEFT JOIN anagraf.dbo.commissioni c ON c.Commissione COLLATE SQL_Latin1_General_CP1_CI_AS = cd.Commissione
+    WHERE isnull(a.dominio_eliminato, '') = ''
+          AND (ISNULL(d.idAdDomain, '') <> ''
+               AND ISNULL(idmadblog, '') = '')
+    GROUP BY [Dominio],
+             d.[Provider],
+             d.[Proprietario],
+             d.[DataCreazione],
+             d.DataCreazioneCar,
+             d.DataScadenza,
+             d.DataScadenzaCar,
+             c.BiannA,
+             c.RinTac,
+             d.[PrezzoIniziale],
+             d.[PrezzoAnniSucc],
+             [ProprietaPsi],
+             DominioPsi,
+             d.idaddomain
+) AS m
+UNION
+SELECT DISTINCT
+      servizi.dbo.udfTestoSpezzato(m.[Dominio]) Dominio,
+       servizi.dbo.udfTestoSpezzato(m.[Provider]) Provider,
+       servizi.dbo.udfTestoSpezzato(m.[Proprietario]) Proprietario,
+       servizi.dbo.udfTestoSpezzato(m.DataDEF) DataDEF,
+       CASE     
+
+	     --RinTac=''
+	     
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+
+		 --RinTac=1
+
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+       END AS DataScad,
+       NULL AS DataScadCli,
+       m.RinTac,
+       m.[PrezzoIniziale],
+       m.[PrezzoAnniSucc],
+       m.[ProprietaPsi],
+       m.[Categoria]
+FROM
+(
+    SELECT d.[Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           IIF(isnull(d.[DataCreazione], '') <> '', d.[DataCreazione], d.DataCreazioneCar) DataDEF,
+           IIF(isnull(d.[DataScadenza], '') <> '', d.[DataScadenza], d.DataScadenzaCar) DataScad,
+           c.BiannA,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+           CASE
+               WHEN ISNULL([DominioPsi], '') <> ''
+               THEN 'AZIENDALI'
+               ELSE 'ADD/MAD/BLOG'
+           END AS [Categoria]
+    FROM [servizi].[dbo].[domini] d
+         LEFT JOIN klingon.landbook.dbo.blog b ON b.id = d.idMadBlog
+         LEFT JOIN klingon.landbook.dbo.clienti_mad mad ON mad.id = b.id
+         LEFT JOIN anagraf.dbo.commissioni c ON c.id = mad.idcom
+    WHERE isnull(b.disattivato, '') = ''
+          AND (ISNULL(d.idAdDomain, '') = ''
+               AND ISNULL(idmadblog, '') <> '')
+			) AS m
+UNION
+SELECT DISTINCT
+      servizi.dbo.udfTestoSpezzato(m.[Dominio]) Dominio,
+       servizi.dbo.udfTestoSpezzato(m.[Provider]) Provider,
+       servizi.dbo.udfTestoSpezzato(m.[Proprietario]) Proprietario,
+       servizi.dbo.udfTestoSpezzato(m.DataDEF) DataDEF,
+       CASE     
+
+	     --RinTac=''
+	     
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataScad, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') = ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataScad, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataScad, 'MM-dd'))
+
+		 --RinTac=1
+
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = ''
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'A'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2021-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'B'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2022-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'C'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2023-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') < format(GETDATE(), 'MM-dd')
+           THEN concat('2025-', format(DataDEF, 'MM-dd'))
+           WHEN ISNULL(m.rintac, '') <> ''
+                AND ISNULL(m.bianna, '') = 'D'
+                AND format(m.DataDEF, 'MM-dd') > format(GETDATE(), 'MM-dd')
+           THEN concat('2024-', format(DataDEF, 'MM-dd'))
+       END AS DataScad,
+       NULL AS DataScadCli,
+       m.RinTac,
+       m.[PrezzoIniziale],
+       m.[PrezzoAnniSucc],
+       m.[ProprietaPsi],
+       m.[Categoria]
+FROM
+(
+    SELECT d.[Dominio],
+           d.[Provider],
+           d.[Proprietario],
+           IIF(isnull(d.[DataCreazione], '') <> '', d.[DataCreazione], d.DataCreazioneCar) DataDEF,
+           IIF(isnull(d.[DataScadenza], '') <> '', d.[DataScadenza], d.DataScadenzaCar) DataScad,
+           c.BiannA,
+           c.RinTac,
+           d.[PrezzoIniziale],
+           d.[PrezzoAnniSucc],
+           [ProprietaPsi],
+           CASE
+               WHEN ISNULL([DominioPsi], '') <> ''                  
+               THEN 'AZIENDALI'
+               ELSE 'ADD/MAD/BLOG'
+           END AS [Categoria]
+    FROM [servizi].[dbo].[domini] d
+         LEFT JOIN klingon.landbook.dbo.blog b ON b.id = d.idMadBlog
+         LEFT JOIN klingon.landbook.dbo.clienti_mad mad ON mad.id = b.id       
+         LEFT JOIN lisa.addomain.dbo.addomain a ON d.idAdDomain = a.id
+         LEFT JOIN lisa.addomain.dbo.clientidomini cd ON cd.iddominio = a.id
+	    LEFT JOIN anagraf.dbo.commissioni c ON c.id = mad.idcom OR c.Commissione COLLATE SQL_Latin1_General_CP1_CI_AS = cd.Commissione
+    WHERE isnull(b.disattivato, '') = ''
+          AND isnull(a.dominio_eliminato, '') = ''
+          AND (ISNULL(d.idAdDomain, '') <> ''
+               AND ISNULL(idmadblog, '') <> '')
+) AS m
+
+ORDER BY Dominio

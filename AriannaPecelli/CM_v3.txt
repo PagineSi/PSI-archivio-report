@@ -1,0 +1,101 @@
+WITH valid AS (
+SELECT 
+       m.area,
+       SUM(IIF(isnull(dataValidazione, '') <> '', 1, 0)) AS Valid_IN,
+	  SUM(m.oreCM) AS SommaPD
+        
+FROM ( 
+SELECT DISTINCT
+           o.[id],
+           [id_moduloc],
+           [Codice_Oggetto],
+           t.tipo,
+           [oggettiCM_Out],
+           datavalidazione,
+		 c.area,
+		 p.oreCM
+     FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+     INNER JOIN anagraf.dbo.commissioni c on c.id=o.id_com
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+	LEFT JOIN servizi.dbo.prodottiore p on p.codiceSigla=t.Codice
+
+WHERE isnull([oggettiCM_Out], 0) = 0
+)
+AS m
+      WHERE  CONVERT(DATE, dataValidazione) BETWEEN '2020-12-01' AND '2021-11-30'
+GROUP BY m.area
+),
+
+pic AS (
+SELECT 
+       m.area,
+	  SUM(IIF(isnull(cm_data_presaincarico_ogg, '') <> '', 1, 0)) AS PiC_IN,
+	  SUM(m.oreCM) AS SommaPD
+        
+FROM ( 
+SELECT DISTINCT
+           o.[id],
+           [id_moduloc],
+           [Codice_Oggetto],
+           t.tipo,
+           [oggettiCM_Out],
+           cm_data_presaincarico_ogg,
+		 c.area,
+		 p.oreCM
+     FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+     INNER JOIN anagraf.dbo.commissioni c on c.id=o.id_com
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+	LEFT JOIN servizi.dbo.prodottiore p on p.codiceSigla=t.Codice
+
+WHERE isnull([oggettiCM_Out], 0) = 0
+)
+AS m
+      WHERE CONVERT(DATE, cm_data_presaincarico_ogg) BETWEEN '2020-12-01' AND '2021-11-30'
+GROUP BY m.area
+),
+
+pip AS (
+SELECT 
+       m.area,
+	  SUM(IIF(isnull(cm_data_inproduzione, '') <> '', 1, 0)) AS PiP_IN,
+       SUM(m.oreCM) AS SommaPD
+        
+FROM ( 
+SELECT DISTINCT
+           o.[id],
+           [id_moduloc],
+           [Codice_Oggetto],
+           t.tipo,
+           [oggettiCM_Out],
+           cm_data_inproduzione,
+		 c.area,
+		 p.oreCM
+     FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+     INNER JOIN anagraf.dbo.commissioni c on c.id=o.id_com
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+	LEFT JOIN servizi.dbo.prodottiore p on p.codiceSigla=t.Codice
+
+WHERE isnull([oggettiCM_Out], 0) = 0
+)
+AS m
+      WHERE CONVERT(DATE, cm_data_inproduzione) BETWEEN '2020-12-01' AND '2021-11-30'
+GROUP BY m.area
+)
+
+SELECT DISTINCT  
+c.area Area,
+valid.Valid_IN,
+pic.PiC_IN,
+pip.PiP_IN,
+pip.SommaPD
+ 
+FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+     INNER JOIN anagraf.dbo.commissioni c on c.id=o.id_com
+	LEFT JOIN pic on pic.area=c.area 
+	LEFT JOIN pip on pip.area=c.area
+	LEFT JOIN valid on valid.area=c.area
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+
+	WHERE isnull([oggettiCM_Out], 0) = 0
+
+ORDER BY c.area ASC

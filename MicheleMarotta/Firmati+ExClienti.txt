@@ -1,0 +1,53 @@
+WITH dati
+     AS (
+     SELECT DATEPART(year, c.DataComm) AS Anno,
+            c.area Area,
+            SUM(IIF(isnull(mco.cm_ope_presaincarico_ogg, '') <> '', 1, 0)) AS nOgg,
+            SUM(isnull(p.oreCM, 0)) SommaPD
+     FROM estrazioni.dbo.vAnalisiImportiOggetti c
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_oggetto = c.codice_oggetto
+          LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = c.codice_tipo_inserz
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = c.codice_tipo_inserz
+          INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.CodiceAnagrafica
+     WHERE DATEPART(year, c.DataComm) = 2021
+           AND isnull(t.oggettiCM_Out, 0) = 0
+           AND mco.cm_ope_presaincarico_ogg = 'antonelli'
+           AND isnull(a.altoSp, '') = 1
+     GROUP BY DATEPART(year, c.DataComm),
+              c.area),
+     cli
+     AS (
+     SELECT COUNT(m.codpsi) nClienti,
+            m.Area,
+            m.Anno
+     FROM
+     (
+         SELECT DISTINCT
+                aic.codpsi,
+                aic.area,
+                DATEPART(year, aic.DataComm) AS Anno
+         FROM estrazioni.dbo.vAnalisiImportiCommissioni aic
+              INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.archivio = aic.archivio
+                                                                      AND aio.idCom = aic.idCom
+              LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_oggetto=aio.codice_oggetto
+              LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = aio.codice_tipo_inserz
+              INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = aio.codice_tipo_inserz
+              INNER JOIN anagraf.dbo.Anagrafica a ON a.Codice = aic.CodiceAnagrafica
+         WHERE DATEPART(year, aic.DataComm) = 2021
+               AND isnull(t.oggettiCM_Out, 0) = 0
+               AND isnull(a.altoSp, '') = 1
+			AND mco.cm_ope_presaincarico_ogg = 'antonelli'
+     ) AS m
+     GROUP BY m.Anno,
+              m.area)
+     SELECT 
+            dati.anno Anno,
+            dati.area Area,
+            dati.nOgg,
+            cli.nClienti,
+            dati.SommaPD SommaPD_CM
+     FROM dati
+          LEFT JOIN cli ON dati.area = cli.area
+                           AND dati.anno = cli.anno
+     ORDER BY anno,
+              area;

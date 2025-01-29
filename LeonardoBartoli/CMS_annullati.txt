@@ -1,0 +1,15 @@
+SELECT DISTINCT
+       [id_sito],
+       [sito],
+       [deploy_dir],
+       [codPsi],
+       MAX(format(d.datadomdel, 'yyyyMMdd')) DataAnnullamento
+FROM [CMSSI].[dbo].[Siti] s
+     LEFT JOIN bark.anagraf.dbo.web_moduloc_domini d ON d.id_moduloc = s.id_moduloc
+WHERE stato = 'annullato'
+      AND codpsi <> 37774
+GROUP BY [sito],
+         [deploy_dir],
+         codpsi,
+         id_sito
+ORDER BY codpsi;

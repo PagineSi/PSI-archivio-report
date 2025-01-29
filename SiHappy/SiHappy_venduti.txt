@@ -1,0 +1,37 @@
+
+
+SELECT DISTINCT
+       aio.Area,
+       aio.tipo_inserz AS Sigla,
+       COUNT(aio.tipo_inserz) nSigle,
+       ROUND(SUM(aio.tot_acquisito), 2) Impo,
+       CASE
+           WHEN ISNULL(aio.isOggettoNuovo, 0) = 1
+           THEN 'NUOVO'
+           WHEN ISNULL(aio.isOggettoNuovo, 0) = 0
+           THEN 'RINNOVO'
+       END AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.codicecategoria IN(23, 66)
+AND aio.tipo_importo = 'FIRMATO'
+AND ISNULL(aio.tot_acquisito, 0) > 0
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20230101 AND 20231231
+GROUP BY aio.tipo_inserz,
+         aio.isOggettoNuovo,
+         aio.Area
+UNION
+SELECT DISTINCT
+       aio.Area,
+       aio.tipo_inserz AS Sigla,
+       COUNT(aio.tipo_inserz) nSigle,
+       ROUND(SUM(aio.tot_acquisito), 2) Impo,
+       'MATURATO' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.codicecategoria IN(23, 66)
+AND aio.tipo_importo = 'MATURATO'
+AND ISNULL(aio.tot_acquisito, 0) > 0
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20230101 AND 20231231
+GROUP BY aio.tipo_inserz,
+         aio.Area
+ORDER BY area,
+         sigla;

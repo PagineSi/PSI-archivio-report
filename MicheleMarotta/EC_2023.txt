@@ -1,0 +1,23 @@
+
+
+SELECT u.Nome,
+       u.Cognome,
+       COUNT(m.invio_provvisorio_data) nSiti
+FROM
+(
+    SELECT e.assegnazione_grafico_a Operatore,
+           [invio_provvisorio_data],
+           tp.tipo,
+           c.codpsi
+    FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE_Provvisorio] p
+         INNER JOIN [servizi].[dbo].[SICOMPROD_ECOMMERCE] e ON e.id_ecommerce = p.idEcommerce
+         LEFT JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_moduloc = e.id_moduloc
+         LEFT JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+         LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.Codice_Oggetto
+    WHERE DATEPART(year, invio_provvisorio_data) = 2023
+          AND tp.codicecategoria = 18
+) m
+LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = m.operatore
+GROUP BY m.operatore,
+         u.Nome,
+         u.Cognome;

@@ -1,0 +1,32 @@
+SELECT m.Operatore,
+       pa.nome,
+       pa.cognome,
+       SUM(IIF(isnull(m.data_lav, '') <> '', 1, 0)) AS nLav,
+       SUM(m.orelav) SommaPD
+FROM
+(
+    SELECT DISTINCT
+           si.operatore_lav Operatore,
+           si.data_lav,
+           p.ore orelav,
+		 --p.oreFalsiM,
+		 --IIF(isnull(p.oreFalsiM,0)<>0, p.oreFalsiM, p.ore) orelav,
+           t.Tipo,
+           t.codice,
+           c.CodPsi
+    FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] o
+         INNER JOIN anagraf.dbo.commissioni c ON c.id = o.id_com
+         INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = o.codice_oggetto
+         LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = t.Codice
+         LEFT JOIN servizi.dbo.sicomprod_si2site_oggetti si ON si.idWebModcOggetto = o.id
+	    --LEFT JOIN servizi.dbo.SICOMPROD_SI2SITE si on si.idWebModcOggetto=o.id
+	    --LEFT JOIN servizi.dbo.SICOMPROD_SI2SITE_LAVORAZIONE sil on sil.idSi2site=si.idSi2site
+
+    WHERE DATEPART(year, si.data_lav) = 2022
+          AND DATEPART(month, si.data_lav) = 1
+          AND t.codice IN(1335, 717, 719, 708, 721, 850, 718, 720, 740, 741, 742, 743, 852, 853, 854, 855, 856, 1205, 1010, 1287, 1306, 1351, 1896)
+) AS m
+LEFT JOIN anagraf.dbo.persAnag pa ON pa.utente = m.Operatore
+GROUP BY m.Operatore,
+         pa.nome,
+         pa.cognome;

@@ -1,0 +1,33 @@
+SELECT DISTINCT 
+comm.id idCom,
+codpsi, 
+       ragsoc, 
+       
+       --an.nome, 
+       area, 
+       DataComm, 
+       (STUFF(
+             (
+                 SELECT ', '+t.tipo
+                 FROM anagraf.dbo.WEB_ModuloC_oggetti wow
+                      INNER JOIN anagraf.dbo.tipoinserz t ON wow.codice_oggetto = t.Codice
+                                                             AND t.CodiceCategoria IN (88,99)
+                      INNER JOIN anagraf.dbo.commissioni cw ON cw.id = wow.id_com
+                 WHERE comm.codpsi = cw.codpsi
+                       AND comm.commissione = cw.commissione FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle,
+		   format(mco.datalavWeb, 'yyyyMMdd') DataLav,
+		   mco.operatoreLavWeb OpeLav
+FROM anagraf.dbo.commissioni AS comm
+     INNER JOIN anagraf.dbo.Anagrafica AS a ON a.codice = comm.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC AS mc ON mc.idcom = comm.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti AS mco ON mco.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.TipoInserz AS t ON t.codice = mco.Codice_Oggetto
+     --INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = comm.gruppo
+     --                                    AND ag.codagente = comm.agente
+     --INNER JOIN anagraf.dbo.anage an ON an.utente = ag.utente
+WHERE servizi.dbo.CommissioniAttive(comm.codpsi,comm.id)=1
+and t.CodiceCategoria IN (88,99)
+and isnull(comm.rintac,'')<>''
+--and mco.cm_data_inproduzione is not null
+ORDER BY datacomm;

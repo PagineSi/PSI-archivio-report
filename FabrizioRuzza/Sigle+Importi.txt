@@ -1,0 +1,22 @@
+SELECT DISTINCT 
+       tipo_inserz AS Sigla, 
+       COUNT(tipo_inserz) nSigle, 
+       ROUND(SUM(aio.tot_acquisito), 2) ImpoTot, 
+       aio.tipo_importo, 
+       ROUND(SUM(aio.firmato_nuovi), 2) ImpoNuovi, 
+       ROUND(SUM(aio.firmato_rinnovi), 2) ImpoRinnovi,
+       CASE
+           WHEN aio.tipo_inserz IN('EC-FlexS', 'EC-AmaGes', 'EC-FlexSM', 'EC-ConsS', 'EC-FlexSR', 'EC-Coup', 'EC-FlexL', 'EC-Design', 'EC-FlexLM', 'EC-eBayGes', 'EC-FlexLR', 'EC-ELC', 'EC-FlexX,L''EC-Gate+', 'EC-FlexXLM,''EC-Lingua+', 'EC-FlexXLR', 'EC-PlatFor', 'EC-FlexB2B', 'EC-Prod20+', 'EC-FlexB2BM', 'EC-Sincro', 'EC-FlexB2BR,''EC-upload', 'EC-Med', 'EC-Var+', 'EC-Flex', 'EC-Sped', 'EC-Bus', 'EC-Foto20', 'EC-Acc')
+           THEN 'STOREDEN'
+           WHEN aio.tipo_inserz IN('EC-Pro', 'EC-ProM', 'EC-ProR', 'EC-LOCS', 'EC-LOCSM', 'EC-LOCC', 'EC-LOCCM')
+           THEN 'PRESTASHOP'
+           WHEN aio.tipo_inserz IN('SQO-SET', 'SQO-ABB', 'SQS-SET', 'SQS-ABB', 'SQS0F-SET', 'SQS0F-ABB', 'SQM20')
+           THEN 'SERVITIQUI'
+       END AS Piattaforma
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.CodiceCategoriaCommerciale IN(18, 94, 95, 121, 165, 168, 153, 166)
+AND ISNULL(aio.tot_acquisito, '') <> ''
+AND format(aio.DataCompetenza, 'yyyy') = 2020
+GROUP BY tipo_inserz, 
+         aio.tipo_importo
+ORDER BY sigla;

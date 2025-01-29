@@ -1,0 +1,19 @@
+SELECT
+archivio,
+area,
+comm.id,
+codpsi,
+ragsoc,
+Importo,
+Consegnato
+
+FROM estrazioni.dbo.commissioni comm
+INNER JOIN anagraf.dbo.anagrafica a on a.codice=comm.codice
+INNER JOIN anagraf.dbo.agenti ag on ag.gruppo=comm.gruppo and ag.codagente=comm.agente
+INNER JOIN anagraf.dbo.anAge ana on ana.utente=ag.utente
+
+where estrazioni.dbo.CommissioniAttive(comm.archivio,comm.codpsi,comm.id)=1
+and ag.utente='scarmagnan'
+and archivio=212
+
+order by archivio desc

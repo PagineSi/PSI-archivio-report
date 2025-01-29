@@ -1,0 +1,245 @@
+WITH ope as (SELECT DISTINCT opCrt FROM [estrazioni].[dbo].[Commissioni] WHERE opCrt IS NOT NULL),
+
+  gen as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_gen
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210101' and '210131'
+ GROUP BY c1.opCrt),
+
+  feb as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_feb
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210201' and '210231'
+ GROUP BY c1.opCrt),
+
+ mar as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_mar
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210301' and '210331'
+ GROUP BY c1.opCrt),
+
+ apr as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_apr
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210401' and '210431'
+ GROUP BY c1.opCrt),
+
+ mag as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_mag
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210501' and '210531'
+ GROUP BY c1.opCrt),
+
+ giu as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_giu
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210601' and '210631'
+ GROUP BY c1.opCrt),
+
+ lug as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_lug
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210701' and '210731'
+ GROUP BY c1.opCrt),
+
+ ago as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_ago
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210801' and '210831'
+ GROUP BY c1.opCrt),
+
+ sett as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_sett
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '210901' and '210931'
+ GROUP BY c1.opCrt),
+
+ ott as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_ott
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '211001' and '211031'
+ GROUP BY c1.opCrt),
+
+ nov as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_nov
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '211101' and '211131'
+ GROUP BY c1.opCrt),
+
+ dic as (SELECT DISTINCT
+c1.opCrt,
+COUNT(c1.opCrt) AS Caricati_dic
+FROM 
+(
+    SELECT DISTINCT
+    id,
+    MIN(archivio) arch, 
+    MIN(dataCrt) dataCrt
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE 
+    isnull(dataCrt, '')<>''
+    GROUP BY id
+) c
+ INNER JOIN estrazioni.dbo.commissioni c1 on c1.id=c.id and c1.archivio=c.arch
+ WHERE c1.dataCrt between '211201' and '211231'
+ GROUP BY c1.opCrt)
+
+ SELECT ope.opCrt Ope,
+ gen.Caricati_gen,
+ feb.Caricati_feb,
+ mar.Caricati_mar,
+ apr.Caricati_apr,
+ mag.Caricati_mag,
+ giu.Caricati_giu,
+ lug.Caricati_lug,
+ ago.Caricati_ago,
+ sett.Caricati_sett,
+ ott.Caricati_ott,
+ nov.Caricati_nov,
+ dic.Caricati_dic
+
+ FROM 
+ ope LEFT join gen on gen.opCrt=ope.opCrt
+ LEFT join feb on ope.opCrt=feb.opCrt
+ LEFT join mar on ope.opCrt=mar.opCrt
+ LEFT join apr on ope.opCrt=apr.opCrt
+ LEFT join mag on ope.opCrt=mag.opCrt
+ LEFT join giu on ope.opCrt=giu.opCrt
+ LEFT join lug on ope.opCrt=lug.opCrt
+ LEFT join ago on ope.opCrt=ago.opCrt
+ LEFT join sett on ope.opCrt=sett.opCrt
+ LEFT join ott on ope.opCrt=ott.opCrt
+ LEFT join nov on ope.opCrt=nov.opCrt
+ LEFT join dic on ope.opCrt=dic.opCrt

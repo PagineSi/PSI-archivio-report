@@ -1,0 +1,54 @@
+with sito as (
+
+SELECT DISTINCT 
+       c.CodPsi,
+	   a.RagSoc,
+	   a.Insegna,
+	   tp.tipo Sigla,
+       [www]
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+     LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     LEFT JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+     LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND d.sitoRif = 1
+     AND (ISNULL(d.datadomdel, '') = ''
+          OR (ISNULL(d.datadomdel, '') <> ''
+              AND ISNULL(d.datadomrip, '') <> ''))
+     --AND ISNULL(mc.dataOnline, '') <> ''
+     AND ISNULL(d.cpout, '') = ''
+     --AND a.altoSp = 1
+     AND tp.codice IN(2229,
+2230,
+2231,
+2232,
+2233,
+2234,
+2268,
+2269,
+2266,
+2267)
+AND ISNULL(c.codpsi, 0) <> 37774
+),
+
+scheda as (
+SELECT DISTINCT 
+       c.CodPsi
+FROM anagraf.[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloC = mc.id
+
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = mco.codice_oggetto
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     --AND mc.annullato IS NULL
+     --AND c.archivio = 9999
+     AND t.codice IN(1686,
+1685)
+AND ISNULL(c.codpsi, 0) <> 37774
+)
+
+SELECT sito.*
+FROM sito INNER JOIN scheda on sito.CodPsi=scheda.CodPsi
+order by sito.codpsi

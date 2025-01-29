@@ -1,0 +1,415 @@
+
+
+
+
+
+WITH base
+     AS (
+     SELECT c.CodPsi,
+            c.id,
+            t.tipo Sigla,
+            CASE
+                WHEN t.tipo = 'A-MAIL1'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL1-0'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL1-0M'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL1-M'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL5'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL50'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL50-M'
+                THEN 1
+                WHEN t.tipo = 'A-MAIL5-M'
+                THEN 1
+                WHEN t.tipo = 'APP4MC'
+                THEN 1
+                WHEN t.tipo = 'APP4MCL'
+                THEN 1
+                WHEN t.tipo = 'APP4MCL-M'
+                THEN 1
+                WHEN t.tipo = 'APP4MC-R'
+                THEN 1
+                WHEN t.tipo = 'APP4MSL'
+                THEN 1
+                WHEN t.tipo = 'APP4MSL-R'
+                THEN 1
+                WHEN t.tipo = 'APP4MS-R'
+                THEN 1
+                WHEN t.tipo = 'EC-Acc'
+                THEN 2
+                WHEN t.tipo = 'EC-AccM'
+                THEN 2
+                WHEN t.tipo = 'EC-biz'
+                THEN 2
+                WHEN t.tipo = 'EC-Bus'
+                THEN 2
+                WHEN t.tipo = 'EC-BusM'
+                THEN 2
+                WHEN t.tipo = 'EC-entry'
+                THEN 2
+                WHEN t.tipo = 'EC-Flex'
+                THEN 2
+                WHEN t.tipo = 'EC-Flex0F'
+                THEN 2
+                WHEN t.tipo = 'EC-Flex0FM'
+                THEN 2
+                WHEN t.tipo = 'ECFlexB2BM'
+                THEN 2
+                WHEN t.tipo = 'ECFlexB2BR'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexL'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexLM'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexLR'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexM'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexR'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexS'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexSM'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexSR'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexXL'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexXLM'
+                THEN 2
+                WHEN t.tipo = 'EC-FlexXLR'
+                THEN 2
+                WHEN t.tipo = 'EC-GLO'
+                THEN 2
+                WHEN t.tipo = 'EC-GLOB'
+                THEN 1
+                WHEN t.tipo = 'EC-GlobD'
+                THEN 1
+                WHEN t.tipo = 'EC-GlobDM'
+                THEN 1
+                WHEN t.tipo = 'EC-GLOBM'
+                THEN 1
+                WHEN t.tipo = 'EC-GLOM'
+                THEN 2
+                WHEN t.tipo = 'EC-LOCC'
+                THEN 1
+                WHEN t.tipo = 'EC-LOCCM'
+                THEN 1
+                WHEN t.tipo = 'EC-LOCS'
+                THEN 1
+                WHEN t.tipo = 'EC-LOCSM'
+                THEN 1
+                WHEN t.tipo = 'EC-Med'
+                THEN 2
+                WHEN t.tipo = 'EC-MedM'
+                THEN 2
+                WHEN t.tipo = 'EC-PlugD'
+                THEN 1
+                WHEN t.tipo = 'EC-PlugDM'
+                THEN 1
+                WHEN t.tipo = 'EC-Pro'
+                THEN 1
+                WHEN t.tipo = 'EC-ProM'
+                THEN 1
+                WHEN t.tipo = 'ECProR'
+                THEN 2
+                WHEN t.tipo = 'EC-SPED'
+                THEN 2
+                WHEN t.tipo = 'EC-start'
+                THEN 2
+                WHEN t.tipo = 'EC-stnd'
+                THEN 2
+                WHEN t.tipo = 'MAIL'
+                THEN 2
+                WHEN t.tipo = 'Mail+'
+                THEN 2
+                WHEN t.tipo = 'Mail+M'
+                THEN 2
+                WHEN t.tipo = 'MAIL-A'
+                THEN 1
+                WHEN t.tipo = 'MAIL-AM'
+                THEN 1
+                WHEN t.tipo = 'MAIL-Apro'
+                THEN 0
+                WHEN t.tipo = 'MAIL-AproM'
+                THEN 0
+                WHEN t.tipo = 'RDVC'
+                THEN 2
+                WHEN t.tipo = 'RDVC-C'
+                THEN 1
+                WHEN t.tipo = 'RDVC-M'
+                THEN 1
+                WHEN t.tipo = 'RDVC-PC'
+                THEN 1
+                WHEN t.tipo = 'RDVC-PM'
+                THEN 1
+                WHEN t.tipo = 'RDVR'
+                THEN 2
+                WHEN t.tipo = 'RDVRM'
+                THEN 2
+                WHEN t.tipo = 'RDVR-M'
+                THEN 1
+                WHEN t.tipo = 'RDVR-PM'
+                THEN 1
+                WHEN t.tipo = 'RDVRR'
+                THEN 2
+                WHEN t.tipo = 'RDVV'
+                THEN 2
+                WHEN t.tipo = 'RDVVM'
+                THEN 2
+                WHEN t.tipo = 'RDVV-M'
+                THEN 1
+                WHEN t.tipo = 'RDVV-PM'
+                THEN 1
+                WHEN t.tipo = 'RDVVR'
+                THEN 2
+                WHEN t.tipo = 'S2Pro'
+                THEN 1
+                WHEN t.tipo = 'S2ProM'
+                THEN 1
+                WHEN t.tipo = 'S2ProR'
+                THEN 1
+                WHEN t.tipo = 'S2RDV'
+                THEN 2
+                WHEN t.tipo = 'Si2A-M'
+                THEN 1
+                WHEN t.tipo = 'Si2A-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2A-R'
+                THEN 1
+                WHEN t.tipo = 'Si2BImm'
+                THEN 2
+                WHEN t.tipo = 'Si2BImmM'
+                THEN 2
+                WHEN t.tipo = 'Si2BIMM-M'
+                THEN 1
+                WHEN t.tipo = 'Si2BIMM-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2BImmR'
+                THEN 2
+                WHEN t.tipo = 'Si2E'
+                THEN 2
+                WHEN t.tipo = 'Si2EM'
+                THEN 2
+                WHEN t.tipo = 'Si2E-M'
+                THEN 1
+                WHEN t.tipo = 'Si2E-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2ER'
+                THEN 1
+                WHEN t.tipo = 'Si2H ImmM'
+                THEN 2
+                WHEN t.tipo = 'Si2H ImmR'
+                THEN 2
+                WHEN t.tipo = 'Si2HImm'
+                THEN 2
+                WHEN t.tipo = 'Si2Imm'
+                THEN 2
+                WHEN t.tipo = 'Si2ImmM'
+                THEN 2
+                WHEN t.tipo = 'Si2IMM-M'
+                THEN 1
+                WHEN t.tipo = 'Si2IMM-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2ImmR'
+                THEN 2
+                WHEN t.tipo = 'Si2NL'
+                THEN 2
+                WHEN t.tipo = 'Si2NLM'
+                THEN 2
+                WHEN t.tipo = 'Si2NL-M'
+                THEN 1
+                WHEN t.tipo = 'Si2NL-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2NLR'
+                THEN 2
+                WHEN t.tipo = 'Si2PRO-C'
+                THEN 1
+                WHEN t.tipo = 'Si2PRO-M'
+                THEN 1
+                WHEN t.tipo = 'Si2PRO-PC'
+                THEN 1
+                WHEN t.tipo = 'Si2PRO-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2R'
+                THEN 2
+                WHEN t.tipo = 'Si2RE-M'
+                THEN 1
+                WHEN t.tipo = 'Si2RE-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2RE-PRO-M'
+                THEN 1
+                WHEN t.tipo = 'Si2RE-PRO-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2RE-R'
+                THEN 1
+                WHEN t.tipo = 'Si2RM'
+                THEN 2
+                WHEN t.tipo = 'Si2R-M'
+                THEN 1
+                WHEN t.tipo = 'Si2R-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2RR'
+                THEN 2
+                WHEN t.tipo = 'Si2S-M'
+                THEN 1
+                WHEN t.tipo = 'Si2S-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2S-R'
+                THEN 1
+                WHEN t.tipo = 'Si2TM'
+                THEN 2
+                WHEN t.tipo = 'Si2TMM'
+                THEN 2
+                WHEN t.tipo = 'Si2TMR'
+                THEN 2
+                WHEN t.tipo = 'Si2V'
+                THEN 2
+                WHEN t.tipo = 'Si2V-C'
+                THEN 1
+                WHEN t.tipo = 'Si2VC-C'
+                THEN 1
+                WHEN t.tipo = 'Si2VCL'
+                THEN 2
+                WHEN t.tipo = 'Si2VCLM'
+                THEN 2
+                WHEN t.tipo = 'Si2VC-M'
+                THEN 1
+                WHEN t.tipo = 'Si2VC-PC'
+                THEN 1
+                WHEN t.tipo = 'Si2VC-PM'
+                THEN 1
+                WHEN t.tipo = 'Sì2VDS'
+                THEN 2
+                WHEN t.tipo = 'Sì2VDSM'
+                THEN 2
+                WHEN t.tipo = 'Sì2VDSR'
+                THEN 2
+                WHEN t.tipo = 'Si2VHImm'
+                THEN 2
+                WHEN t.tipo = 'Si2VHImmM'
+                THEN 2
+                WHEN t.tipo = 'Si2VHImmR'
+                THEN 2
+                WHEN t.tipo = 'Si2VImm'
+                THEN 2
+                WHEN t.tipo = 'Si2VImmM'
+                THEN 2
+                WHEN t.tipo = 'Si2VIMM-M'
+                THEN 1
+                WHEN t.tipo = 'Si2VIMM-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2VImmR'
+                THEN 2
+                WHEN t.tipo = 'Si2VM'
+                THEN 2
+                WHEN t.tipo = 'Si2V-M'
+                THEN 1
+                WHEN t.tipo = 'Si2VN-M'
+                THEN 1
+                WHEN t.tipo = 'Si2VN-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2V-PC'
+                THEN 1
+                WHEN t.tipo = 'Si2V-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2VR'
+                THEN 2
+                WHEN t.tipo = 'Si2VS'
+                THEN 2
+                WHEN t.tipo = 'Si2VS-C'
+                THEN 1
+                WHEN t.tipo = 'Si2VSM'
+                THEN 2
+                WHEN t.tipo = 'Si2VS-M'
+                THEN 1
+                WHEN t.tipo = 'Si2VS-PC'
+                THEN 1
+                WHEN t.tipo = 'Si2VS-PM'
+                THEN 1
+                WHEN t.tipo = 'Si2VSR'
+                THEN 2
+                WHEN t.tipo = 'Si4B0'
+                THEN 2
+                WHEN t.tipo = 'Si4BD'
+                THEN 2
+                WHEN t.tipo = 'Si4BDM'
+                THEN 2
+                WHEN t.tipo = 'Si4BDR'
+                THEN 2
+                WHEN t.tipo = 'Si4BS'
+                THEN 2
+                WHEN t.tipo = 'Si4BSM'
+                THEN 2
+                WHEN t.tipo = 'Si4BSR'
+                THEN 2
+                WHEN t.tipo = 'Si4N B'
+                THEN 2
+                WHEN t.tipo = 'Si4N P'
+                THEN 2
+                WHEN t.tipo = 'Si4NBM'
+                THEN 2
+                WHEN t.tipo = 'Si4NBR'
+                THEN 2
+                WHEN t.tipo = 'Si4N-C'
+                THEN 1
+                WHEN t.tipo = 'Si4N-M'
+                THEN 1
+                WHEN t.tipo = 'Si4N-PC'
+                THEN 1
+                WHEN t.tipo = 'Si4NPM'
+                THEN 2
+                WHEN t.tipo = 'Si4N-PM'
+                THEN 1
+                WHEN t.tipo = 'Si4NPR'
+                THEN 2
+            END AS nMailPrev
+     FROM anagraf.dbo.Commissioni c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.tipoinserz t ON t.codice = mco.codice_oggetto
+     WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          AND t.tipo IN('A-MAIL1', 'A-MAIL1-0', 'A-MAIL1-0M', 'A-MAIL1-M', 'A-MAIL5', 'A-MAIL50', 'A-MAIL50-M', 'A-MAIL5-M', 'APP4MC', 'APP4MCL', 'APP4MCL-M', 'APP4MC-R', 'APP4MSL', 'APP4MSL-R', 'APP4MS-R', 'EC-Acc', 'EC-AccM', 'EC-biz', 'EC-Bus', 'EC-BusM', 'EC-entry', 'EC-Flex', 'EC-Flex0F', 'EC-Flex0FM', 'ECFlexB2BM', 'ECFlexB2BR', 'EC-FlexL', 'EC-FlexLM', 'EC-FlexLR', 'EC-FlexM', 'EC-FlexR', 'EC-FlexS', 'EC-FlexSM', 'EC-FlexSR', 'EC-FlexXL', 'EC-FlexXLM', 'EC-FlexXLR', 'EC-GLO', 'EC-GLOB', 'EC-GlobD', 'EC-GlobDM', 'EC-GLOBM', 'EC-GLOM', 'EC-LOCC', 'EC-LOCCM', 'EC-LOCS', 'EC-LOCSM', 'EC-Med', 'EC-MedM', 'EC-PlugD', 'EC-PlugDM', 'EC-Pro', 'EC-ProM', 'ECProR', 'EC-SPED', 'EC-start', 'EC-stnd', 'MAIL', 'Mail+', 'Mail+M', 'MAIL-A', 'MAIL-AM', 'MAIL-Apro', 'MAIL-AproM', 'RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2A-M', 'Si2A-PM', 'Si2A-R', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2H ImmM', 'Si2H ImmR', 'Si2HImm', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2R', 'Si2RE-M', 'Si2RE-PM', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2RE-R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2S-M', 'Si2S-PM', 'Si2S-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Sì2VDS', 'Sì2VDSM', 'Sì2VDSR', 'Si2VHImm', 'Si2VHImmM', 'Si2VHImmR', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VM', 'Si2V-M', 'Si2VN-M', 'Si2VN-PM', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si4B0', 'Si4BD', 'Si4BDM', 'Si4BDR', 'Si4BS', 'Si4BSM', 'Si4BSR', 'Si4N B', 'Si4N P', 'Si4NBM', 'Si4NBR', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4NPM', 'Si4N-PM', 'Si4NPR')),
+     dominio
+     AS (
+     SELECT DISTINCT
+            d.www,
+            c.codpsi,
+            c.id
+     FROM anagraf.dbo.Commissioni c
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.web_moduloc_domini d ON d.ID_ModuloC_Oggetti = mco.id
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_Mail m ON m.ID_ModuloC = d.ID_ModuloC
+     WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          AND (isnull(datamaildel, '') = ''
+               OR (isnull(datamaildel, '') <> ''
+                   AND isnull(datamailrip, '') <> ''))
+          AND isnull([user], '') = isnull(email, '')
+          AND REPLACE(d.www, 'www.', '') = RIGHT(email, LEN(email)-CHARINDEX('@', email))),
+     fine
+     AS (
+     SELECT base.CodPsi,
+            base.id,
+            REPLACE(dominio.www, 'www.', '') Dominio,
+            base.Sigla,
+            base.nMailPrev
+     FROM base
+          LEFT JOIN dominio ON base.codpsi = dominio.codpsi
+                               AND base.id = dominio.id
+     --WHERE base.codpsi = 30597z;
+	
+     )
+     SELECT DISTINCT
+            fine.CodPsi,
+            --fine.id,
+            fine.Dominio,
+            SUM(fine.nMailPrev) nMailPrev
+     FROM fine
+     --WHERE fine.codpsi IN(1234, 305973)
+	--WHERE fine.codpsi=305973
+     GROUP BY fine.CodPsi,
+              --fine.id,
+              fine.Dominio;

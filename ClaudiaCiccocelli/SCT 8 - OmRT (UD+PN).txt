@@ -1,0 +1,11 @@
+SELECT DISTINCT 
+       c.id, 
+       c.codpsi, 
+       c.DataComm, 
+       c.Commissione
+FROM anagraf.dbo.commissioni c
+     left join anagraf.dbo.oggetti o on o.Idcom=c.id
+WHERE area IN ('UD','PN')
+and stContr='omrt'
+and o.tipo=560
+ORDER BY codpsi;

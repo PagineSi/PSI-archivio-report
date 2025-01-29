@@ -1,0 +1,51 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT [dataDownload],
+       dv.[Email_Cliente],
+       dv.[Firmante],
+       dv.[Cognome_Cliente],
+       dv.[Nome_Cliente],
+       dv.[Ragione_Sociale],
+       dv.[Codice_Cliente],
+       dv.[Telefono],
+       dv.[Cellulare],
+       dv.[Agente],
+       dv.[Coordinatore],
+       dv.[Supervisore],
+       dv.[Prodotti],
+       dv.[Categoria_Cliente],
+       dv.[Macro_Categoria_Cliente],
+       dv.[Macro_Settore_Cliente],
+       dv.[Comune_Cliente],
+       dv.[Provincia_Cliente],
+       dv.[Regione_Cliente],
+       dv.[Area_Commissione],
+       dv.[Cliente_Attivo],
+       dv.[Data_Inizio_Rapporto],
+       dv.[Data_Fine_Rapporto]
+FROM [estrazioni].[dbo].[vDEM_test] dv
+     LEFT JOIN estrazioni.dbo.DEM_test dt ON dt.Codice_Cliente = dv.Codice_Cliente
+WHERE(dt.Codice_Cliente IS NULL
+      OR (dv.[Email_Cliente] <> dt.Email_Cliente
+          OR dv.[Firmante] <> dt.[Firmante]
+          OR dv.[Cognome_Cliente] <> dt.[Cognome_Cliente]
+          OR dv.[Nome_Cliente] <> dt.[Nome_Cliente]
+          OR dv.[Ragione_Sociale] <> dt.[Ragione_Sociale]
+ --OR dv.[Codice_Cliente] <> dt.[Codice_Cliente]
+          OR dv.[Telefono] <> dt.[Telefono]
+          OR dv.[Cellulare] <> dt.[Cellulare]
+          OR dv.[Agente] <> dt.[Agente]
+          OR dv.[Coordinatore] <> dt.[Coordinatore]
+          OR dv.[Supervisore] <> dt.[Supervisore]
+          OR dv.[Prodotti] <> dt.[Prodotti]
+          OR dv.[Categoria_Cliente] <> dt.[Categoria_Cliente]
+          OR dv.[Macro_Categoria_Cliente] <> dt.[Macro_Categoria_Cliente]
+          OR dv.[Macro_Settore_Cliente] <> dt.[Macro_Settore_Cliente]
+          OR dv.[Provincia_Cliente] <> dt.[Provincia_Cliente]
+          OR dv.[Regione_Cliente] <> dt.[Regione_Cliente]
+          OR dv.[Area_Commissione] <> dt.[Area_Commissione]
+          OR dv.[Cliente_Attivo] <> dt.[Cliente_Attivo]
+ --OR dv.[Data_Inizio_Rapporto] <> dt.[Data_Inizio_Rapporto]
+          OR dv.[Data_Fine_Rapporto] <> dt.[Data_Fine_Rapporto]))
+     AND dv.Codice_Cliente IN(420516, 421050);

@@ -1,0 +1,49 @@
+
+SELECT DISTINCT
+       aic.codpsi,
+       aic.area,
+       format(aic.DataComm, 'yyyyMMdd') DataComm
+FROM estrazioni.dbo.vAnalisiImportiCommissioni aic
+     INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.archivio = aic.archivio
+                                                             AND aio.idCom = aic.idCom
+     LEFT JOIN servizi.dbo.prodottiore p ON p.codiceSigla = aio.codice_tipo_inserz
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = aio.codice_tipo_inserz
+WHERE DATEPART(year, aic.DataComm) IN(2018, 2019, 2020, 2021)
+     AND isnull(aic.tipo_importo, '') = 'FIRMATO'
+     AND aic.area = 'VI'
+     AND format(aic.DataComm, 'yyyyMM') = '201804'
+     AND isnull(t.oggettiCM_Out, 0) = 0
+    --AND mincom.MinData = format(aic.DataComm,'yyyyMMdd')
+
+
+
+ORDER BY codpsi;
+SELECT DISTINCT
+       codpsi,
+       area,
+       MIN(format(DataComm, 'yyyyMMdd')) MinData
+FROM estrazioni.dbo.vAnalisiImportiCommissioni aic
+WHERE codpsi IN(108698,
+165779,
+258398,
+270879,
+282180,
+285153,
+318258,
+318263,
+318264,
+318283,
+318284,
+318300,
+318301,
+318302,
+318304,
+339965,
+339966,
+348363)
+GROUP BY codpsi,
+         area
+ORDER BY codpsi;
+
+
+             -- AND format(aic.DataComm, 'yyyyMMdd') > mincom.MinData

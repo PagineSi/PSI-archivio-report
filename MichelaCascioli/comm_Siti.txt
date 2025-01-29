@@ -1,0 +1,111 @@
+
+
+SELECT DISTINCT
+       aio.[archivio],
+       aio.[Area],
+       aio.idCom,
+       aio.CodPsi,
+       format(aio.DataComm, 'yyyy-MM-dd') DataComm,
+       aio.StatoContratto,
+       estrazioni.dbo.udfelencooggetti(aio.archivio, aio.idcom) Oggetti,
+       STUFF(
+            (
+                SELECT ', '+t1.tipo
+                FROM anagraf.dbo.TipoInserz t1
+                     INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                     INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                 AND c1.archivio = ogg1.archivio
+                WHERE c1.id = aio.idCom
+                      AND c1.archivio = aio.archivio
+                      AND t1.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM') FOR XML PATH('')
+            ), 1, 2, '') AS Sigle,
+       aio.isRinnovoTacito RinTac,
+       aio.BiannI,
+       aio.BiannA,
+       aio.Consegnato,
+       aio.tot_importo Importo
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] aio
+     LEFT JOIN estrazioni.dbo.oggetti ogg ON ogg.archivio = aio.archivio
+                                             AND ogg.idcom = aio.idcom
+     LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = ogg.tipo
+WHERE aio.tipo_importo = 'MATURATO'
+      AND isnull(aio.isrinnovotacito, 0) = 1
+      AND format(aio.datacompetenza, 'yyyyMMdd') BETWEEN '20240101' AND '20240331'
+      AND (servizi.dbo.ScadenzaCommissione(aio.codpsi, aio.idcom, aio.datacomm) < '2024-01-01'
+OR servizi.dbo.ScadenzaCommissione(aio.codpsi, aio.idcom, aio.datacomm) > '2024-03-31')
+AND tp.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM')
+AND aio.archivio = 9999
+UNION ALL
+SELECT DISTINCT
+       aio.[archivio],
+       aio.[Area],
+       aio.idCom,
+       aio.CodPsi,
+       format(aio.DataComm, 'yyyy-MM-dd') DataComm,
+       aio.StatoContratto,
+       estrazioni.dbo.udfelencooggetti(aio.archivio, aio.idcom) Oggetti,
+       STUFF(
+            (
+                SELECT ', '+t1.tipo
+                FROM anagraf.dbo.TipoInserz t1
+                     INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                     INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                 AND c1.archivio = ogg1.archivio
+                WHERE c1.id = aio.idCom
+                      AND c1.archivio = aio.archivio
+                      AND t1.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM') FOR XML PATH('')
+            ), 1, 2, '') AS Sigle,
+       aio.isRinnovoTacito RinTac,
+       aio.BiannI,
+       aio.BiannA,
+       aio.Consegnato,
+       aio.tot_importo Importo
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] aio
+     LEFT JOIN estrazioni.dbo.oggetti ogg ON ogg.archivio = aio.archivio
+                                             AND ogg.idcom = aio.idcom
+     LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = ogg.tipo
+WHERE aio.tipo_importo = 'MATURATO'
+      AND isnull(aio.isrinnovotacito, 0) = 0
+      AND isnull(aio.bianni, '') <> ''
+      AND (format(aio.datacompetenza, 'yyyyMMdd') < '20240101'
+           OR format(aio.datacompetenza, 'yyyyMMdd') > '20240331')
+      AND (servizi.dbo.ScadenzaCommissione(aio.codpsi, aio.idcom, aio.datacomm) < '2024-01-01'
+OR servizi.dbo.ScadenzaCommissione(aio.codpsi, aio.idcom, aio.datacomm) > '2024-03-31')
+AND tp.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM')
+AND aio.archivio = 9999
+ORDER BY idcom;
+
+--------------------------------------------------------------------------
+
+SELECT DISTINCT
+       aio.[archivio],
+       aio.[Area],
+       aio.idCom,
+       aio.CodPsi,
+       format(aio.DataComm, 'yyyy-MM-dd') DataComm,
+       aio.StatoContratto,
+       estrazioni.dbo.udfelencooggetti(aio.archivio, aio.idcom) Oggetti,
+       STUFF(
+            (
+                SELECT ', '+t1.tipo
+                FROM anagraf.dbo.TipoInserz t1
+                     INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                     INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                 AND c1.archivio = ogg1.archivio
+                WHERE c1.id = aio.idCom
+                      AND c1.archivio = aio.archivio
+                      AND t1.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM') FOR XML PATH('')
+            ), 1, 2, '') AS Sigle,
+       aio.isRinnovoTacito RinTac,
+       aio.BiannI,
+       aio.BiannA,
+       aio.Consegnato,
+       aio.tot_importo Importo
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] aio
+     LEFT JOIN estrazioni.dbo.oggetti ogg ON ogg.archivio = aio.archivio
+                                             AND ogg.idcom = aio.idcom
+     LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = ogg.tipo
+WHERE(isnull(aio.tot_importo, 0) > 0
+      AND isnull(aio.consegnato, 0) = 0)
+     AND tp.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM')
+     AND aio.archivio = 9999;

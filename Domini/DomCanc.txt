@@ -1,0 +1,13 @@
+SELECT DISTINCT 
+       co.CodPsi, 
+       d.www, 
+       format(d.datadomdel, 'yyyy-MM-dd') dataAnnContr, 
+       format(d.dataCancellazione, 'yyyy-MM-dd') dataCanc
+	  --format(d.datadomrip, 'yyyy-MM-dd') dataRip
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     LEFT JOIN anagraf.dbo.WEB_ModuloC c ON c.id = d.ID_ModuloC
+     LEFT JOIN anagraf.dbo.Commissioni co ON co.id = c.IDcom
+WHERE ISNULL(d.tipoannullamento, '') <> 3
+AND www like '%.it'
+      AND (datadomdel is not null and dataCancellazione is not null and datadomrip is null)
+ORDER BY dataAnnContr;

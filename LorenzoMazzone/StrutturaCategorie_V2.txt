@@ -1,0 +1,42 @@
+WITH macroSettore
+     AS (
+     SELECT DISTINCT
+            csms.[codiceMacroSet] idMacroSettore,
+            cmsd.MacroSet,
+            crs.codiceSet
+     FROM [main].[dbo].CatSetMacroSet csms
+          LEFT JOIN [main].[dbo].[CatMacroSetDescrizione] cmsd ON csms.codiceMacroSet = cmsd.codiceMacroSet
+          RIGHT JOIN [main].[dbo].[CatRefSettore] crs ON crs.codiceSet = csms.codiceSet),
+     settore
+     AS (
+     SELECT crs.[codiceSet] idSettore,
+            csd.Settore,
+            c.[catRef] idCatP,
+            c.categoria CatP,
+            c.codice
+     FROM [main].[dbo].[CatRefSettore] crs
+          LEFT JOIN [main].[dbo].[CatSetDescrizione] csd ON crs.codiceSet = csd.codiceSet
+          RIGHT JOIN anagraf.dbo.categorie c ON c.catref = crs.catref
+     WHERE c.catref = c.codice),
+     sub
+     AS (
+     SELECT DISTINCT
+            cat.catref,
+            cat.codice idCatS,
+            cat.categoria CatS
+     FROM anagraf.dbo.categorie cat
+     WHERE cat.catref <> cat.codice)
+     SELECT macrosettore.idMacroSettore,
+            macrosettore.MacroSet,
+            settore.idSettore,
+            settore.Settore,
+            settore.idCatP,
+            settore.CatP,
+            sub.idCatS,
+            sub.CatS
+     FROM macroSettore
+          RIGHT JOIN settore ON macrosettore.codiceSet = settore.idsettore
+          LEFT JOIN sub ON settore.codice = sub.catref
+     ORDER BY settore.idSettore,
+              settore.idcatP,
+              sub.idcats;

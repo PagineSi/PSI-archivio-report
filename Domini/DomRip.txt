@@ -1,0 +1,12 @@
+SELECT DISTINCT 
+       co.CodPsi, 
+       d.www, 
+       format(d.datadomrip, 'yyyy-MM-dd') dataRip, 
+       format(d.datadomrip_storico, 'yyyy-MM-dd') dataRipS
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     LEFT JOIN anagraf.dbo.WEB_ModuloC c ON c.id = d.ID_ModuloC
+     LEFT JOIN anagraf.dbo.Commissioni co ON co.id = c.IDcom
+WHERE ISNULL(d.tipoannullamento, '') <> 3
+      AND (format(d.datadomrip, 'yyyyMMdd') BETWEEN 20200101 AND 20210608
+           OR format(d.datadomrip_storico, 'yyyyMMdd') BETWEEN 20200101 AND 20210608)
+ORDER BY www;

@@ -1,0 +1,247 @@
+--WITH dett
+--     AS (
+
+SELECT DISTINCT
+       c.modpagam,
+       c.PIVA,
+       a.RagSoc,
+       u.idcommis,
+       c.codpsi,
+       ang.nome Agente,
+       u.drid,
+       u.erid,
+       u.arid,
+       u.irid,
+       rata
+FROM
+(
+    SELECT idcommis,
+           drid0 AS drid,
+           erid0 AS erid,
+           arid0 AS arid,
+           irid0 AS irid,
+           '0' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid0, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid1 AS drid,
+           erid1 AS erid,
+           arid1 AS arid,
+           irid1 AS irid,
+           '1' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid1, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid2 AS drid,
+           erid2 AS erid,
+           arid2 AS arid,
+           irid2 AS irid,
+           '2' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid2, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid3 AS drid,
+           erid3 AS erid,
+           arid3 AS arid,
+           irid3 AS irid,
+           '3' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid3, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid4 AS drid,
+           erid4 AS erid,
+           arid4 AS arid,
+           irid4 AS irid,
+           '4' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid4, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid5 AS drid,
+           erid5 AS erid,
+           arid5 AS arid,
+           irid5 AS irid,
+           '5' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid5, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid6 AS drid,
+           erid6 AS erid,
+           arid6 AS arid,
+           irid6 AS irid,
+           '6' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid6, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid7 AS drid,
+           erid7 AS erid,
+           arid7 AS arid,
+           irid7 AS irid,
+           '7' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid7, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid8 AS drid,
+           erid8 AS erid,
+           arid8 AS arid,
+           irid8 AS irid,
+           '8' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid8, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid9 AS drid,
+           erid9 AS erid,
+           arid9 AS arid,
+           irid9 AS irid,
+           '9' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid9, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid10 AS drid,
+           erid10 AS erid,
+           arid10 AS arid,
+           irid10 AS irid,
+           '10' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid10, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid11 AS drid,
+           erid11 AS erid,
+           arid11 AS arid,
+           irid11 AS irid,
+           '11' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid11, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid12 AS drid,
+           erid12 AS erid,
+           arid12 AS arid,
+           irid12 AS irid,
+           '12' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid12, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid13 AS drid,
+           erid13 AS erid,
+           arid13 AS arid,
+           irid13 AS irid,
+           '13' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid13, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid14 AS drid,
+           erid14 AS erid,
+           arid14 AS arid,
+           irid14 AS irid,
+           '14' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid14, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid15 AS drid,
+           erid15 AS erid,
+           arid15 AS arid,
+           irid15 AS irid,
+           '15' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid15, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid16 AS drid,
+           erid16 AS erid,
+           arid16 AS arid,
+           irid16 AS irid,
+           '16' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid16, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid17 AS drid,
+           erid17 AS erid,
+           arid17 AS arid,
+           irid17 AS irid,
+           '17' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid17, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid18 AS drid,
+           erid18 AS erid,
+           arid18 AS arid,
+           irid18 AS irid,
+           '18' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid18, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid19 AS drid,
+           erid19 AS erid,
+           arid19 AS arid,
+           irid19 AS irid,
+           '19' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid19, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid20 AS drid,
+           erid20 AS erid,
+           arid20 AS arid,
+           irid20 AS irid,
+           '20' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid20, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid21 AS drid,
+           erid21 AS erid,
+           arid21 AS arid,
+           irid21 AS irid,
+           '21' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid21, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid22 AS drid,
+           erid22 AS erid,
+           arid22 AS arid,
+           irid22 AS irid,
+           '22' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid22, 'yyyyMM') = '202407'
+    UNION
+    SELECT idcommis,
+           drid23 AS drid,
+           erid23 AS erid,
+           arid23 AS arid,
+           irid23 AS irid,
+           '23' AS rata
+    FROM estrazioni.dbo.comm2
+    WHERE format(drid23, 'yyyyMM') = '202407'
+) U
+INNER JOIN estrazioni.dbo.commissioni c ON c.id = u.idcommis
+INNER JOIN anagraf.dbo.agenti ag ON ag.codagente = c.agente
+                                    AND ag.gruppo = c.gruppo
+LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+WHERE c.modpagam = 0
+      AND c.gruppo = 'AD';
+
+     --SELECT DATEPART(year, dett.drid) Anno,
+     --       DATEPART(month, dett.drid) Mese,
+     --       SUM(dett.irid) TOT_Impo
+     --FROM dett
+     --GROUP BY DATEPART(year, dett.drid),
+     --         DATEPART(month, dett.drid);

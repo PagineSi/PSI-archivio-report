@@ -1,0 +1,24 @@
+SELECT c.codpsi as CodPSI,
+       format(m.modifica_data, 'yyyy-MM-dd') AS Data_Modifica,
+       CASE
+           WHEN ISNULL(m.isModificaExtra, 0) = 1
+           THEN 'SI'
+           WHEN ISNULL(m.isModificaExtra, '') = ''
+           THEN 'NO'
+       END AS Modifica_Extra,
+       CASE
+           WHEN ISNULL(m.scheda_ripubblicata, 0) = 1
+           THEN 'SI'
+           WHEN ISNULL(m.scheda_ripubblicata, '') = ''
+           THEN 'NO'
+       END AS Ri_Pubblicata, 
+       [tipo_modifica] as Tipologia, 
+       format(m.registrazione_data, 'yyyy-MM-dd') AS Data_Registrazione_Modifica, 
+       m.registrazione_operatore AS Operatore, 
+       [area_pertinenza] as Area_Pertinenza
+FROM [servizi].[dbo].[SICOMPROD_GMB_TIPOLOGIA_MODIFICHE] t
+     INNER JOIN servizi.dbo.SICOMPROD_GMB_MODIFICHE m ON m.id_tipo_modifica = t.id_tipo_modifica
+	INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mc on mc.id=m.idWebModcOggetto
+	INNER JOIN anagraf.dbo.commissioni c on c.id=mc.id_com
+	
+WHERE m.modifica_data BETWEEN @dataDa AND @dataA

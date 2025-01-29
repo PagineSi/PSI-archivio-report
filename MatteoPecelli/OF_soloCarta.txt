@@ -1,0 +1,97 @@
+
+
+WITH carta
+     AS (
+     SELECT DISTINCT
+            c.CodPsi,
+            a.RagSoc,
+            cat.categoria,
+            c.Area,
+            SUM(ISNULL(c.Consegnato, 0)) AS consegnato,
+            SUM(ISNULL(c.Importo, 0)) AS importo,
+            SUM(ISNULL(c.importoInsoluto, 0)) AS insoluto,
+            estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi) AS oggetti,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+ang.nome
+                      FROM anagraf.dbo.anage AS ang
+                           INNER JOIN anagraf.dbo.Agenti ag ON ag.utente = ang.utente
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.gruppo = ag.gruppo
+                                                                       AND c1.agente = ag.Codagente
+                      WHERE c.codpsi = c1.CodPsi
+                            AND estrazioni.dbo.CommissioniAttive(c1.archivio, c1.CodPsi, c1.id) = 1
+                           AND c1.archivio = 9999 FOR XML PATH('')
+                  ), 1, 2, '')) AS [Agente]
+     FROM estrazioni.dbo.Commissioni c
+          LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+	--LEFT JOIN anagraf.dbo.oggetti o on o.Tipo=tp.Codice
+     --LEFT JOIN anagraf.dbo.tipoinserz_categorie tpc ON tpc.Codice = tp.CodiceCategoria
+     WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+          AND cat.catref = 393
+     --AND tpc.codice IN(1, 2, 3, 4, 5, 6, 10)
+          AND tp.si2web IS NULL
+          AND c.archivio = 9999
+     GROUP BY c.CodPsi,
+              a.RagSoc,
+              cat.categoria,
+              c.Area,
+              estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi)
+--ORDER BY area,
+--         ragsoc
+),
+     nocarta
+     AS (
+     SELECT DISTINCT
+            c.CodPsi,
+            a.RagSoc,
+            cat.categoria,
+            c.Area,
+            SUM(ISNULL(c.Consegnato, 0)) AS consegnato,
+            SUM(ISNULL(c.Importo, 0)) AS importo,
+            SUM(ISNULL(c.importoInsoluto, 0)) AS insoluto,
+            estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi) AS oggetti,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+ang.nome
+                      FROM anagraf.dbo.anage AS ang
+                           INNER JOIN anagraf.dbo.Agenti ag ON ag.utente = ang.utente
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.gruppo = ag.gruppo
+                                                                       AND c1.agente = ag.Codagente
+                      WHERE c.codpsi = c1.CodPsi
+                            AND estrazioni.dbo.CommissioniAttive(c1.archivio, c1.CodPsi, c1.id) = 1
+                           AND c1.archivio = 9999 FOR XML PATH('')
+                  ), 1, 2, '')) AS [Agente]
+     FROM estrazioni.dbo.Commissioni c
+          LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+	--LEFT JOIN anagraf.dbo.oggetti o on o.Tipo=tp.Codice
+     --LEFT JOIN anagraf.dbo.tipoinserz_categorie tpc ON tpc.Codice = tp.CodiceCategoria
+     WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+          AND cat.catref = 393
+     --AND tpc.codice IN(1, 2, 3, 4, 5, 6, 10)
+          AND tp.si2web IS NOT NULL
+          AND c.archivio = 9999
+     GROUP BY c.CodPsi,
+              a.RagSoc,
+              cat.categoria,
+              c.Area,
+              estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi))
+     SELECT carta.CodPsi,
+            carta.RagSoc,
+            carta.Categoria,
+            carta.Area,
+            carta.Consegnato,
+            carta.Importo,
+            carta.Insoluto,
+            carta.Oggetti,
+            carta.Agente
+     FROM carta
+          LEFT JOIN nocarta ON carta.codpsi = nocarta.codpsi
+     WHERE nocarta.codpsi IS NULL;

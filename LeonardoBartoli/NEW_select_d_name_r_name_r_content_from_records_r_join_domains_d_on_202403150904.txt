@@ -1,0 +1,60 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+WITH base
+     AS (
+     SELECT DISTINCT
+            c.CodPsi,
+            [name],
+            [name1],
+            [content],
+            [locate],
+            [ns],
+            base.[NOTE]
+     FROM [estrazioni].[dbo].[_select_d_name_r_name_r_content$] base
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini d ON base.name = REPLACE(d.www, 'www.', '')
+          LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+          LEFT JOIN estrazioni.dbo.Commissioni c ON c.id = mc.IDcom),
+     attivisino
+     AS (
+     SELECT c.codpsi,
+            CASE
+                WHEN servizi.dbo.commissioniattive(c.CodPsi, c.id) = 1
+                THEN 'Y'
+                WHEN servizi.dbo.commissioniattive(c.CodPsi, c.id) = 0
+                THEN 'N'
+            END AS Attivo
+     FROM anagraf.dbo.commissioni c),
+     RankedData
+     AS (
+     SELECT base.CodPsi,
+            base.[name],
+            base.[name1],
+            base.[content],
+            base.[locate],
+            base.[ns],
+            base.[NOTE],
+            attivisino.Attivo,
+            ROW_NUMBER() OVER(PARTITION BY base.[name],
+                                           base.[name1],
+                                           base.[content],
+                                           base.[locate],
+                                           base.[ns],
+                                           base.[NOTE] ORDER BY CASE
+                                                                    WHEN attivisino.Attivo = 'Y'
+                                                                    THEN 1
+                                                                    ELSE 2
+                                                                END) AS RowNum
+     FROM base
+          LEFT JOIN attivisino ON base.CodPsi = attivisino.CodPsi)
+     SELECT isnull(Attivo, '') Attivo,
+            CodPsi,
+            [name],
+            [name1],
+            [content],
+            isnull([locate], '') [locate],
+            isnull([ns], '') [ns],
+            isnull([NOTE], '') [NOTE]
+     FROM RankedData
+     WHERE RowNum = 1
+     ORDER BY [name];

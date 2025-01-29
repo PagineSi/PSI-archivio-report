@@ -1,0 +1,22 @@
+SELECT DISTINCT
+CodPsi,
+ragsoc,
+dom.ID_ModuloC,
+mc.contenuto,
+www,
+IIF(isnull(datadomdel,'')<>'' and isnull(datadomrip,'')='', 'dominio annullato', NULL) as [stato dominio],
+ag.utente, 
+aga.nome 
+
+FROM anagraf.dbo.WEB_ModuloC_Domini dom
+INNER JOIN anagraf.dbo.WEB_ModuloC mc on dom.ID_ModuloC=mc.id
+INNER JOIN anagraf.dbo.Commissioni comm on comm.id=mc.idcom
+INNER JOIN anagraf.dbo.anagrafica a on a.codice=comm.Codice
+INNER JOIN anagraf.dbo.agenti ag on ag.gruppo=comm.Gruppo and ag.Codagente=comm.Agente
+INNER JOIN anagraf.dbo.anAge aga on ag.utente=aga.utente
+
+where servizi.dbo.CommissioniAttive(comm.codpsi,comm.id)=1
+and ag.utente='russom'
+and isnull(tipoannullamento,'')<>3
+
+order by ragsoc

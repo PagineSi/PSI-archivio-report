@@ -1,0 +1,32 @@
+SELECT DISTINCT 
+       aio.archivio, 
+       aio.Area, 
+       tipo_inserz AS sigla, 
+       COUNT(tipo_inserz) nSigle, 
+       ROUND(SUM(aio.firmato_nuovi), 2) impo, 
+       'Firmato_Nuovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE codicecategoria IN(27, 28, 29, 30, 112, 156)
+AND aio.tipo_importo = 'FIRMATO'
+AND ISNULL(aio.firmato_nuovi, '') <> ''
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20201201 AND 20210318
+GROUP BY aio.archivio, 
+         aio.Area, 
+         tipo_inserz
+UNION
+SELECT DISTINCT 
+       aio.archivio, 
+       aio.Area, 
+       tipo_inserz AS sigla, 
+       COUNT(tipo_inserz) nSigle, 
+       ROUND(SUM(aio.firmato_rinnovi), 2) impo, 
+       'Firmato_Rinnovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE codicecategoria IN(27, 28, 29, 30, 112, 156)
+AND aio.tipo_importo = 'FIRMATO'
+AND format(aio.DataComm, 'yyyyMMdd') BETWEEN 20201201 AND 20210318
+AND ISNULL(aio.firmato_rinnovi, '') <> ''
+GROUP BY aio.archivio, 
+         aio.Area, 
+         tipo_inserz
+ORDER BY area, sigla;

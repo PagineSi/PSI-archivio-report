@@ -1,0 +1,16 @@
+SELECT [idComm], 
+       codpsi, 
+       ragsoc, 
+       area, 
+       format([dataAperturaSin], 'yyyy-MM-dd') AS DataAperturaSinistro, 
+       format([dataChiusuraSin], 'yyyy-MM-dd') AS dataChiusuraSinistro, 
+       [ImportoSin], 
+       [NumFat], 
+       format(s.DataFat, 'yyyy-MM-dd') AS DataFat, 
+       [stato], 
+       [note]
+FROM [main].[dbo].[Sinistri] s
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = s.idComm
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+WHERE dataAperturaSin BETWEEN '2019-08-01' AND '2020-11-09'
+ORDER BY dataAperturaSin;

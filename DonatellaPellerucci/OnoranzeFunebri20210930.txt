@@ -1,0 +1,175 @@
+with somme as (
+SELECT
+      [nomeArchivio]
+      ,[idCom]
+      ,sum([acquisito_property]) as	 [acquisito_property]
+      ,sum([maturato_property]) as		[maturato_property]
+      ,sum([da_maturare_property]) as	[da_maturare_property]
+      ,sum([tot_acquisito_property_scaduto]) as [property_scaduto]
+      ,sum([tot_acquisito_property_insoluto]) as [property_insoluto]
+  FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] o
+    inner join anagraf.dbo.anagrafica a on a.codice=o.[CodiceAnagrafica]
+  inner join anagraf.dbo.categorie cat on cat.codice=a.categoria
+  where catref=393
+  and anno =2021
+
+  group by     [nomeArchivio]
+      ,[idCom]
+)
+
+SELECt distinct 
+o.[nomeArchivio]
+      
+	 ,o.[anno]
+	 ,cat.categoria
+      ,o.[CodPsi]
+	 ,ragsoc
+	 ,convert(date,o.[DataComm]) [DataComm]
+	 ,concat(o.[Gruppo],'-',o.[CodAgente]) as [CodAgente]
+	 ,o.[idCom]
+      --,[CodiceAnagrafica]
+      
+      --,[DataCompetenza]
+      
+    --  ,[Area]
+      --,[nomeAgente]
+	  ,CASE
+           WHEN ISNULL(isrinnovotacito, 0) = 0
+                AND o.Bianni = 'B'
+                AND o.Bianna = 'B'
+           THEN 'Biennale_Primo_Anno'
+           WHEN ISNULL(isrinnovotacito, 0) = 0
+                AND o.Bianni = 'B'
+                AND o.BiannA = 'A'
+           THEN 'Biennale_Secondo_Anno'
+		 WHEN ISNULL(isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'C'
+           THEN 'Triennale_Primo_Anno'
+		  WHEN ISNULL(isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'B'
+           THEN 'Triennale_Secondo_Anno'
+		  WHEN ISNULL(isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'A'
+           THEN 'Triennale_Terzo_Anno'
+
+		  WHEN ISNULL(isrinnovotacito, 0) = 0 and ISNULL(ispluriennale, 0) = 0
+           THEN 'Annuale'
+		  WHEN ISNULL(isrinnovotacito, 0) = 1 
+           THEN 'Rinnovo_Tacito'
+       END AS Stato
+
+      --,[BiannI]
+      --,[BiannA]
+      --,[isRinnovoTacito]
+      --,[isPluriennale]
+	 ,somme.[acquisito_property]  Acquisito_Property
+	 ,somme.[maturato_property]  Maturato_Property
+	 ,somme.[da_maturare_property]  da_Maturare_Property
+	 ,somme.[property_scaduto]  Scaduto_Property
+	,somme.[property_insoluto]  Insoluto_Property
+	,convert(date,[dataScadRt])  [dataScadRt]
+
+   
+  FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] o
+    inner join anagraf.dbo.anagrafica a on a.codice=o.[CodiceAnagrafica]
+  inner join anagraf.dbo.categorie cat on cat.codice=a.categoria
+  inner join somme on somme.[nomeArchivio]=o.[nomeArchivio] and somme.Idcom=o.idcom
+  inner join estrazioni.dbo.commissioni on commissioni.archivio=o.archivio and commissioni.id=o.idcom
+  where catref=393
+  and o.anno =2021
+  order by o.idCom
+  --anno scad <= data competenza o null
+
+
+------------------------------------------------------------
+
+
+with somme as (
+SELECT
+      [nomeArchivio]
+      ,[idCom]
+      ,sum([acquisito_property]) as	 [acquisito_property]
+      ,sum([maturato_property]) as		[maturato_property]
+      ,sum([da_maturare_property]) as	[da_maturare_property]
+      ,sum([tot_acquisito_property_scaduto]) as [property_scaduto]
+      ,sum([tot_acquisito_property_insoluto]) as [property_insoluto]
+  FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] o
+    inner join anagraf.dbo.anagrafica a on a.codice=o.[CodiceAnagrafica]
+  inner join anagraf.dbo.categorie cat on cat.codice=a.categoria
+  where catref=393
+  and anno =2021
+  and tipo_inserz like '%RDV%'
+
+  group by     [nomeArchivio]
+      ,[idCom]
+)
+
+SELECt distinct 
+o.[nomeArchivio]
+,o.anno
+ ,cat.categoria
+    ,o.[CodPsi]
+	 ,ragsoc
+      ,convert(date,o.[DataComm]) [DataComm]
+      ,concat(o.[Gruppo],'-',o.[CodAgente]) as [CodAgente]
+	  ,o.[idCom]
+	  ,CASE
+           WHEN ISNULL(o.isrinnovotacito, 0) = 0
+                AND o.Bianni = 'B'
+                AND o.Bianna = 'B'
+           THEN 'Biennale_Primo_Anno'
+           WHEN ISNULL(o.isrinnovotacito, 0) = 0
+                AND o.Bianni = 'B'
+                AND o.BiannA = 'A'
+           THEN 'Biennale_Secondo_Anno'
+		 WHEN ISNULL(o.isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'C'
+           THEN 'Triennale_Primo_Anno'
+		  WHEN ISNULL(o.isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'B'
+           THEN 'Triennale_Secondo_Anno'
+		  WHEN ISNULL(o.isrinnovotacito, 0) = 0
+                AND o.Bianni = 'C'
+                AND o.BiannA = 'A'
+           THEN 'Triennale_Terzo_Anno'
+
+		  WHEN ISNULL(o.isrinnovotacito, 0) = 0 and ISNULL(o.ispluriennale, 0) = 0
+           THEN 'Annuale'
+		  WHEN ISNULL(o.isrinnovotacito, 0) = 1 
+           THEN 'Rinnovo_Tacito'
+       END AS Stato
+
+
+	 ,round((somme.[Acquisito_Property]),2) as [Acquisito_Property]
+	 ,round((somme.[Maturato_Property]),2) as Maturato_Property
+	 ,round((somme.[da_Maturare_Property]),2) as [da_Maturare_Property]
+	 ,round((somme.[property_scaduto]),2) as [Scaduto_Property]
+	,round((somme.[property_insoluto]),2) as [Insoluto_Property]
+	,convert(date,[dataScadRt])  [dataScadRt]
+        ,(STUFF(
+             (
+                 SELECT ', '+WOW.tipo_inserz
+                 FROM estrazioni.[dbo].[vAnalisiImportiOGGETTI] wow
+                 WHERE wow.idcom = o.idcom and o.archivio = WOW.archivio and tipo_inserz like '%rdv%' and   anno =2021
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS SigleRDV
+  FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] o
+    inner join anagraf.dbo.anagrafica a on a.codice=o.[CodiceAnagrafica]
+  inner join anagraf.dbo.categorie cat on cat.codice=a.categoria
+  inner join somme on somme.[nomeArchivio]=o.[nomeArchivio] and somme.Idcom=o.idcom
+  inner join estrazioni.dbo.commissioni on commissioni.archivio=o.archivio and commissioni.id=o.idcom
+  where catref=393
+  and o.anno =2021
+   and tipo_inserz like '%RDV%'
+
+  and ([dataScadRt] is null or datepart(year,[dataScadRt]) <=o.anno)
+  --order by ragsoc
+  --anno scad <= data competenza o null
+
+
+

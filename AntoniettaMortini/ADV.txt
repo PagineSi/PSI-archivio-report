@@ -1,0 +1,48 @@
+WITH camp as (SELECT DISTINCT 
+       c.CodPsi, 
+       [tipo_adv], 
+       COUNT([numero_campagne]) nCampagne      
+FROM [servizi].[dbo].[SICOMPROD_Advertising] sa
+     INNER JOIN [servizi].[dbo].[SICOMPROD_Advertising_Campagne] sac ON sac.id_adv = sa.id_adv
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = sa.id_moduloc
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+	--INNER JOIN estrazioni.dbo.vUltimeCampagne v on v.archivio=c.archivio and v.ediz=c.Area
+
+WHERE c.CodPsi IN(155896, 339475, 339500, 353723, 369873, 369919, 369922, 369940, 369945, 269478, 269470, 269472, 169814, 269478, 269464, 339526, 197505, 269491, 269516, 339496, 269569, 155773, 339441, 339441, 353562, 353616, 339416, 339416, 269415, 269415, 353712, 339524, 353707, 353683, 353689, 353700, 353703, 353668, 339566, 353665, 369948, 369938, 369930, 339433, 369928, 353674, 369923, 369913, 369892, 369868, 369904, 369852, 325920, 369854, 369701, 353669)
+
+GROUP BY c.CodPsi,
+         [tipo_adv]
+	    ),
+
+att as (SELECT DISTINCT 
+       c.CodPsi, 
+       [tipo_adv], 
+       COUNT([numero_campagne_attive]) nCampagneAttive
+     FROM [servizi].[dbo].[SICOMPROD_Advertising] sa
+     INNER JOIN [servizi].[dbo].[SICOMPROD_Advertising_Campagne] sac ON sac.id_adv = sa.id_adv
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = sa.id_moduloc
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+	--INNER JOIN estrazioni.dbo.vUltimeCampagne v on v.archivio=c.archivio and v.ediz=c.Area
+	
+WHERE c.CodPsi IN(155896, 339475, 339500, 353723, 369873, 369919, 369922, 369940, 369945, 269478, 269470, 269472, 169814, 269478, 269464, 339526, 197505, 269491, 269516, 339496, 269569, 155773, 339441, 339441, 353562, 353616, 339416, 339416, 269415, 269415, 353712, 339524, 353707, 353683, 353689, 353700, 353703, 353668, 339566, 353665, 369948, 369938, 369930, 339433, 369928, 353674, 369923, 369913, 369892, 369868, 369904, 369852, 325920, 369854, 369701, 353669)
+and sac.stato IN (1,4,5,-1)
+
+GROUP BY  
+       c.CodPsi, 
+       [tipo_adv]
+)
+
+SELECT DISTINCT
+camp.codpsi,
+camp.tipo_adv,
+camp.nCampagne,
+CASE 
+WHEN att.nCampagneAttive IS NOT NULL
+THEN att.nCampagneAttive
+ELSE 0
+END as nCampagneAttive,
+(camp.nCampagne - nCampagneAttive) daErogare
+ 
+FROM camp LEFT join att on camp.CodPsi=att.CodPsi and camp.tipo_adv=att.tipo_adv
+
+order by CodPsi

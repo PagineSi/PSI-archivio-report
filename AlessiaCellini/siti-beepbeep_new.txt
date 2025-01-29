@@ -1,0 +1,47 @@
+WITH impo as (
+SELECT 
+SUM(c.importo) importo,
+SUM (c.consegnato) consegnato,
+c.codpsi
+
+FROM anagraf.dbo.commissioni c
+WHERE servizi.dbo.CommissioniAttive(c.codpsi,c.id)=1
+GROUP BY c.CodPsi
+),
+
+ogg as (SELECT 
+c.codpsi,
+estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Oggetti
+
+FROM estrazioni.dbo.Commissioni c
+WHERE c.archivio=9999
+)
+
+SELECT DISTINCT db.[www],
+c.codpsi Codpsi,
+c.area Area,
+a.RagSoc,
+(STUFF(
+             (
+                 SELECT DISTINCT ', '+ag.agente
+			  FROM  anagraf.dbo.agenti ag
+			  inner join anagraf.dbo.anage ang on ang.utente=ag.utente
+			  left join anagraf.dbo.Commissioni c1 on c1.gruppo=ag.Gruppo and c1.Agente=ag.Codagente
+			  WHERE c1.codpsi=c.CodPsi
+			  and servizi.dbo.CommissioniAttive(c1.codpsi,c1.id)=1
+			FOR XML PATH('')
+             ), 1, 2, '')) AS Agente,
+impo.importo Importo,
+impo.consegnato Consegnato,
+ogg.Oggetti
+--estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Oggetti
+  FROM [servizi].[dbo].[dominiBeepBeepTemp] db
+  left join anagraf.dbo.WEB_ModuloC_domini d on (d.www=db.www or d.www=CONCAT('www.',db.www)) and isnull(d.tipoAnnullamento,'')<>3
+  left join anagraf.dbo.WEB_ModuloC mc on mc.id=d.ID_ModuloC
+  left join anagraf.dbo.Commissioni c on c.id=mc.IDcom
+  left join anagraf.dbo.Anagrafica a on a.codice=c.codice
+  left join impo on impo.CodPsi=c.codpsi
+  left join ogg on ogg.codpsi=c.CodPsi
+
+  
+  order by www

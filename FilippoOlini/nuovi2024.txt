@@ -1,0 +1,50 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT CONCAT(anno, mese) AnnoMese,
+       Codpsi,
+       idCom,
+       Commissione,
+       RagSoc,
+       Area,
+       nomeAgente Agente,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isCoordinatore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN estrazioni.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                 AND c2.agente = ag.Codagente
+                WHERE c2.id = aic.idCom
+                      AND c2.archivio = aic.archivio FOR XML PATH('')
+            ), 1, 2, '') AS Coordinatore,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+agc.nome
+                FROM anagraf.dbo.agenti ag
+                     LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                             AND ag.utente = ac.utenteAge
+                                                             AND ac.isSupervisore = 1
+                     LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                     INNER JOIN estrazioni.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                 AND c2.agente = ag.Codagente
+                WHERE c2.id = aic.idCom
+                      AND c2.archivio = aic.archivio FOR XML PATH('')
+            ), 1, 2, '') AS Supervisore,
+       tot_importo Importo,
+       format(DataComm, 'yyyy-MM-dd') DataComm,
+       estrazioni.dbo.udfElencoOggetti(aic.archivio, aic.idcom) Oggetti,
+       cat.Categoria
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] aic
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aic.CodiceAnagrafica
+     LEFT JOIN anagraf.dbo.Categorie cat ON cat.codice = a.categoria
+WHERE isnull(firmato_nuovi, 0) > 0
+      AND anno = 2024
+      AND mese IN(01, 02, 03, 04, 05)
+ORDER BY CONCAT(anno, mese),
+         RagSoc ASC;

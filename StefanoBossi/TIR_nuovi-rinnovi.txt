@@ -1,0 +1,41 @@
+WITH nuovi
+     AS (
+     SELECT Oggetto,
+            COUNT(m.idcom) AS nOggNuovi
+     FROM
+     (
+         SELECT DISTINCT
+                archivio,
+                idcom,
+                datacompetenza,
+                i.tipo_inserz Oggetto
+         FROM estrazioni.dbo.vAnalisiImportiOggetti i
+         WHERE DataCompetenza BETWEEN '20210101' AND '20211231'
+               AND isnull(firmato_nuovi, 0) > 0
+               AND i.CodiceCategoria = 109
+     ) AS m
+     GROUP BY Oggetto),
+     rinnovi
+     AS (
+     SELECT Oggetto,
+            COUNT(m.idcom) AS nOggRinnovi
+     FROM
+     (
+         SELECT DISTINCT
+                archivio,
+                idcom,
+                datacompetenza,
+                i.tipo_inserz Oggetto
+         FROM estrazioni.dbo.vAnalisiImportiOggetti i
+         WHERE DataCompetenza BETWEEN '20210101' AND '20211231'
+               AND isnull(firmato_rinnovi, 0) > 0
+               AND i.CodiceCategoria = 109
+     ) AS m
+     GROUP BY Oggetto)
+     SELECT DISTINCT
+            i.tipo_inserz Oggetto,
+            nOggNuovi,
+            nOggRinnovi
+     FROM estrazioni.dbo.vAnalisiImportiOggetti i
+          INNER JOIN nuovi ON nuovi.Oggetto = i.tipo_inserz
+          INNER JOIN rinnovi ON rinnovi.Oggetto = i.tipo_inserz;

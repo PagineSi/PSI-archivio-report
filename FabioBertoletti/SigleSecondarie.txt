@@ -1,0 +1,22 @@
+
+ Script per comando SelectTopNRows da SSMS  
+
+SELECT DISTINCT --[id],
+       [idSiglaPrincipale],
+       t.tipo SiglaPrincipale,
+       [idSiglaSecondaria],
+       t1.tipo SiglSecondaria,
+       --[validita],
+       [obbligatorio],
+       [obbligatorio_qta],
+       tm.validoal ValidoAl_Principale,
+       tm1.validoal ValidoAl_Secondaria
+FROM [anagraf].[dbo].[TipoIns_SigleSecondarie] ts
+     LEFT JOIN anagraf.dbo.TipoInserz t ON t.codice = ts.idSiglaPrincipale
+     LEFT JOIN anagraf.dbo.TipoInserz t1 ON t1.codice = ts.idSiglaSecondaria
+     LEFT JOIN anagraf.dbo.tariffarioMatrice tm ON tm.id_riferimento = ts.idSiglaPrincipale
+     LEFT JOIN anagraf.dbo.tariffarioMatrice tm1 ON tm1.id_riferimento = ts.idSiglaSecondaria
+WHERE isnull(ts.obbligatorio, 0)  0
+      AND isnull(tm.validoal, '') = ''
+      AND isnull(tm1.validoal, '') = ''
+ORDER BY ts.idSiglaPrincipale;

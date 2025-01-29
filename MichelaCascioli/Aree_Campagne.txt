@@ -1,0 +1,120 @@
+1 - somma importo campagna prec
+2 - somma importo firmati e maturati
+3 - mai stato cliente
+4 - filtro DA RINNOVARE (indice rinnovo mensile)
+
+-----------------------------------
+
+WITH aree
+     AS (
+     SELECT DISTINCT
+            c.Area,
+            c.archivio
+     FROM [estrazioni].[dbo].[Commissioni] c),
+
+----CONSEGNATO INIZIO CAMPAGNA (SOMMA IMPORTO PENULT. CAMP.)
+
+     prima
+     AS (
+     SELECT m.Area,
+            COUNT(m.codpsi) nCli,
+            SUM(m.importo) ConsegnatoIC
+     FROM
+     (
+         SELECT DISTINCT
+                c.[archivio],
+                c.[CodPsi],
+                SUM(c.[Importo]) Importo,
+                c.[Area]
+         FROM [estrazioni].[dbo].[vCommissioniPenultimeCampagne] c
+         WHERE --c.area = 'tr'
+               --AND 
+         isnull(importo, 0) > 0
+         GROUP BY c.archivio,
+                  c.codpsi,
+                  c.area
+     ) m
+     GROUP BY m.area
+--ORDER BY m.area
+     ),
+
+----ACQUISITO FINE CAMPAGNA (SOMMA IMPORTO ULT. CAMP.)
+
+     seconda
+     AS (
+     SELECT m.Area,
+            COUNT(m.codpsi) nCli,
+            SUM(m.importo) ImportoFC
+     FROM
+     (
+         SELECT DISTINCT
+                c.[archivio],
+                c.[CodPsi],
+                SUM(c.[Importo]) Importo,
+                c.[Area]
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+         WHERE --c.area = 'tr'
+               --AND 
+         isnull(importo, 0) > 0
+         GROUP BY c.archivio,
+                  c.codpsi,
+                  c.area
+     ) m
+     GROUP BY m.area
+--ORDER BY m.area;
+     ),
+
+----ACQUISITO FINE CAMPAGNA NUOVI CLIENTI (SOMMA IMPORTO ULT. CAMP.)
+
+     terza
+     AS (
+     SELECT *
+     FROM [estrazioni].[dbo].[AcquisitoUltCampNC]),
+
+----CONSEGNATO DA RINNOVARE (SOMMA CONSEGNATO CLI DA RINNOVARE ULT. CAMP.)
+
+     quarta
+     AS (
+     SELECT m.Area,
+            COUNT(m.codpsi) nCli,
+            SUM(m.consegnato) ConsegnatoDR
+     FROM
+     (
+         SELECT DISTINCT
+                c.[archivio],
+                c.[CodPsi],
+                SUM(c.[Consegnato]) Consegnato,
+                c.[Area]
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+         WHERE --c.area = 'tr'
+               --AND 
+         consegnato > 9
+         AND isnull(importo, '') = ''
+         AND isnull(rintac, '') = ''
+         AND isnull(biannA, '') = ''
+         AND (stcontr IS NULL
+              OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO'))
+         GROUP BY c.archivio,
+                  c.codpsi,
+                  c.area
+     ) m
+     GROUP BY m.area
+--ORDER BY m.area;
+     )
+     SELECT DISTINCT
+            aree.Area,
+            prima.nCli,
+            prima.ConsegnatoIC,
+            seconda.nCli,
+            seconda.ImportoFC,
+            terza.nCli,
+            terza.ImportoFC_NC,
+            quarta.nCli,
+            quarta.ConsegnatoDR
+     FROM aree
+          LEFT JOIN prima ON prima.Area = aree.Area
+          LEFT JOIN seconda ON seconda.Area = aree.Area
+          LEFT JOIN terza ON terza.Area = aree.Area
+          LEFT JOIN quarta ON quarta.Area = aree.Area
+     WHERE aree.area IS NOT NULL
+     ORDER BY aree.Area;

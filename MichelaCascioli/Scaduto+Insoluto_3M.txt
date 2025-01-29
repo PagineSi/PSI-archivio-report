@@ -1,0 +1,442 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+WITH base
+     AS (
+     SELECT DISTINCT
+            c.Area,
+            ang.nome Agente
+            --ROUND(SUM(rate.ImportoRata), 2) ImportoInsoluto
+     FROM [estrazioni].[dbo].commissioni c
+          INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                              AND ag.Codagente = c.Agente
+          LEFT JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente),
+     impoScad
+     AS (
+     SELECT ROUND(SUM(rate.ImportoRata), 2) ImportoScaduto,
+            c.Area,
+            ang.nome Agente
+     FROM
+     (
+         SELECT idcommis,
+                ROUND(irid0 - (irid0 * 22 / 100), 2) ImportoRata,
+                drid0 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid0, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid1 - (irid1 * 22 / 100), 2) ImportoRata,
+                drid1 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid1, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid2 - (irid2 * 22 / 100), 2) ImportoRata,
+                drid2 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid2, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid3 - (irid3 * 22 / 100), 2) ImportoRata,
+                drid3 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid3, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid4 - (irid4 * 22 / 100), 2) ImportoRata,
+                drid4 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid4, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid5 - (irid5 * 22 / 100), 2) ImportoRata,
+                drid5 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid5, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid6 - (irid6 * 22 / 100), 2) ImportoRata,
+                drid6 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid6, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid7 - (irid7 * 22 / 100), 2) ImportoRata,
+                drid7 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid7, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid8 - (irid8 * 22 / 100), 2) ImportoRata,
+                drid8 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid8, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid9 - (irid9 * 22 / 100), 2) ImportoRata,
+                drid9 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid9, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid10 - (irid10 * 22 / 100), 2) ImportoRata,
+                drid10 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid10, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid11 - (irid11 * 22 / 100), 2) ImportoRata,
+                drid11 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid11, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid12 - (irid12 * 22 / 100), 2) ImportoRata,
+                drid12 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid12, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid13 - (irid13 * 22 / 100), 2) ImportoRata,
+                drid13 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid13, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid14 - (irid14 * 22 / 100), 2) ImportoRata,
+                drid14 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid14, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid15 - (irid15 * 22 / 100), 2) ImportoRata,
+                drid15 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid15, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid16 - (irid16 * 22 / 100), 2) ImportoRata,
+                drid16 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid16, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid17 - (irid17 * 22 / 100), 2) ImportoRata,
+                drid17 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid17, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid18 - (irid18 * 22 / 100), 2) ImportoRata,
+                drid18 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid18, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid19 - (irid19 * 22 / 100), 2) ImportoRata,
+                drid19 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid19, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid20 - (irid20 * 22 / 100), 2) ImportoRata,
+                drid20 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid20, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid21 - (irid21 * 22 / 100), 2) ImportoRata,
+                drid21 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid21, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid22 - (irid22 * 22 / 100), 2) ImportoRata,
+                drid22 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid22, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid23 - (irid23 * 22 / 100), 2) ImportoRata,
+                drid23 DataRata,
+                archivio
+         FROM comm2
+         --WHERE isnull(erid23, '') = 'I'
+     ) rate
+     INNER JOIN estrazioni.dbo.Commissioni c ON c.id = rate.idCommis
+                                                AND c.archivio = rate.archivio
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     LEFT JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+     WHERE format(rate.DataRata, 'yyyyMMdd') BETWEEN '20231001' AND '20231231'
+     GROUP BY nome,
+              area),
+     impoIns
+     AS (
+     SELECT ROUND(SUM(rate.ImportoRata), 2) ImportoInsoluto,
+            c.Area,
+            ang.nome Agente
+     FROM
+     (
+         SELECT idcommis,
+                ROUND(irid0 - (irid0 * 22 / 100), 2) ImportoRata,
+                drid0 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid0, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid1 - (irid1 * 22 / 100), 2) ImportoRata,
+                drid1 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid1, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid2 - (irid2 * 22 / 100), 2) ImportoRata,
+                drid2 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid2, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid3 - (irid3 * 22 / 100), 2) ImportoRata,
+                drid3 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid3, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid4 - (irid4 * 22 / 100), 2) ImportoRata,
+                drid4 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid4, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid5 - (irid5 * 22 / 100), 2) ImportoRata,
+                drid5 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid5, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid6 - (irid6 * 22 / 100), 2) ImportoRata,
+                drid6 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid6, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid7 - (irid7 * 22 / 100), 2) ImportoRata,
+                drid7 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid7, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid8 - (irid8 * 22 / 100), 2) ImportoRata,
+                drid8 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid8, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid9 - (irid9 * 22 / 100), 2) ImportoRata,
+                drid9 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid9, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid10 - (irid10 * 22 / 100), 2) ImportoRata,
+                drid10 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid10, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid11 - (irid11 * 22 / 100), 2) ImportoRata,
+                drid11 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid11, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid12 - (irid12 * 22 / 100), 2) ImportoRata,
+                drid12 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid12, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid13 - (irid13 * 22 / 100), 2) ImportoRata,
+                drid13 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid13, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid14 - (irid14 * 22 / 100), 2) ImportoRata,
+                drid14 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid14, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid15 - (irid15 * 22 / 100), 2) ImportoRata,
+                drid15 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid15, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid16 - (irid16 * 22 / 100), 2) ImportoRata,
+                drid16 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid16, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid17 - (irid17 * 22 / 100), 2) ImportoRata,
+                drid17 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid17, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid18 - (irid18 * 22 / 100), 2) ImportoRata,
+                drid18 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid18, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid19 - (irid19 * 22 / 100), 2) ImportoRata,
+                drid19 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid19, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid20 - (irid20 * 22 / 100), 2) ImportoRata,
+                drid20 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid20, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid21 - (irid21 * 22 / 100), 2) ImportoRata,
+                drid21 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid21, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid22 - (irid22 * 22 / 100), 2) ImportoRata,
+                drid22 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid22, '') = 'I'
+         UNION
+         SELECT idcommis,
+                ROUND(irid23 - (irid23 * 22 / 100), 2) ImportoRata,
+                drid23 DataRata,
+                archivio
+         FROM comm2
+         WHERE isnull(erid23, '') = 'I'
+     ) rate
+     INNER JOIN estrazioni.dbo.Commissioni c ON c.id = rate.idCommis
+                                                AND c.archivio = rate.archivio
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     LEFT JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+     WHERE format(rate.DataRata, 'yyyyMMdd') BETWEEN '20231001' AND '20231231'
+     GROUP BY nome,
+              area)
+     --acquisito
+     --AS (
+     --SELECT nomeagente,
+     --       area,
+     --       ROUND(SUM(importoScaduto), 2) Scaduto
+     --FROM estrazioni.dbo.vAnalisiImportiCommissioni
+     --WHERE format(datacomm, 'yyyyMMdd') BETWEEN '20231001' AND '20231231'
+     --GROUP BY nomeagente,
+     --         area)
+
+     SELECT base.*,
+            --acquisito.Scaduto,
+            impoScad.ImportoScaduto,
+            impoIns.ImportoInsoluto,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+g1.nome
+                      FROM anagraf.dbo.anage AS age1
+                           INNER JOIN anagraf.dbo.agenti agenti1 ON age1.utente = agenti1.utente
+                           LEFT JOIN anagraf.dbo.ageSicomNew n1 ON n1.utenteAge = agenti1.utente
+                                                                   AND n1.area = agenti1.zone
+                                                                   AND isnull([isCoordinatore], 0) = 1
+                           LEFT JOIN anagraf.dbo.anage g1 ON g1.utente = n1.utenterif
+                      WHERE age1.nome = base.Agente
+                            AND n1.area = base.Area FOR XML PATH('')
+                  ), 1, 2, '')) AS NomeCoordinatore,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+g2.nome
+                      FROM anagraf.dbo.anage AS age2
+                           INNER JOIN anagraf.dbo.agenti agenti2 ON age2.utente = agenti2.utente
+                           LEFT JOIN anagraf.dbo.ageSicomNew n2 ON n2.utenteAge = agenti2.utente
+                                                                   AND n2.area = agenti2.zone
+                                                                   AND isnull([isSupervisore], 0) = 1
+                           LEFT JOIN anagraf.dbo.anage g2 ON g2.utente = n2.utenterif
+                      WHERE age2.nome = base.Agente
+                            AND n2.area = base.area FOR XML PATH('')
+                  ), 1, 2, '')) AS NomeSupervisore,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+g3.nome
+                      FROM anagraf.dbo.anage AS age3
+                           INNER JOIN anagraf.dbo.agenti agenti3 ON age3.utente = agenti3.utente
+                           LEFT JOIN anagraf.dbo.ageSicomNew n3 ON n3.utenteAge = agenti3.utente
+                                                                   AND n3.area = agenti3.zone
+                                                                   AND isnull([isReferente], 0) = 1
+                           LEFT JOIN anagraf.dbo.anage g3 ON g3.utente = n3.utenterif
+                      WHERE age3.nome = base.Agente
+                            AND n3.area = base.area FOR XML PATH('')
+                  ), 1, 2, '')) AS NomeReferente
+     FROM base
+          --LEFT JOIN acquisito ON acquisito.nomeAgente = base.Agente
+          --                       AND acquisito.Area = base.Area
+          LEFT JOIN impoScad ON impoScad.area = base.Area
+                                AND impoScad.Agente = base.Agente
+          LEFT JOIN impoIns ON impoIns.Area = base.Area
+                               AND impoIns.Agente = base.Agente
+     WHERE isnull(impoScad.ImportoScaduto, 0) <> 0
+     ORDER BY base.area,
+              base.agente;

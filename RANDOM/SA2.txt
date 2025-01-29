@@ -1,0 +1,30 @@
+WITH dati
+     AS (SELECT DISTINCT 
+                mco.id, 
+                cu.provincia, 
+                cu.comune, 
+                tp.tipo
+         FROM klingon.[anagraf].[dbo].[Webext] w
+              INNER JOIN bark.estrazioni.dbo.commissioni c ON c.codpsi = w.codpsi
+              INNER JOIN bark.anagraf.dbo.web_moduloc_oggetti mco ON mco.id_com = c.id
+              INNER JOIN bark.anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+              INNER JOIN bark.anagraf.dbo.comuni cu ON w.comune COLLATE SQL_Latin1_General_CP1_CI_AS = cu.comune COLLATE SQL_Latin1_General_CP1_CI_AS
+         WHERE c.codpsi = '168261'
+         and tp.codicecategoriacommerciale = 9
+         AND (ISNULL(c.importo, 0) > 0
+              OR ISNULL(c.consegnato, 0) > 0
+              OR ISNULL(c.StContr, '') IN('oma', 'omb', 'omrt', 'VALID_PRECAR', 'PREC_GECO')
+         OR ISNULL(c.exOmaggio, 0) = 1)
+              AND ISNULL(c.StContr, '') NOT IN('a', 'as', 'precaricato', 'non_validato')
+         AND c.archivio = 9999
+         AND w.priorita = -20)
+     SELECT dati.provincia, 
+            dati.comune, 
+            COUNT(dati.tipo) n_schede, 
+            dati.tipo
+     FROM dati
+     GROUP BY dati.tipo, 
+              dati.provincia, 
+              dati.comune
+     ORDER BY dati.provincia, 
+              dati.comune;

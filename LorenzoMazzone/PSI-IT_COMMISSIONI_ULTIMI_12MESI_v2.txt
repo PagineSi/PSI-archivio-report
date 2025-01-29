@@ -1,0 +1,87 @@
+WITH base
+     AS (
+     SELECT [Archivio],
+            c.id id_Commissione,
+            CodPsi Codice_Cliente,
+            DataComm Data_Commissione,
+            PIVA,
+            a.RagSoc Ragione_Sociale,
+            Area,
+            ang.nome Agente,
+            c.Causale
+     FROM [estrazioni].[dbo].[commissioni] c
+          LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                             AND ag.Codagente = c.Agente
+          LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+     WHERE datacomm >= 20230701),
+     importi
+     AS (
+     SELECT SUM(Importo_Reale) Importo_Reale,
+            SUM(Importo_Teorico_NO_Carta) Importo_Teorico_NO_Carta,
+            SUM(Importo_Teorico_Carta) Importo_Teorico_Carta,
+            SUM(Importo_Teorico_NO_Carta_SM) Importo_Teorico_NO_Carta_SM,
+            SUM(Importo_Teorico_Carta_SM) Importo_Teorico_Carta_SM,
+            idcom,
+            archivio
+     FROM
+     (
+         SELECT idcom,
+                archivio,
+                tipo_inserz,
+                isnull(tot_acquisito, 0) Importo_Reale,
+                isnull(t.prezzo, 0) Importo_Teorico_NO_Carta,
+                isnull(t1.prezzo, 0) Importo_Teorico_Carta,
+                isnull(t.prezzo, 0) - (isnull(t.prezzo, 0) * isnull(tm.sconto, 0) / 100) Importo_Teorico_NO_Carta_SM,
+                isnull(t1.prezzo, 0) - (isnull(t1.prezzo, 0) * isnull(tm1.sconto, 0) / 100) Importo_Teorico_Carta_SM
+         FROM estrazioni.dbo.vAnalisiImportiOggetti
+              LEFT JOIN anagraf.dbo.tariffario t ON t.codice = vAnalisiImportiOggetti.codice_tipo_inserz
+                                                    AND isnull(t.edizione, '') = ''
+              LEFT JOIN anagraf.dbo.tariffario t1 ON t1.codice = vAnalisiImportiOggetti.codice_tipo_inserz
+                                                     AND t1.edizione = vAnalisiImportiOggetti.area
+              LEFT JOIN anagraf.dbo.tariffariomatrice tm ON tm.id_riferimento = t.codice
+              LEFT JOIN anagraf.dbo.tariffariomatrice tm1 ON tm1.id_riferimento = t1.codice
+         WHERE isnull(tot_acquisito, 0) > 0
+               AND tipo_importo = 'FIRMATO'
+               --AND idcom = 725401
+     ) m
+     GROUP BY idcom,
+              archivio),
+     siglecustom
+     AS (
+     SELECT archivio,
+            idcom,
+            codice_tipo_inserz,
+            tipo_inserz,
+            tp.custom
+     FROM estrazioni.dbo.vAnalisiImportiOggetti
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = vAnalisiImportiOggetti.codice_tipo_inserz
+     WHERE isnull(tp.custom, 0) = 1)
+     SELECT DISTINCT
+            base.[Archivio],
+            base.id_Commissione,
+            base.Codice_Cliente,
+            base.Data_Commissione,
+            base.PIVA,
+            base.Ragione_Sociale,
+            base.Area,
+            base.Agente,
+            ROUND(importi.Importo_Reale, 2) Importo_Reale,
+            ROUND(isnull(importi.Importo_Teorico_Carta, 0) + isnull(importi.Importo_Teorico_NO_Carta, 0), 2) Importo_Teorico,
+            ROUND(isnull(importi.Importo_Teorico_Carta_SM, 0) + isnull(importi.Importo_Teorico_NO_Carta_SM, 0), 2) Importo_Teorico_MAX_Sconto,
+            CASE
+                WHEN siglecustom.Custom IS NOT NULL
+                THEN 'X'
+                ELSE ''
+            END AS Sigle_Custom,
+            CASE
+                WHEN base.Causale IS NOT NULL
+                THEN 'X'
+                ELSE ''
+            END AS Promo
+     FROM base
+          INNER JOIN importi ON importi.archivio = base.archivio
+                                AND base.id_Commissione = importi.idcom
+          LEFT JOIN siglecustom ON siglecustom.archivio = base.archivio
+                                   AND base.id_Commissione = siglecustom.idcom
+     ORDER BY Data_Commissione;

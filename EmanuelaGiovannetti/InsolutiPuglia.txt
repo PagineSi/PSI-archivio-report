@@ -1,0 +1,43 @@
+SELECT DISTINCT 
+       aic.Area, 
+       aic.idCom, 
+       aic.CodPsi, 
+       cm.Iban, 
+       cm.BancAbi, 
+       cm.BancCab, 
+       cm.ContoCor, 
+       a.RagSoc, 
+       cm.Piva, 
+       cm.CodFiscale, 
+       a.Indirizzo, 
+       c.Cap, 
+       c.Comune, 
+       a.Loc, 
+       c.Provincia, 
+       IIF(ISNULL(a.emailurl, '') <> '', a.emailurl, a.emailamm) AS Email, 
+       CONCAT(a.Prefisso, '-', a.Telefono) AS Telefono, 
+       cm.Firmante, 
+       format(c2.Drid0, 'dd/MM/yyyy') AS Drid0, 
+       c2.Irid0 AS ImportoRata, 
+       '2,44' AS SpeseInc, 
+       (c2.Irid0 + '2.44') AS [ImpRat+SpesInc], 
+       aic.importoInsoluto, 
+       c2.Erid0, 
+       mp.desPag ModPagam, 
+       c2.fatMensNum0 AS NumFat, 
+       format(cm.DataFat, 'dd/MM/yyyy') AS DataFat, 
+       cm.CrdStato, 
+       nomeAgente
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] aic
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aic.CodiceAnagrafica
+     INNER JOIN anagraf.dbo.Comuni c ON c.Codice = a.Comune
+     INNER JOIN estrazioni.dbo.Commissioni cm ON cm.archivio = aic.archivio
+                                                 AND cm.CodPsi = aic.CodPsi
+     INNER JOIN anagraf.dbo.modPagam mp ON mp.codPag = cm.ModPagam
+     INNER JOIN estrazioni.dbo.Comm2 c2 ON c2.archivio = aic.archivio
+                                           AND c2.idCommis = aic.idCom
+WHERE aic.anno = 2021
+      AND aic.mese = 1
+      AND ISNULL(aic.importoInsoluto, 0) > 0
+      AND aic.Area IN('BA', 'BAT', 'BR', 'FG', 'LE', 'TA')
+ORDER BY codpsi;

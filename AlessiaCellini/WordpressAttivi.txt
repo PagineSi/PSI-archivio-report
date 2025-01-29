@@ -1,0 +1,24 @@
+SELECT DISTINCT 
+       c.[id], 
+       [Piva], 
+       [CodPsi], 
+       a.ragsoc, 
+       t.tipo,
+       mc.copy, 
+       c.DataComm, 
+       c.area, 
+       ang.nome
+FROM [estrazioni].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloC = mc.id
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = mco.codice_oggetto
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                         AND ag.codagente = c.agente
+     INNER JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND mc.annullato IS NULL
+     AND c.archivio = 9999
+     AND t.codice IN(930, 1221, 1222, 841, 1209, 1210, 995, 1207, 1208, 1187, 1229, 1360)
+AND ISNULL(c.codpsi, 0) <> 37774
+ORDER BY ragsoc;

@@ -1,0 +1,231 @@
+WITH penult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codicecategoriacommerciale IN(13, 47, 75, 98, 99, 100, 223, 226)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_GoogleAds_PenultCamp,
+            CASE
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+                THEN 'Nuovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+                THEN 'Rinnovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) < 9
+                THEN 'Nuovo'
+                ELSE 'X'
+            END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_penult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_Ads_PenultCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.codicecategoriacommerciale IN(13, 47, 75, 98, 99, 100, 223, 226)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi),
+     ult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codicecategoriacommerciale IN(13, 47, 75, 98, 99, 100, 223, 226)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_GoogleAds_UltCamp
+            --CASE
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+            --    THEN 'Nuovo'
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+            --    THEN 'Rinnovo'
+            --END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_ult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_Ads_UltCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.codicecategoriacommerciale IN(13, 47, 75, 98, 99, 100, 223, 226)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi)
+     SELECT penult.Tipo,
+            penult.Area,
+            penult.CodPsi,
+            penult.Sigle_GoogleAds_PenultCamp,
+            impo_penult.Impo_Sigle_Ads_PenultCamp,
+            ult.CodPsi CodPsi_UltCamp,
+            ult.Area Area_UltCamp,
+            ult.Sigle_GoogleAds_UltCamp,
+            impo_ult.Impo_Sigle_Ads_UltCamp
+     FROM penult
+          LEFT JOIN impo_penult ON penult.area = impo_penult.area
+                                   AND penult.CodPsi = impo_penult.CodPsi
+          LEFT JOIN ult ON ult.CodPsi = penult.CodPsi
+                           AND ult.Area = penult.Area
+          LEFT JOIN impo_ult ON ult.Area = impo_ult.Area
+                                AND ult.CodPsi = impo_ult.CodPsi
+     WHERE isnull(penult.Sigle_GoogleAds_PenultCamp, '') <> ''
+     ORDER BY penult.CodPsi;
+
+
+
+-------------------------------------------
+
+
+
+WITH penult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codice_tipo_inserz IN(841, 995, 1113, 1207, 1208, 1209, 1210, 1223, 1224, 1752, 1753, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1876, 1877, 1891, 2229, 2230, 2231, 2232, 2233, 2234, 2266, 2267, 2268, 2269)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_PenultCamp,
+            CASE
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+                THEN 'Nuovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+                THEN 'Rinnovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) < 9
+                THEN 'Nuovo'
+                ELSE 'X'
+            END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_penult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_PenultCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.codice_tipo_inserz IN(841, 995, 1113, 1207, 1208, 1209, 1210, 1223, 1224, 1752, 1753, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1876, 1877, 1891, 2229, 2230, 2231, 2232, 2233, 2234, 2266, 2267, 2268, 2269)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi),
+     ult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codice_tipo_inserz IN(841, 995, 1113, 1207, 1208, 1209, 1210, 1223, 1224, 1752, 1753, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1876, 1877, 1891, 2229, 2230, 2231, 2232, 2233, 2234, 2266, 2267, 2268, 2269)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_UltCamp
+            --CASE
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+            --    THEN 'Nuovo'
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+            --    THEN 'Rinnovo'
+            --END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_ult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_UltCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.codice_tipo_inserz IN(841, 995, 1113, 1207, 1208, 1209, 1210, 1223, 1224, 1752, 1753, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1876, 1877, 1891, 2229, 2230, 2231, 2232, 2233, 2234, 2266, 2267, 2268, 2269)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi)
+     SELECT penult.Tipo,
+            penult.Area,
+            penult.CodPsi,
+            penult.Sigle_PenultCamp,
+            impo_penult.Impo_Sigle_PenultCamp,
+            ult.CodPsi CodPsi_UltCamp,
+            ult.Area Area_UltCamp,
+            ult.Sigle_UltCamp,
+            impo_ult.Impo_Sigle_UltCamp
+     FROM penult
+          LEFT JOIN impo_penult ON penult.area = impo_penult.area
+                                   AND penult.CodPsi = impo_penult.CodPsi
+          LEFT JOIN ult ON ult.CodPsi = penult.CodPsi
+                           AND ult.Area = penult.Area
+          LEFT JOIN impo_ult ON ult.Area = impo_ult.Area
+                                AND ult.CodPsi = impo_ult.CodPsi
+     WHERE isnull(penult.Sigle_PenultCamp, '') <> ''
+     ORDER BY penult.CodPsi;

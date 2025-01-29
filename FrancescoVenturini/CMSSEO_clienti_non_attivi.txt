@@ -1,0 +1,87 @@
+WITH clinoatt AS (
+  SELECT 
+    m1.codpsi, 
+    m1.attivo 
+  FROM 
+    (
+      SELECT 
+        m.codpsi, 
+        Max(m.attivo) Attivo 
+      FROM 
+        (
+          SELECT 
+            DISTINCT c.codpsi, 
+            CASE WHEN servizi.dbo.Commissioniattive(c.codpsi, c.id) = 1 THEN 'Y' WHEN servizi.dbo.Commissioniattive(c.codpsi, c.id) = 0 THEN 'N' END AS Attivo 
+          FROM 
+            anagraf.dbo.commissioni c
+        ) m 
+      GROUP BY 
+        m.codpsi
+    ) m1 
+  WHERE 
+    m1.attivo = 'N'
+), 
+cmsseo AS (
+  SELECT 
+    DISTINCT 
+	clinoatt.Attivo,
+	[id_sito], 
+    --[id_template], 
+    [sito], 
+    s.[codpsi], 
+    [id_commissione], 
+    [id_moduloc], 
+    --[id_addomain], 
+    format([data_scadenza],'yyyy-MM-dd') data_scadenza_cmsseo
+    --[id_home_page], 
+    --[userclinickname], 
+    --[userclipassword], 
+    --[deploydata], 
+    --[deployuser], 
+    --[emailcli], 
+    --[tema_template], 
+    --[datacreazione], 
+    --[stato], 
+    --[utenteassegnato], 
+    --[dataassegnazione], 
+    --[dataprimalav], 
+    --[utentecreazione], 
+    --[categoriaoggetto], 
+    --[notecopy], 
+    --[id_ogg_modc], 
+    --[deploy_dir], 
+    --[loc_provincia], 
+    --[loc_comune], 
+    --[primo_deploy], 
+    --[num_mes_durata], 
+    --[test], 
+    --[notekwrinn], 
+    --[notelocrinn], 
+    --[datarinnovo], 
+    --[estogg], 
+    --[siglaprov], 
+    --[keys_addomain], 
+    --[regsupaginesispa], 
+    --[seoinnewcms], 
+    --[adwordpresente], 
+    --[data_riassegnazione], 
+    --[primocopy], 
+    --[copy_rilavorazione], 
+    --[isoldadlink], 
+    --[clitop_adlink], 
+    --[pubblicato], 
+    --[prourl], 
+    --[dominiopropcliente], 
+    --[addsuy2k] 
+  FROM 
+    lupin.[CMSSEO].[dbo].[siti] s 
+    INNER JOIN clinoatt ON clinoatt.codpsi = s.codpsi 
+  WHERE 
+    Isnull(s.id_addomain, 0) = 0
+) 
+SELECT 
+  * 
+FROM 
+  cmsseo 
+ORDER BY 
+  sito

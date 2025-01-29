@@ -1,0 +1,20 @@
+SELECT DISTINCT 
+      s.[id_sito]
+      ,[sito]
+	 ,co.descrizione
+      
+      ,[id_moduloc]
+      ,[id_ogg_modc]
+      ,[codPsi]
+     
+	 ,[id_template]
+      ,[stato]
+      
+  FROM [CMSSI].[dbo].[Siti] s
+  INNER JOIN [CMSSI].[dbo].[Pagine] p on s.id_sito=p.id_sito
+  INNER JOIN [CMSSI].[dbo].[Context] c on p.id_pagina=c.id_pagina and p.id_sito=c.id_sito
+  LEFT JOIN [CMSSI].[dbo].[Codici] co on co.codice=c.codice
+  where id_template=5
+  and stato='ONLINE'
+  and c.codice IN ('div_DRAG-PREN-SERVIZIO','div_DRAG-PREVENTIVO-TRASLOCO','div_DRAG-CALEEVENTI','div_DRAG-FORM-EMAIL')
+  order by sito

@@ -1,0 +1,177 @@
+WITH penult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codicecategoriacommerciale IN(59,
+108,
+171,
+209)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_Meta_PenultCamp,
+            CASE
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+                THEN 'Nuovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+                THEN 'Rinnovo'
+                WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+                     AND isnull(SUM(aio.consegnato_commissione), 0) < 9
+                THEN 'Nuovo'
+                ELSE 'X'
+            END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_penult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_Meta_PenultCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniPenultimeCampagne] pc ON pc.archivio = aio.archivio
+                                                                              AND pc.area = aio.area
+                                                                              AND pc.id = aio.idcom
+     WHERE aio.codicecategoriacommerciale IN(59,
+108,
+171,
+209)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi),
+     ult
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codicecategoriacommerciale IN(59,
+108,
+171,
+209)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_Meta_UltCamp
+            --CASE
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) = 0
+            --    THEN 'Nuovo'
+            --    WHEN isnull(SUM(aio.importo_commissione), 0) > 0
+            --         AND isnull(SUM(aio.consegnato_commissione), 0) > 9
+            --    THEN 'Rinnovo'
+            --END AS Tipo
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi,
+              aio.archivio),
+     impo_ult
+     AS (
+     SELECT aio.Area,
+            aio.CodPsi,
+            ROUND(SUM(isnull(aio.tot_acquisito, 0)), 2) Impo_Sigle_Meta_UltCamp
+     FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio
+          INNER JOIN [estrazioni].[dbo].[vCommissioniUltimeCampagne] uc ON uc.archivio = aio.archivio
+                                                                           AND uc.area = aio.area
+                                                                           AND uc.id = aio.idcom
+     WHERE aio.codicecategoriacommerciale IN(59,
+108,
+171,
+209)
+          AND aio.archivio >= 218
+     GROUP BY aio.Area,
+              aio.Codpsi),
+
+			  maxOpe as(
+
+			  SELECT m.*
+FROM
+(
+    SELECT ROW_NUMBER() OVER(PARTITION BY commissioni.codpsi ORDER BY SICOMPROD_SOCIAL.assegnazione_data DESC) AS idRec,
+           commissioni.id,
+           commissioni.codpsi,
+           commissioni.piva,
+           anagrafica.ragsoc,
+           SICOMPROD_SOCIAL.assegnazione_data,
+           SICOMPROD_SOCIAL.assegnazione_operatore,
+		   SICOMPROD_SOCIAL.in_produzione_data,
+		   SICOMPROD_SOCIAL.in_produzione_operatore,
+		   userAssegnato.Nome,
+		   userAssegnato.Cognome,
+		   --userAssegnato2.Nome Nome2,
+		   --userAssegnato2.Cognome Cognome2,
+           isnull(userAssegnato.mail_social, userAssegnato.mail) AS emailSMM,
+           agenti.codagente,
+           agenti.utente AS user_agente,
+           anagraf.dbo.agenti.utente
+    FROM anagraf.dbo.commissioni
+         INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti ON(WEB_ModuloC_oggetti.id_com = Commissioni.id)
+         INNER JOIN anagraf.dbo.anagrafica ON anagrafica.codice = commissioni.codice
+         INNER JOIN servizi.dbo.SICOMPROD_SOCIAL ON(servizi.dbo.SICOMPROD_SOCIAL.idWebModcOggetto = WEB_ModuloC_oggetti.id)
+         INNER JOIN anagraf.dbo.agenti ON(Commissioni.gruppo = agenti.gruppo
+                                          AND Commissioni.agente = agenti.codagente)
+         INNER JOIN anagraf.dbo.anAge ON(agenti.utente = anAge.utente)
+         INNER JOIN
+    (
+        SELECT Commissioni.CodPsi,
+               MAX(socMax.idWebModcOggetto) maxID
+        FROM servizi.dbo.SICOMPROD_SOCIAL socMax
+             INNER JOIN Anagraf.dbo.WEB_ModuloC_oggetti ON(WEB_ModuloC_oggetti.id = socMax.idWebModcOggetto)
+             INNER JOIN Anagraf.dbo.Commissioni ON(WEB_ModuloC_oggetti.id_com = Commissioni.id)
+        WHERE socMax.assegnazione_data IS NOT NULL
+        GROUP BY Commissioni.CodPsi
+    ) socMaxProd ON(socMaxProd.CodPsi = Commissioni.CodPsi
+                    AND WEB_ModuloC_oggetti.id <> socMaxProd.maxID)
+         INNER JOIN servizi.dbo.SICOMPROD_SOCIAL inprodPrec ON(inprodPrec.idWebModcOggetto = socMaxProd.maxID)
+         INNER JOIN servizi.dbo.SICOMPROD_UTENTI userAssegnato ON userAssegnato.utente = SICOMPROD_SOCIAL.assegnazione_operatore
+		 --LEFT JOIN  servizi.dbo.SICOMPROD_UTENTI userAssegnato2 ON userAssegnato2.utente = SICOMPROD_SOCIAL.in_produzione_operatore
+    WHERE commissioni.codpsi <> 37774
+      --AND anagraf.dbo.agenti.utente = 'paginesiat';
+) m
+WHERE idrec = 1
+
+			  )
+			
+     SELECT penult.Tipo,
+            penult.Area,
+            penult.CodPsi,
+            penult.Sigle_Meta_PenultCamp,
+            impo_penult.Impo_Sigle_Meta_PenultCamp,
+			IIF(ult.CodPsi IS NOT NULL, '', maxOpe.Nome) NomeOpe,
+			IIF(ult.CodPsi IS NOT NULL, '', maxOpe.Cognome) CognomeOpe,
+            ult.CodPsi CodPsi_UltCamp,
+            ult.Area Area_UltCamp,
+            ult.Sigle_Meta_UltCamp,
+            impo_ult.Impo_Sigle_Meta_UltCamp
+     FROM penult
+          LEFT JOIN impo_penult ON penult.area = impo_penult.area
+                                   AND penult.CodPsi = impo_penult.CodPsi
+          LEFT JOIN ult ON ult.CodPsi = penult.CodPsi
+                           AND ult.Area = penult.Area
+          LEFT JOIN impo_ult ON ult.Area = impo_ult.Area
+                                AND ult.CodPsi = impo_ult.CodPsi
+		  LEFT JOIN maxOpe ON maxOpe.codpsi = penult.codpsi
+     WHERE isnull(penult.Sigle_Meta_PenultCamp, '') <> ''

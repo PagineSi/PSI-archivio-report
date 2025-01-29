@@ -1,0 +1,142 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            c.Archivio,
+            c.id idCom,
+            c.CodPsi,
+            a.RagSoc,
+            c.DataComm,
+            c.Importo ImpoComm,
+            IIF(isnull(c.consegnato, 0) > 0, 'R', 'N') NuovoRinn,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+tp2.tipo+' (x',
+                             COUNT(tp2.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp2
+                           INNER JOIN estrazioni.dbo.Oggetti ogg ON tp2.Codice = ogg.Tipo
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.id = ogg.IdCom
+                                                                       AND c1.archivio = ogg.archivio
+                      WHERE c.id = c1.id
+                            AND c.archivio = c1.archivio
+                      GROUP BY tp2.Tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS OggComm,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+cc.descrizione
+                      FROM anagraf.dbo.TipoInserz_Categorie_Commerciali AS cc
+                           INNER JOIN anagraf.dbo.TipoInserz tp2 ON cc.Codice = tp2.CodiceCategoriaCommerciale
+                           INNER JOIN estrazioni.dbo.Oggetti ogg ON tp2.Codice = ogg.Tipo
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.id = ogg.IdCom
+                                                                       AND c1.archivio = ogg.archivio
+                      WHERE c.id = c1.id
+                            AND c.archivio = c1.archivio FOR XML PATH('')
+                  ), 1, 2, '')) AS [CatComm],
+            c.Area,
+            c.gruppo + c.Agente CodAgente,
+            ag.Agente
+     FROM estrazioni.dbo.Commissioni c
+          LEFT JOIN anagraf.dbo.agenti ag ON c.gruppo = ag.gruppo
+                                             AND c.agente = ag.codagente
+          INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.Oggetti mco ON mco.IdCom = c.id
+          LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Tipo
+     WHERE c.datacomm >= '20230801'
+           AND tp.CodiceCategoriaCommerciale = 205),
+     secondaComm
+     AS (
+     SELECT DISTINCT
+            c.Archivio,
+            c.id idCom,
+            c.CodPsi,
+            a.RagSoc,
+            c.DataComm,
+            c.Importo ImpoComm,
+            IIF(isnull(c.consegnato, 0) > 9, 'R', 'N') NuovoRinn,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+tp2.tipo+' (x',
+                             COUNT(tp2.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp2
+                           INNER JOIN estrazioni.dbo.Oggetti ogg ON tp2.Codice = ogg.Tipo
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.id = ogg.IdCom
+                                                                       AND c1.archivio = ogg.archivio
+                      WHERE c.id = c1.id
+                            AND c.archivio = c1.archivio
+					   --AND tp2.CodiceCategoriaCommerciale NOT IN (205)
+                      GROUP BY tp2.Tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS OggComm,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+cc.descrizione
+                      FROM anagraf.dbo.TipoInserz_Categorie_Commerciali AS cc
+                           INNER JOIN anagraf.dbo.TipoInserz tp2 ON cc.Codice = tp2.CodiceCategoriaCommerciale
+                           INNER JOIN estrazioni.dbo.Oggetti ogg ON tp2.Codice = ogg.Tipo
+                           INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.id = ogg.IdCom
+                                                                       AND c1.archivio = ogg.archivio
+                      WHERE c.id = c1.id
+                            AND c.archivio = c1.archivio
+					   --AND cc.Codice NOT IN (205) 
+                      FOR XML PATH('')
+                  ), 1, 2, '')) AS [CatComm],
+            c.Area,
+            c.gruppo + c.Agente CodAgente,
+            ag.Agente
+     FROM estrazioni.dbo.Commissioni c
+          LEFT JOIN anagraf.dbo.agenti ag ON c.gruppo = ag.gruppo
+                                             AND c.agente = ag.codagente
+          INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.Oggetti mco ON mco.IdCom = c.id
+          LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Tipo
+     WHERE c.datacomm >= '20230801'
+           --AND tp.CodiceCategoriaCommerciale NOT IN(205)
+            ),
+     concProp
+     AS (
+     SELECT idCom,
+            archivio,
+            area,
+            acquisito_property Prop,
+            acquisito_concessione Conc
+     FROM estrazioni.dbo.vAnalisiImportiCommissioni)
+     SELECT base.Archivio,
+            base.idCom,
+            base.CodPsi,
+            base.RagSoc,
+            base.DataComm,
+            base.ImpoComm,
+            ROUND(concProp.Conc, 2) ImpoConc,
+            ROUND(concProp.Prop, 2) ImpoProp,
+            base.NuovoRinn,
+            base.OggComm,
+            base.[CatComm],
+            base.Area,
+            base.CodAgente,
+            base.Agente,
+            secondaComm.idCom idCom_AC,
+            secondaComm.DataComm DataComm_AC,
+            secondaComm.ImpoComm ImpoComm_AC,
+            ROUND(concProp2.Conc, 2) ImpoConc_AC,
+            ROUND(concProp2.Prop, 2) ImpoProp_AC,
+            secondaComm.NuovoRinn NuovoRinn_AC,
+            secondaComm.OggComm OggComm_AC,
+            secondaComm.CatComm CatComm_AC
+     FROM base
+          LEFT JOIN concprop ON base.idCom = concProp.idcom
+                                AND base.archivio = concProp.archivio
+                                AND base.Area = concProp.Area
+          LEFT JOIN secondaComm ON secondaComm.Codpsi = base.Codpsi
+                                   AND secondacomm.archivio = base.archivio
+                                   AND secondacomm.datacomm = base.datacomm
+                                   AND secondaComm.idcom <> base.idCom
+          LEFT JOIN concprop concprop2 ON secondacomm.idCom = concprop2.idcom
+                                          AND secondacomm.archivio = concprop2.archivio
+                                          AND secondacomm.Area = concprop2.Area
+     --WHERE base.codpsi = 193953
+     ORDER BY archivio,
+              ragsoc;

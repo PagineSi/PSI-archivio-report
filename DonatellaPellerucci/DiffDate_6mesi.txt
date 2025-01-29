@@ -1,0 +1,40 @@
+SELECT DATEPART(year, datacomm) AS Anno,
+       DATEPART(month, datacomm) AS Mese,
+       m.Area,
+       COUNT(m.id) nContratti,
+       SUM(m.gg_Firma_Vers) / COUNT(m.id) gg_Firma_Vers,
+       SUM(m.gg_Vers_Caric) / COUNT(m.id) gg_Vers_Caric,
+       SUM(m.gg_Firma_Caric) / COUNT(m.id) gg_Firma_Caric,
+       SUM(m.gg_Firma_ModC) / COUNT(m.id) gg_Firma_ModC
+FROM
+(
+    SELECT [archivio],
+           [area],
+           [id],
+           [DataComm],
+           [dataVers],
+           CONCAT('20', +datacrt) [dataCrt],
+           dataPrecaricamento,
+           rintac,
+           bianna,
+           DATEDIFF(day, CAST(datacomm AS DATE), CAST(datavers AS DATE)) gg_Firma_Vers,
+           DATEDIFF(day, CAST(datavers AS DATE), CAST(datacrt AS DATE)) gg_Vers_Caric,
+           DATEDIFF(day, CAST(datacomm AS DATE), CAST(datacrt AS DATE)) gg_Firma_Caric,
+           DATEDIFF(day, CAST(datacomm AS DATE), CAST(dataPrecaricamento AS DATE)) gg_Firma_ModC
+    FROM [estrazioni].[dbo].[Commissioni]
+    WHERE datacomm BETWEEN 20221101 AND 20230501
+          AND isnull(rintac, '') = ''
+          AND (isnull(BiannI, '') = isnull(BiannA, '')
+               OR isnull(BiannA, '') = '')
+          AND concat('20', +datacrt) >= datacomm
+          AND (dataPrecaricamento >= DataComm
+               OR dataprecaricamento IS NULL)
+		--AND area='pc'
+		--AND datepart(month,datacomm)=11
+) m
+GROUP BY m.area,
+         DATEPART(month, datacomm),
+         DATEPART(year, datacomm)
+ORDER BY DATEPART(year, datacomm),
+         DATEPART(month, datacomm),
+         m.area;

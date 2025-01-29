@@ -1,0 +1,83 @@
+WITH dati
+     AS (
+     SELECT DISTINCT
+            [nomeArchivio],
+            archivio,
+            codice_oggetto,
+            [idCom],
+            [CodPsi],
+            Area,
+            CONVERT(DATE, [DataComm]) [DataComm],
+            CONVERT(DATE, DataCompetenza) DataCompetenza,
+            [nomeAgente],
+            [tipo_importo],
+            [codice_tipo_inserz],
+            [tipo_inserz],
+            [tot_acquisito]
+     FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+     WHERE tipo_inserz LIKE '%EISD-AZ%'
+           OR tipo_inserz LIKE '%DM AMM%'),
+     rinnovare
+     AS (
+     SELECT DISTINCT
+            c.id AS [idCom],
+            [CodPsi],
+            RagSoc,
+            Area,
+            importo AS ImportoCommissione,
+            consegnato ConsegnatoCommissione,
+            CONVERT(DATE, [DataComm]) [DataComm],
+            Anage.nome AS NomeAgente,
+            mco.id,
+            [tipo]
+     FROM anagraf.dbo.WEB_ModuloC_oggetti mco
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+          INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+          LEFT JOIN anagraf.dbo.agenti ON agenti.gruppo = c.gruppo
+                                          AND agenti.codagente = c.agente
+          LEFT JOIN anagraf.dbo.anage ON anage.utente = agenti.utente
+     WHERE(tipo LIKE '%EISD-AZ%'
+           OR tipo LIKE '%DM AMM%')
+          AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 0
+	  -- and isnull(importo,0)>0
+	  -- and isnull(consegnato,0)=0
+     )
+     SELECT --[tipo_importo] AS TipoImporto,
+            Area,
+            tipo_inserz AS Sigla,
+            COUNT([codice_tipo_inserz]) AS NrSigle
+     FROM dati
+     GROUP BY [tipo_importo],
+              Area,
+              tipo_inserz;
+
+
+--------------------------------------------------------------------------------
+
+
+SELECT DISTINCT
+       '_archivio' AS Archivio,
+       c.id AS [idCom],
+       [CodPsi],
+       RagSoc,
+       Area,
+       Anage.nome AS NomeAgente,
+       [tipo] AS Sigla,
+	  IIF([DataComm] IS NOT NULL, CONVERT(DATE, DataComm),  CONVERT(DATE, DataComm_annoprec)) DataComm,
+       importo AS ImportoCommissione,      
+       consegnato ConsegnatoCommissione                    
+            --mco.id,
+            
+FROM anagraf.dbo.WEB_ModuloC_oggetti mco
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mco.id_com
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.agenti ON agenti.gruppo = c.gruppo
+                                     AND agenti.codagente = c.agente
+     LEFT JOIN anagraf.dbo.anage ON anage.utente = agenti.utente
+WHERE(tipo LIKE '%EISD-AZ%'
+      OR tipo LIKE '%DM AMM%')
+         AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 0
+     --AND isnull(importo, 0) <> 0
+     --AND isnull(consegnato, 0) <> 0;

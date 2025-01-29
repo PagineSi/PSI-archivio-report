@@ -1,0 +1,34 @@
+/****** Script per comando SelectTopNRows da SSMS  ******/
+SELECT 
+--[idWebModcOggetto]
+      c.CodPsi
+	 ,a.RagSoc
+	 ,tp.tipo Sigla
+	 ,format(mco.cm_data_inproduzione, 'yyyy-MM-dd') PIP
+      --,[idCondizioniVendita]
+      ,format([data_invio], 'yyyy-MM-dd') DataCV
+      ,[operatore_invio] OperatoreCV
+      ,[condizioniAccettate] Accettate
+      ,format([dataAccettazione], 'yyyy-MM-dd') DataAcc
+      ,[nome] Nome
+      ,[mail] EmailCV
+	 ,[pec] Pec
+	 ,IIF (a.EmailUrl is not NULL, a.EmailUrl, a.EmailAmm) as EmailAnag   
+      --,[utenteResetCondizioni]
+      --,[dataResetCondizioni]
+      --,[idTipoCondizioniVendita]
+      --,[_butta]
+      --,[_butta1]
+      --,[importOldSicom]
+  FROM [servizi].[dbo].[SICOMPROD_condizionivendita] cv
+  left join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id=cv.idWebModcOggetto
+  inner join anagraf.dbo.Commissioni c on c.id=mco.id_com
+  inner join anagraf.dbo.Anagrafica a on a.codice=c.Codice
+  inner join anagraf.dbo.TipoInserz tp on tp.codice=mco.Codice_Oggetto
+  where tp.Codice IN (1656,
+1657,
+1658,
+1660,
+1661,
+1662)
+order by data_invio

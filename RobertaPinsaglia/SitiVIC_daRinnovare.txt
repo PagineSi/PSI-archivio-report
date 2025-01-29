@@ -1,0 +1,213 @@
+ Script per comando SelectTopNRows da SSMS  
+SELECT DISTINCT c.[id] idCom
+      ,c.[Codice] CodAnagrafica
+      --,[comweb]
+      ,[Piva]
+	 ,a.RagSoc
+      ,[Firmante]
+      --,[Qualifica]
+      ,[CodFiscale]
+      --,[Gruppo]
+      --,[Agente]
+      --,[Riferimento]
+      ,[CodPsi]
+      --,[Luogo]
+      ,[DataComm_Annoprec]
+      ,[DataComm]
+      ,[Commissione]
+      --,[Anno]
+      --,[DataPrRata]
+      --,[Rate]
+      --,[Cadenza]
+      --,[Acconto]
+      ,[Consegnato]
+      --,[ModConsegnato]
+      ,[Importo]
+	 --,d.www
+	 ,(STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+www
+                      FROM anagraf.dbo.web_moduloc_domini do
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.id = do.ID_ModuloC_Oggetti
+                           INNER JOIN anagraf.dbo.web_moduloc mc1 ON mc1.id = mco1.id_moduloc
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mc1.idcom
+                      WHERE ulc1.id = c.id
+                            AND ulc1.archivio = c.archivio
+                            AND ulc1.archivio = 9999
+                            AND do.sitorif = 1
+                            --AND tp1.Codice IN(1760, 1761, 1762, 1763, 1813)
+                      FOR XML PATH('')
+                  ), 1, 2, '')) AS www
+	 --,estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Ogg
+	 ,(STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.id = c.id
+                            AND ulc1.archivio = c.archivio
+                            AND ulc1.archivio = 9999
+                            AND tp1.Codice IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853,
+							1865,
+1866,
+1868,
+1869,
+1872,
+1873,
+1876,
+1877,
+1891,
+1916,
+1917,
+1918)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS SigleSito
+      --,[aliqIva]
+      --,[Causale]
+      --,[BancAbi]
+      --,[BancCab]
+      --,[ContoCor]
+      --,[IntFat]
+      --,[IntCoDes]
+      --,[IntCoInd]
+      --,[IntCoCap]
+      --,[IntCoLoc]
+      --,[Modificato]
+      --,[Visitato]
+      --,[ModPagam]
+      --,[Contabil]
+      --,[StampaFat]
+      --,[DataFat]
+      --,[CrystalFat]
+      --,[Biann]
+      --,[BiannI]
+      --,[BiannA]
+      --,[RinTac]
+      --,[Annotaz]
+      --,[TipoCli]
+      --,[NcImpo]
+      --,[NcNum]
+      --,[NcData]
+      --,[AutRidSped]
+      --,[AutRidRic]
+      --,[Lng1]
+      --,[Lng2]
+      --,[WarnIns]
+      --,[Validaz]
+      --,[Grafico]
+      --,[InAgenzia]
+      --,[Attesa]
+      --,[MotivoAtt]
+      --,[DataLavoraz]
+      --,[SpedBozza]
+      --,[DataModif]
+      --,[NoteStorico]
+      --,[StornoRid]
+      --,[DataProv]
+      --,[Impo2]
+      --,[CrdStato]
+      --,[CrdScade]
+      --,[ExGruppo]
+      --,[ExAgente]
+      --,[Diciture]
+      --,[Area]
+      --,[Azienda]
+      --,[Prezzo]
+      --,[PraticaErr]
+      --,[regdom]
+      --,[NoSpInc]
+      --,[GruppoR]
+      --,[AgenteR]
+      --,[Iban]
+      --,[daVer]
+      --,[fatbloc]
+      --,[comBgl]
+      --,[comTus]
+      --,[GruppoTus]
+      --,[AgenteTus]
+      --,[ncbloc]
+      --,[dataCrt]
+      --,[oraCrt]
+      --,[pcCrt]
+      --,[opCrt]
+      --,[bgldata]
+      --,[negativo]
+      --,[DataAccet]
+      --,[DataRegDom]
+      --,[ModalAccet]
+      --,[CauDinRid]
+      --,[AnnotGraf]
+      --,[dataCaric]
+      --,[importoWeb]
+      --,[ggScadRt]
+      --,[dataScadRt]
+      --,[dataAccetPrec]
+      --,[dittaIndiv]
+      --,[codPremio]
+      --,[sottoTar]
+      --,[ageRiassIniCamp]
+      --,[exRinTac]
+      --,[stContr]
+      --,[dataCampagna]
+      --,[chkScad]
+      --,[prodConc]
+      --,[oggPostic]
+      --,[exConsegnato]
+      --,[autfattinv]
+      --,[autfattric]
+      --,[mailWelcome]
+      --,[fatpa]
+      --,[ridfirst]
+      --,[annsostid]
+      --,[competenzaDa]
+      --,[competenzaA]
+      --,[dataPrecaricamento]
+      --,[ImpoAnnullato]
+      --,[socRecupero]
+      --,[nuovoiban]
+      --,[exPluriennale]
+      --,[dataVers]
+      --,[exOmaggio]
+      --,[dataAffid]
+      --,[tariffaMensile]
+      --,[fattAutom]
+      --,[propPrio]
+      --,[verChius]
+      --,[tipoSocieta]
+      --,[inAttesaRiass]
+      --,[firmanteNome]
+      --,[firmanteCognome]
+      --,[creditoAss]
+      --,[pagPos]
+      --,[creditoAssData]
+      --,[annotris]
+      --,[ridMandato]
+      --,[cfRespTratt]
+      --,[nomeRespTratt]
+      --,[cognomeRespTratt] 
+  FROM [estrazioni].[dbo].[Commissioni] c
+  left join anagraf.dbo.anagrafica a on a.codice=c.codice
+  left join anagraf.dbo.WEB_ModuloC mc on mc.idcom=c.id
+  left join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_moduloc=mc.ID
+  left join anagraf.dbo.web_moduloc_domini d on d.ID_ModuloC=mc.ID
+  where  servizi.dbo.CommissioniAttive(c.codpsi,c.id)=1
+  and c.archivio=9999
+  and mco.Codice_Oggetto IN (486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853,
+		   1865,
+		   1866,
+1868,
+1869,
+1872,
+1873,
+1876,
+1877,
+1891,
+1916,
+1917,
+1918)
+and a.altoSp=1
+and d.sitorif=1

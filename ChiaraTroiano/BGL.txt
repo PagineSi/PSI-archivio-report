@@ -1,0 +1,15 @@
+SELECT idcom, 
+       area, 
+       codpsi, 
+       ragsoc, 
+       datacomm, 
+       tipo_inserz AS sigla, 
+       aio.prezzo_da_tariffario, 
+       ROUND(aio.tot_acquisito, 2) tot_acquisito, 
+       aio.tipo_importo
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aio.CodiceAnagrafica
+WHERE tipo_inserz = 'BGL'
+      AND format(dataComm, 'yyyyMMdd') >= '20190101'
+      AND tipo_importo = 'FIRMATO'
+ORDER BY ragsoc;

@@ -1,0 +1,82 @@
+WITH princ as (SELECT DISTINCT 
+      c.[CodPsi],
+	 t.tipo,
+	 COUNT(mco.Codice_Oggetto) nOgg,
+	 c.area
+	 --mc.contenuto
+	 --mco.codice_oggetto
+	 --estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Ogg
+
+  FROM estrazioni.[dbo].[Commissioni] c
+  inner join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_com=c.id
+  inner join anagraf.dbo.TipoInserz t on t.codice=mco.codice_oggetto
+  --inner join anagraf.dbo.WEB_ModuloC mc on mc.IDcom=c.id
+  where 
+  archivio=9999
+ and  servizi.dbo.CommissioniAttive(c.codpsi,c.id)=1
+  and mco.codice_oggetto IN (1250,
+1608,
+1436,
+932,
+616,
+945,
+946,
+964,
+890,
+906,
+948,
+1204,
+804,
+944,
+1231,
+1468,
+1435,
+902,
+907,
+947)
+GROUP BY c.codpsi,t.tipo,c.area
+),
+
+secon as (SELECT DISTINCT 
+      c.[CodPsi]
+	 --mc.contenuto
+	 --mco.codice_oggetto
+	 --estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio,c.codpsi) Ogg
+
+  FROM estrazioni.[dbo].[Commissioni] c
+  inner join anagraf.dbo.WEB_ModuloC_oggetti mco on mco.id_com=c.id
+  --inner join anagraf.dbo.WEB_ModuloC mc on mc.IDcom=c.id
+  where 
+  archivio=9999
+ and  servizi.dbo.CommissioniAttive(c.codpsi,c.id)=1
+  and mco.codice_oggetto IN (1266,
+1267,
+1268,
+1269,
+1412,
+1419,
+1420,
+1279,
+1280,
+1281,
+1282,
+1270,
+1413,
+1271,
+1421,
+1272,
+1422,
+1273,
+1423))
+
+SELECT
+princ.tipo Sigla,
+SUM(princ.nOgg) nOgg,
+princ.Area
+--princ.Ogg
+
+FROM princ LEFT JOIN secon on princ.CodPsi=secon.CodPsi
+
+WHERE secon.Codpsi IS NULL
+GROUP BY princ.tipo, princ.area
+order by princ.area, princ.tipo

@@ -1,0 +1,24 @@
+
+
+SELECT c.Codpsi,
+       a.RagSoc,
+       IIF(c.DataComm IS NOT NULL, c.DataComm, c.Datacomm_annoprec) DataComm,
+       format(mco.cm_data_emailInAgente, 'yyyyMMdd') DataPassAgente,
+       --c.Consegnato,
+       --c.Importo,
+       t.Tipo Sigla,
+       [www],
+       cm_ope_conferma_ogg CM
+FROM anagraf.dbo.WEB_ModuloC_oggetti mco
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mco.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+     LEFT JOIN [anagraf].[dbo].[WEB_ModuloC_Domini] d ON mco.id = d.ID_ModuloC_Oggetti
+     LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+     LEFT JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.Codice_Oggetto
+WHERE mco.cm_data_emailInAgente IS NOT NULL
+      AND mco.cm_data_inproduzione IS NULL
+      AND mco.cm_data_emailInStandby IS NULL
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND mco.codice_oggetto IN(680, 486, 1225, 1226, 844, 1217, 1218, 1309, 1318, 1329, 1330, 1319, 1331, 1332, 704, 705, 706, 1438, 841, 900, 908, 930, 931, 995, 665, 666, 667, 668, 833, 970, 971, 972, 1113, 1014, 1189, 1190, 1191, 1192, 1193, 1194, 1207, 1208, 1209, 1210, 1211, 1212, 1213, 1214, 1215, 1216, 1219, 1220, 1221, 1222, 1223, 1224, 1122, 1123, 1187, 1188, 1229, 1230, 1360, 1361, 1364, 1450, 1227, 1228, 1337, 1339, 1442, 1459, 1460, 1458, 1461, 1489, 1439, 1462, 1463, 1501, 1464, 1465, 1466, 1437, 1440, 1556, 1441, 1553, 1752, 1753, 1744, 1690, 1645, 1646, 1555, 1554, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1858, 1860, 1861, 1862, 1865, 1937, 1938, 1939, 1949, 1920, 1921, 1922, 1923, 1927, 1976, 1977)
+AND isnull(www, '') = ''
+ORDER BY RagSoc;

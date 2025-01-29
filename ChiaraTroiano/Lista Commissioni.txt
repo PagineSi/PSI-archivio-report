@@ -1,0 +1,15 @@
+SELECT DISTINCT --[F1]
+       c.[CODPSI],
+       c.[COMMISSIONE],
+       c.[AGENTE],
+       c.[AREA],
+       c.[CODICE_AGENTE],
+       c.[RAGSOC],
+       IIF(c1.datacomm IS NOT NULL, c1.datacomm, c1.datacomm_annoprec) DataComm,
+       c1.Consegnato,
+       c1.Importo,
+       estrazioni.dbo.udfElencoOggettiAttive(c1.archivio, c1.id) Oggetti
+FROM [estrazioni].[dbo].[Lista_Commissioni] c
+     LEFT JOIN estrazioni.dbo.commissioni c1 ON c1.id = c.commissione
+WHERE estrazioni.dbo.commissioniattive(c1.archivio, c1.CodPsi, c1.id) = 1
+     AND c1.archivio = 9999;

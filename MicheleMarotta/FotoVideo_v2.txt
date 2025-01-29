@@ -1,0 +1,15 @@
+SELECT DATEPART(year, datacompetenza) AS Anno,
+       --DATEPART(month, datacompetenza) AS Mese,
+	  aio.tipo_inserz Sigla,
+	       SUM(IIF(isnull(tipo_importo, '') = 'FIRMATO', 1, 0)) AS Firmati,
+            SUM(IIF(isnull(tipo_importo, '') = 'MATURATO', 1, 0)) AS Maturati,
+            SUM(p.oreCM) SommaPD
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          LEFT JOIN servizi.dbo.prodottiOre p ON p.codiceSigla = aio.codice_tipo_inserz
+     WHERE 
+	 DATEPART(year, datacompetenza) IN(2019, 2020, 2021)
+          and CodiceCategoria IN(76, 81, 70)
+     GROUP BY DATEPART(year, datacompetenza),
+	         --DATEPART(month, datacompetenza),
+	         aio.tipo_inserz
+     ORDER BY anno, sigla

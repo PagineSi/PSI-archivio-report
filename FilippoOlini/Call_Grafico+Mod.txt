@@ -1,0 +1,38 @@
+SELECT DISTINCT
+       c.Codpsi,
+       a.RagSoc,
+       IIF(u.Cognome IS NOT NULL, u.cognome, [assegnazione_grafico_operatore]) Grafico,
+       format([call_iniziale_data], 'yyyyMMdd') Call_Data,
+       IIF(u2.Cognome IS NOT NULL, u2.cognome, [call_iniziale_grafico]) Call_Grafico,
+       --[call_iniziale_operatore] Call_Operatore,     
+       [call_iniziale_durata] Call_Durata,      
+       --[file_id_grafica],
+       format([id_grafica_data], 'yyyyMMdd') Grafica_Data,
+       IIF(u3.Cognome IS NOT NULL, u3.cognome, [id_grafica_operatore]) Grafica_Operatore,
+       [tempo_sviluppo_grafica] Grafica_Tempo,
+       COUNT(sg.id_oggetto_modulo_c) nMod,
+       SUM(sg.minuti_intervento) Mod_Tempo
+FROM [servizi].[dbo].[SICOMPROD_SOCIAL] s
+     INNER JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id = s.idwebmodcoggetto
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+     LEFT JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     LEFT JOIN servizi.dbo.SICOMPROD_Utenti u ON u.utente = assegnazione_grafico_operatore
+     LEFT JOIN servizi.dbo.SICOMPROD_Utenti u2 ON u2.utente = call_iniziale_grafico
+     LEFT JOIN servizi.dbo.SICOMPROD_Utenti u3 ON u3.utente = id_grafica_operatore
+     LEFT JOIN servizi.dbo.SICOMPROD_SOCIAL_GRAFICA_POSTPRODUZIONE sg ON sg.id_oggetto_modulo_c = s.idwebmodcoggetto
+WHERE (format(call_iniziale_data, 'yyyyMMdd') BETWEEN format(@dataDa, 'yyyyMMdd') AND format(@dataA, 'yyyyMMdd')
+	 OR format(sg.lavorazione_data, 'yyyyMMdd') BETWEEN format(@dataDa, 'yyyyMMdd') AND format(@dataA, 'yyyyMMdd')
+	 OR format(s.id_grafica_data, 'yyyyMMdd') BETWEEN format(@dataDa, 'yyyyMMdd') AND format(@dataA, 'yyyyMMdd'))
+GROUP BY c.Codpsi,
+         a.RagSoc,
+         u.Cognome,
+         [assegnazione_grafico_operatore],
+         [call_iniziale_data],
+         u2.Cognome,
+         [call_iniziale_grafico],
+         [call_iniziale_durata],
+         [id_grafica_data],
+         u3.Cognome,
+         [id_grafica_operatore],
+         [tempo_sviluppo_grafica]
+ORDER BY format([call_iniziale_data], 'yyyyMMdd');

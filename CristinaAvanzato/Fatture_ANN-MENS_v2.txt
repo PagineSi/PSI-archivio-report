@@ -1,0 +1,204 @@
+
+
+SELECT m.Area,
+       SUM(m.Importo) Importo
+FROM
+(
+    SELECT commissioni.Archivio,
+           commissioni.Area,
+           commissioni.Codpsi,
+           commissioni.id idCom,
+           commissioni.Importo,
+           commissioni.DataComm,
+           format(datafat, 'yyyyMMdd') DataRata
+    FROM commissioni
+    WHERE commissioni.importo > 2
+          AND ISNULL(commissioni.fattAutom, '') = ''
+          AND format(datafat, 'yyyyMMdd') BETWEEN '20230101' AND '20231231'
+          AND commissioni.DataComm BETWEEN '20230101' AND '20231231'
+          AND (annotaz LIKE '%bonus pubblicità%'
+               OR annotaz LIKE '%bonus pubblicita%'
+               OR annotaz LIKE '%bando%')
+) m
+GROUP BY m.Area;
+
+
+---------------------------------
+
+
+
+
+
+
+SELECT m.Area,
+       SUM(m.Importo) Importo
+FROM
+(
+    SELECT DISTINCT
+           commissioni.Archivio,
+           commissioni.Area,
+           commissioni.Codpsi,
+           commissioni.id idCom,
+           commissioni.Importo,
+           commissioni.DataComm,
+       --rate.ImportoRata,
+           CONCAT(comm2.fatMensDat0, ', ', fatMensDat1, ', ', fatMensDat2, ', ', fatMensDat3, ', ', fatMensDat4, ', ', fatMensDat5, ', ', fatMensDat6, ', ', fatMensDat7, ', ', fatMensDat8, ', ', fatMensDat9, ', ', fatMensDat10, ', ', fatMensDat11, ', ', fatMensDat12, ', ', fatMensDat13, ', ', fatMensDat14, ', ', fatMensDat15, ', ', fatMensDat16, ', ', fatMensDat17, ', ', fatMensDat18, ', ', fatMensDat19, ', ', fatMensDat20, ', ', fatMensDat21, ', ', fatMensDat22, ', ', fatMensDat23) DateRate
+    FROM commissioni
+         INNER JOIN
+    (
+        SELECT idcommis,
+               ROUND(irid0 - (irid0 * 22 / 100), 2) ImportoRata,
+               fatMensDat0 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid1 - (irid1 * 22 / 100), 2) ImportoRata,
+               fatMensDat1 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid2 - (irid2 * 22 / 100), 2) ImportoRata,
+               fatMensDat2 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid3 - (irid3 * 22 / 100), 2) ImportoRata,
+               fatMensDat3 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid4 - (irid4 * 22 / 100), 2) ImportoRata,
+               fatMensDat4 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid5 - (irid5 * 22 / 100), 2) ImportoRata,
+               fatMensDat5 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid6 - (irid6 * 22 / 100), 2) ImportoRata,
+               fatMensDat6 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid7 - (irid7 * 22 / 100), 2) ImportoRata,
+               fatMensDat7 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid8 - (irid8 * 22 / 100), 2) ImportoRata,
+               fatMensDat8 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid9 - (irid9 * 22 / 100), 2) ImportoRata,
+               fatMensDat9 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid10 - (irid10 * 22 / 100), 2) ImportoRata,
+               fatMensDat10 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid11 - (irid11 * 22 / 100), 2) ImportoRata,
+               fatMensDat11 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid12 - (irid12 * 22 / 100), 2) ImportoRata,
+               fatMensDat12 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid13 - (irid13 * 22 / 100), 2) ImportoRata,
+               fatMensDat13 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid14 - (irid14 * 22 / 100), 2) ImportoRata,
+               fatMensDat14 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid15 - (irid15 * 22 / 100), 2) ImportoRata,
+               fatMensDat15 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid16 - (irid16 * 22 / 100), 2) ImportoRata,
+               fatMensDat16 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid17 - (irid17 * 22 / 100), 2) ImportoRata,
+               fatMensDat17 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid18 - (irid18 * 22 / 100), 2) ImportoRata,
+               fatMensDat18 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid19 - (irid19 * 22 / 100), 2) ImportoRata,
+               fatMensDat19 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid20 - (irid20 * 22 / 100), 2) ImportoRata,
+               fatMensDat20 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid21 - (irid21 * 22 / 100), 2) ImportoRata,
+               fatMensDat21 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid22 - (irid22 * 22 / 100), 2) ImportoRata,
+               fatMensDat22 DataRata,
+               archivio
+        FROM comm2
+        UNION
+        SELECT idcommis,
+               ROUND(irid23 - (irid23 * 22 / 100), 2) ImportoRata,
+               fatMensDat23 DataRata,
+               archivio
+        FROM comm2
+    ) rate ON rate.idCommis = commissioni.id
+              AND rate.archivio = commissioni.archivio
+         INNER JOIN comm2 ON comm2.idCommis = commissioni.id
+                             AND comm2.archivio = commissioni.archivio
+    WHERE commissioni.importo > 2
+          AND commissioni.fattAutom = 1
+          AND comm2.fatMensDat0 BETWEEN '2023-01-01' AND '2023-10-31'
+          --AND commissioni.DataComm BETWEEN '20230101' AND '20231231'
+          AND (annotaz LIKE '%bonus pubblicità%'
+               OR annotaz LIKE '%bonus pubblicita%'
+               OR annotaz LIKE '%bando%')
+) m
+GROUP BY m.area;

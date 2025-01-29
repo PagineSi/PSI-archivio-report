@@ -1,0 +1,61 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            id idCom,
+            c.CodPsi,
+            IIF(c.datacomm IS NOT NULL, c.datacomm, c.datacomm_annoprec) DataComm,
+            c.Importo ImportoComm,
+            Ragsoc,
+            c.Area,
+            STUFF(
+                 (
+                     SELECT ', '+t1.tipo+' (x',
+                            COUNT(t1.tipo),
+                            ')'
+                     FROM anagraf.dbo.TipoInserz t1
+                          INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                          INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                      AND c1.archivio = ogg1.archivio
+                     WHERE c1.id = c.id
+                           AND c1.archivio = c.archivio
+                           AND t1.CodiceCategoriaCommerciale = 240
+                     GROUP BY t1.tipo FOR XML PATH('')
+                 ), 1, 2, '') AS Sigle,
+            cat.Categoria CategoriaCliente,
+            aio.nomeAgente Agente
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+          LEFT JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idcom = c.id
+                                                                 AND aio.archivio = c.archivio
+          LEFT JOIN anagraf.dbo.Categorie cat ON cat.codice = a.Categoria
+                                                 AND catref = cat.codice
+     WHERE 
+--c.id IN(727278, 727322, 727578, 727598, 727819)
+--     AND 
+     aio.CodiceCategoriaCommerciale = 240),
+     impoSigle
+     AS (
+     SELECT aio.idCom,
+            aio.area,
+            aio.codpsi,
+            --MAX(aio.archivio) archivio,
+            ROUND(SUM(aio.tot_acquisito), 2) AS ImportoSigle
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE aio.codicecategoriacommerciale = 240
+	--and aio.idcom=681675
+     GROUP BY aio.idcom,
+              aio.area,
+              aio.codpsi)
+     SELECT base.idCom,
+            base.Codpsi,
+            base.DataComm,
+            base.ImportoComm,
+            base.Ragsoc,
+            base.Area,
+            base.Sigle,
+            imposigle.ImportoSigle,
+            base.CategoriaCliente,
+            base.Agente
+     FROM base
+          LEFT JOIN impoSigle ON impoSigle.idcom = base.idcom
+                                 AND imposigle.area = base.area;

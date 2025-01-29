@@ -1,0 +1,25 @@
+SELECT c.id,
+       c.Piva,
+       a.RagSoc,
+       c.CodPsi,
+       cat.categoria,
+       c.DataComm,
+       CONCAT(a.Prefisso, '-', a.Telefono) AS telefono,
+       CONCAT(a.Indirizzo, '', a.Civico) AS indirizzo,
+       cu.Comune,
+       IIF(EmailUrl IS NOT NULL, EmailUrl, EmailAmm) AS Email,
+       c.nomeAgente,
+       c.consegnato,
+       c.importo,
+       c.importoInsoluto,
+       c.tipo_importo,
+       estrazioni.dbo.udfElencoOggetti(c.archivio, c.id) AS oggetti
+FROM [estrazioni].[dbo].vCommNuoveRinnoviPluriennali c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.Categorie cat ON cat.Codice = a.Categoria
+     INNER JOIN anagraf.dbo.comuni cu ON cu.Codice = a.Comune
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND cat.catref = 393
+     AND isnull(c.importo, 0) > 0
+     AND c.DataCompetenza BETWEEN '2018-10-01' AND '2019-09-30'
+ORDER BY ragsoc;

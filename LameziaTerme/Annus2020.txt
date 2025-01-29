@@ -1,0 +1,14 @@
+SELECT DISTINCT
+       aio.codice_oggetto,
+       aio.idCom,
+       aio.CodPsi,
+       a.RagSoc,
+       c.Comune,
+       aio.tipo_inserz,
+       aio.edizione,
+       ROUND(aio.tot_acquisito, 2) AS fatturato
+FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = aio.CodiceAnagrafica
+     INNER JOIN anagraf.dbo.comuni c ON c.codice = a.Comune
+WHERE aio.edizione = 'X120'
+ORDER BY RagSoc;

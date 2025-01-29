@@ -1,0 +1,39 @@
+WITH cli
+     AS (
+     SELECT aio.codpsi,
+            aio.idcom,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz
+                      FROM estrazioni.dbo.vAnalisiImportiOggetti aio1
+                      WHERE aio1.idcom = aio.idCom
+                            AND aio1.codice_tipo_inserz IN(1199, 1200, 1201, 1202) FOR XML PATH('')
+                  ), 1, 2, '')) AS TipoMod,
+            COUNT(aio.tipo_inserz) nOggMod
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE format(aio.DataCompetenza, 'yyyyMMdd') BETWEEN 20220301 AND 20230228
+           AND aio.area = 'PR'
+           AND aio.codice_tipo_inserz IN(1199, 1200, 1201, 1202)
+     GROUP BY aio.CodPsi,
+              aio.idcom),
+     ore
+     AS (
+     SELECT modc.[CodPsi],
+            modc.idcom,
+            SUM(minutiDisponibili) MinutiDisp,
+            SUM(minutiUtilizzati) MinutiUtil
+     FROM [servizi].[dbo].[ext_VariazioniMonteOreCli] modc
+     WHERE identificativoInserimento LIKE '%1199%'
+           OR identificativoInserimento LIKE '%1200%'
+           OR identificativoInserimento LIKE '%1201%'
+           OR identificativoInserimento LIKE '%1202%'
+     GROUP BY modc.CodPsi,
+              modc.idcom)
+     SELECT cli.codpsi,
+            cli.nOggMod,
+            cli.TipoMod,
+            ore.MinutiDisp,
+            ore.MinutiUtil
+     FROM cli
+          LEFT JOIN ore ON ore.idCom = cli.idCom
+     ORDER BY cli.CodPsi;

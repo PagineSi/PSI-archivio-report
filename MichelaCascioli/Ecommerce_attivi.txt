@@ -1,0 +1,96 @@
+WITH cli
+     AS (
+     SELECT DISTINCT
+            ulc.id,
+            ulc.archivio Arch,
+            ulc.codpsi,
+            ragsoc,
+            MAX(anage.nome) Agente,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.codpsi = ulc.codpsi
+                            AND ulc1.archivio = ulc.archivio
+                            AND estrazioni.dbo.commissioniattive(ulc1.archivio, ulc1.CodPsi, ulc1.id) = 1
+                           AND tp1.Codice IN(970, 1458, 668, 972, 1460, 666, 1122, 1123, 1339, 1449, 1450, 1438, 1441, 1553, 1337, 1744, 1437, 1440, 1556, 1439, 1442, 1554, 1645, 1976, 1977, 1646, 1082, 1499, 1501, 1498, 1489, 971, 1459, 833, 1227, 1228, 1990, 665, 667, 618, 1721, 1717, 1561, 1558, 1566, 1720, 1718, 1719, 1560, 1565, 1559, 1564)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle,
+            MAX(com.comune) Comune,
+            MAX(com.provincia) Provincia,
+            MAX(reg.descrizione) Regione,
+            MAX(CONCAT(a.Indirizzo, ', ', a.Civico)) AS Indirizzo,
+            MAX(CONCAT(a.Prefisso, '-', a.Telefono)) AS Tel,
+            cat.categoria,
+            MAX(ulc.Firmante) Firmante,
+            MAX(commi.firmantecognome) Cognome,
+            MAX(commi.firmantenome) Nome,
+            IIF(a.EmailUrl IS NOT NULL, a.EmailUrl, a.EmailAmm) AS Email
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+          LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                             AND ulc.Agente = ag.Codagente
+          LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+          LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = ulc.id
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+          LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+          LEFT JOIN anagraf.dbo.Comuni com ON com.codice = a.Comune
+          LEFT JOIN anagraf.dbo.province pro ON pro.sigla = com.Provincia
+          LEFT JOIN anagraf.dbo.regioni reg ON reg.codreg = pro.codreg
+          LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+          LEFT JOIN anagraf.dbo.commissioni commi ON commi.id = ulc.id
+     WHERE archivio = 9999
+           AND tp.Codice IN(970, 1458, 668, 972, 1460, 666, 1122, 1123, 1339, 1449, 1450, 1438, 1441, 1553, 1337, 1744, 1437, 1440, 1556, 1439, 1442, 1554, 1645, 1976, 1977, 1646, 1082, 1499, 1501, 1498, 1489, 971, 1459, 833, 1227, 1228, 1990, 665, 667, 618, 1721, 1717, 1561, 1558, 1566, 1720, 1718, 1719, 1560, 1565, 1559, 1564)
+          AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1
+     GROUP BY ulc.id,
+              ulc.archivio,
+              ulc.codpsi,
+              ragsoc,
+              cat.categoria,
+              a.EmailUrl,
+              a.EmailAmm),
+     impo
+     AS (
+     SELECT DISTINCT
+            ulc.id,
+            codpsi,
+            ulc.archivio,         
+            --SUM(importo) ImpoComm,
+            --SUM(consegnato) ConsComm
+            importo ImpoComm,
+            consegnato ConsComm
+     FROM estrazioni.dbo.commissioni ulc)
+     SELECT DISTINCT
+	       --MAX(cli.id) idCom,	
+            cli.Arch,
+            cli.CodPsi,
+            MAX(cli.Agente) Agente,
+            MAX(cli.Regione) Regione,
+            MAX(cli.Provincia) Provincia,
+            MAX(cli.Comune) Comune,
+            MAX(cli.Indirizzo) Indirizzo,
+            MAX(cli.Tel) Tel,
+            MAX(cli.Categoria) Categoria,
+            MAX(cli.RagSoc) RagSoc,
+            MAX(cli.Firmante) Firmante,
+            MAX(cli.Cognome) Cognome,
+            MAX(cli.Nome) Nome,
+            MAX(cli.Email) Email,
+            SUM(impo.ImpoComm) ImpoCommSito,
+            SUM(impo.ConsComm) ConsCommSito,
+            cli.Sigle Sigle_Comm_Attive
+     FROM cli
+          LEFT JOIN impo ON --impo.CodPsi = cli.CodPsi
+          impo.id = cli.id
+          AND impo.archivio = cli.Arch
+     GROUP BY 
+	--cli.id,
+     cli.Arch,
+     cli.Sigle,
+     cli.CodPsi
+     ORDER BY RagSoc;
+              --cli.Arch;

@@ -1,0 +1,109 @@
+WITH imm as (
+
+SELECT
+archivio,
+comm.id,
+a.codice,
+cat.categoria,
+codpsi,
+ragsoc,
+CONCAT(a.Indirizzo,' ',a.Civico) as [Indirizzo],
+c.Provincia,
+a.comune,
+CONCAT(a.Prefisso,'-',a.Telefono) as [Telefono],
+area,
+comm.Commissione,
+CONVERT(date,dataprrata) as [Data prima rata],
+DataComm,
+DataComm_Annoprec,
+comm.Consegnato,
+comm.Importo,
+comm.importoInsoluto,
+importoscaduto,
+comm.CrdStato,
+comm.CrdScade,
+comm.RinTac,
+comm.Biann,
+estrazioni.dbo.udfElencoOggettiClienteCommAttiveNA(comm.CodPsi) as [Elenco oggetti],
+ag.Gruppo,
+ag.utente,
+age.nome,
+ag.reteSviluppo
+
+FROM estrazioni.dbo.commissioni comm
+INNER JOIN anagraf.dbo.anagrafica a on a.Codice=comm.Codice
+INNER JOIN anagraf.dbo.Comuni c on c.codice=a.Comune
+INNER JOIN anagraf.dbo.web_moduloC_oggetti mco on mco.id_com=comm.id
+INNER JOIN anagraf.dbo.tipoinserz t on t.codice=mco.Codice_Oggetto
+LEFT JOIN anagraf.dbo.Categorie cat on cat.Codice=a.Categoria
+INNER JOIN anagraf.dbo.agenti ag on ag.gruppo=comm.gruppo and ag.Codagente=comm.agente
+INNER JOIN anagraf.dbo.anage age on age.utente=ag.utente
+
+where
+ estrazioni.dbo.commissioniattive(comm.archivio,comm.codpsi,comm.id)=1
+and  t.codice in (844,	
+			   908,
+			   1014,
+			   1213,
+			   1214,
+			   1215,
+			   1216,
+			   1217,
+			   1218,
+			   1461,
+			   1462,
+			   1463,
+			   1464,
+			   1465,
+			   1466)
+),
+
+stor as (
+
+SELECT
+ StoricoScaduto,
+ StoricoInsoluto,
+ percInsoluto,
+ Codpsi
+
+ FROM estrazioni.dbo.udfStoricoCodpsi()
+ )
+
+ SELECT
+
+imm.codice,
+imm.categoria,
+imm.codpsi,
+imm.ragsoc,
+imm.indirizzo,
+imm.Provincia,
+imm.comune,
+imm.telefono,
+imm.area,
+SUM(ISNULL(imm.Consegnato,0)) as [Tot Consegnato],
+SUM(ISNULL(imm.importo,0)) as [Tot Importo],
+SUM(ISNULL(imm.importoInsoluto,0)) as [Tot Importo Insoluto],
+SUM(ISNULL(imm.importoScaduto,0)) as [Tot Importo Scaduto],
+imm.[Elenco oggetti],
+StoricoScaduto,
+StoricoInsoluto,
+percInsoluto
+
+FROM imm
+INNER JOIN stor on stor.Codpsi=imm.CodPsi
+
+group by imm.codice,
+imm.categoria,
+imm.codpsi,
+imm.ragsoc,
+imm.indirizzo,
+imm.Provincia,
+imm.comune,
+imm.telefono,
+imm.area,
+imm.[Elenco oggetti],
+StoricoScaduto,
+StoricoInsoluto,
+percInsoluto
+
+order by RagSoc

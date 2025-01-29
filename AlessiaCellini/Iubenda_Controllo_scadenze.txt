@@ -1,0 +1,246 @@
+WITH cli
+     AS (
+     SELECT DISTINCT
+            ulc.id,
+            ulc.archivio,
+            ulc.codpsi,
+            ulc.rintac,
+            ulc.bianni,
+            ulc.bianna,
+            ulc.importo,
+            ulc.consegnato,
+            ragsoc,
+            ulc.area,
+--mp.desPag ModPag,
+            anage.nome Agente,
+            ag.email,
+            CASE
+                WHEN isnull(ulc.Consegnato, '') <> ''
+                     AND isnull(ulc.importo, '') = ''
+                THEN 'Da Rinnovare'
+                WHEN isnull(ulc.Consegnato, '') = ''
+                     AND isnull(ulc.importo, '') <> ''
+                THEN 'Nuova'
+                WHEN isnull(ulc.Consegnato, '') <> ''
+                     AND isnull(ulc.importo, '') <> ''
+                THEN 'Rinnovata'
+                WHEN isnull(ulc.Consegnato, '') = ''
+                     AND isnull(ulc.importo, '') = ''
+                THEN 'Annullata'
+            END AS Stato,
+            IIF(ulc.datacomm IS NOT NULL, ulc.datacomm, ulc.DataComm_Annoprec) DataComm,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+www
+                      FROM anagraf.dbo.web_moduloc_domini do
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.id = do.ID_ModuloC_Oggetti
+                           INNER JOIN anagraf.dbo.web_moduloc mc1 ON mc1.id = mco1.id_moduloc
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mc1.idcom
+                      WHERE ulc1.id = ulc.id
+                            AND ulc1.archivio = ulc.archivio
+                            AND ulc1.archivio = 9999
+                            AND do.sitorif = 1
+                            --AND tp1.Codice IN(1760, 1761, 1762, 1763, 1813)
+                      FOR XML PATH('')
+                  ), 1, 2, '')) AS www,
+	       --do.dataScadenza,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.id = ulc.id
+                            AND ulc1.archivio = ulc.archivio
+                            AND ulc1.archivio = 9999
+                            AND tp1.Codice IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918, 1977, 1976, 2028, 2027, 2006, 2005, 1971, 1970)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS SigleSito,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.CodPsi = ulc.CodPsi
+                            AND ulc1.archivio = ulc.archivio
+                            AND ulc1.archivio = 9999
+                            AND tp1.Codice IN(1760, 1761, 1762, 1763, 1813)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS SigleCPP,
+            estrazioni.dbo.udfElencoOggettiCliente(ulc.archivio, ulc.codpsi) Ogg,
+            ulc.Firmante,
+            CONCAT(a.Indirizzo, ', ', a.Civico) AS Indirizzo,
+            CONCAT(a.Prefisso, '-', a.Telefono) AS NumeroTel,		  		  
+		  --a.Indirizzo,
+            IIF(ISNULL(a.emailurl, '') <> '', a.emailurl, a.emailamm) AS MailCli,
+            comu.comune
+		  --do.www
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+          LEFT JOIN anagraf.dbo.Comuni AS comu ON comu.codice = a.Comune
+          LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                             AND ulc.Agente = ag.Codagente
+          LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = ulc.id
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+          INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+		--LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini do on do.ID_ModuloC=mc.id
+		--LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini do on do.ID_ModuloC=mc.id and do.sitorif=1 and mc.annullato<>1
+--LEFT JOIN anagraf.dbo.modPagam mp on mp.codPag=ulc.ModPagam
+     WHERE archivio = 9999
+           AND tp.Codice IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918, 1977, 1976, 2028, 2027, 2006, 2005, 1971, 1970)
+--AND ulc.area IN ('MS', 'SP', 'IM', 'PR', 'SV', 'PC', 'FE', 'RA', 'MO', 'RE', 'BO')
+          AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1 
+--OR isnull(ulc.stContr,'')='A' OR isnull(ulc.stContr,'')='AS')
+),
+     ager
+     AS (
+     SELECT DISTINCT
+            c.codpsi,
+            c.id,
+            ag.nome,
+            a.email
+     FROM estrazioni.[dbo].[Commissioni] c
+          LEFT JOIN anagraf.dbo.Agenti a ON a.Gruppo = c.Gruppor
+                                            AND a.Codagente = c.Agenter
+          LEFT JOIN anagraf.dbo.anage ag ON ag.utente = a.utente
+     WHERE c.archivio = 9999),
+     impocomm
+     AS (
+     SELECT id,
+            area,
+            importo
+     FROM estrazioni.dbo.commissioni ulc
+     WHERE archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1),
+     impotot
+     AS (
+     SELECT area,
+            SUM(importo) AS Tot_Importo,
+            SUM(consegnato) AS Tot_Consegnato,
+            codpsi
+     FROM estrazioni.dbo.commissioni ulc
+     WHERE archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1
+     GROUP BY codpsi,
+              area),
+     imposigla
+     AS (
+     SELECT idCom,
+            area,
+            codpsi,
+            SUM(tot_acquisito) AS ImportoSigla,
+            SUM(tot_acquisito_insoluto) AS InsolutoSigla
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE archivio = 9999
+           AND codice_tipo_inserz IN(486, 704, 705, 706, 1076, 1189, 1190, 1191, 1192, 1193, 1194, 1225, 1226, 833, 1227, 1228, 1337, 1339, 1437, 1438, 1439, 1440, 1441, 1442, 1449, 1450, 1458, 1459, 1460, 1553, 1554, 1555, 1556, 1744, 480, 481, 482, 483, 484, 597, 599, 600, 632, 633, 634, 691, 680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 841, 1113, 1209, 1210, 1223, 1224, 1752, 1753, 995, 1207, 1208, 900, 1211, 1212, 1489, 1498, 1499, 1501, 1318, 1319, 1329, 1330, 1331, 1332, 891, 1206, 1307, 1308, 688, 1645, 1646, 1831, 1832, 1833, 1834, 1835, 1836, 1837, 1838, 1839, 1840, 1841, 1842, 1843, 1844, 1845, 1851, 1852, 1853, 1865, 1866, 1868, 1869, 1872, 1873, 1876, 1877, 1891, 1916, 1917, 1918, 1977, 1976, 2028, 2027, 2006, 2005, 1971, 1970)
+     GROUP BY idcom,
+              area,
+              codpsi),
+     impoins
+     AS (
+     SELECT area,
+            SUM(importoInsoluto) AS Tot_ImportoInsoluto,
+            codpsi
+     FROM estrazioni.dbo.commissioni aic
+     GROUP BY codpsi,
+              area),
+     mp
+     AS (
+     SELECT DISTINCT
+            ulc.id,
+            codpsi,
+            area,
+            IIF(ulc.datacomm IS NOT NULL, ulc.datacomm, ulc.DataComm_Annoprec) DataComm,
+            mp.desPag ModPag,
+            ulc.RinTac,
+            ulc.bianni,
+            ulc.bianna,
+            ulc.importo,
+            ulc.consegnato
+     FROM estrazioni.dbo.commissioni ulc
+          LEFT JOIN anagraf.dbo.modPagam mp ON mp.codPag = ulc.ModPagam
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = ulc.id
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+          INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+     WHERE archivio = 9999
+           AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1
+          AND tp.Codice IN(1760, 1761, 1762, 1763, 1813)
+     --AND mp.codPag = 6
+),
+     scaddom
+     AS (
+     SELECT DISTINCT
+            c.codpsi,
+            c.id,
+            format(do.dataScadenza, 'yyyyMMdd') dataScadenza
+     FROM estrazioni.[dbo].[Commissioni] c
+          LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+          LEFT JOIN anagraf.dbo.web_moduloc_domini do ON do.id_moduloc = mc.id
+     WHERE c.archivio = 9999
+           AND do.sitorif = 1
+           AND do.tipoAnnullamento <> 3)
+     SELECT DISTINCT
+            cli.codpsi,
+            cli.id idComSito,
+            --mp.id idComCPP,
+            IIF(mp.id = cli.id, cli.id, mp.id) idComCPP,
+            cli.RagSoc,
+            --cli.Firmante,
+            --cli.MailCli,
+            cli.Area,
+            --cli.Comune,
+            --cli.Indirizzo,
+            --cli.NumeroTel,
+            cli.Agente,
+            cli.email MailAge,
+            ager.nome AgeAff,
+            ager.email MailAgeAff,
+            cli.DataComm DataCommSito,
+            --mp.DataComm DataCommCPP,
+            IIF(mp.DataComm = cli.DataComm, cli.DataComm, mp.DataComm) DataCommCPP,
+            cli.rintac RinTacSito,
+            cli.bianni BiannISito,
+            cli.bianna BiannASito,
+            mp.rintac RinTacCPP,
+            mp.bianni BiannICPP,
+            mp.bianna BiannACPP,
+            cli.importo ImpoSito,
+            cli.consegnato ConsSito,
+		  --mp.importo ImpoCPP,
+            IIF(mp.importo = cli.importo, NULL, mp.importo) ImpoCPP,
+		  --mp.consegnato ConsCPP,
+            IIF(mp.consegnato = cli.consegnato, NULL, mp.consegnato) ConsCPP,
+--cli.Stato,
+            cli.www,
+            scaddom.dataScadenza,
+            cli.SigleSito,
+            cli.SigleCPP,
+            cli.ogg Oggetti
+            --mp.ModPag
+--impotot.Tot_Consegnato,
+--impotot.Tot_Importo,
+--impocomm.importo Importo_Comm,
+--ROUND(imposigla.ImportoSigla,2) ImportoSigla,
+--ROUND(imposigla.InsolutoSigla,2) InsolutoSigla,
+--impoins.Tot_ImportoInsoluto InsolutoSt
+
+     FROM cli
+          LEFT JOIN ager ON ager.codpsi = cli.CodPsi
+                            AND ager.id = cli.id
+          LEFT JOIN mp ON mp.CodPsi = cli.CodPsi
+                          AND mp.area = cli.area
+          LEFT JOIN scaddom ON scaddom.codpsi = cli.CodPsi
+                               AND scaddom.id = cli.id
+--LEFT JOIN impocomm ON impocomm.id = cli.id AND impocomm.area = cli.Area
+--LEFT JOIN impotot ON impotot.codpsi = cli.codpsi AND impotot.area = cli.area
+--LEFT JOIN imposigla ON imposigla.idCom = cli.id AND imposigla.area = cli.area
+--LEFT JOIN impoins ON impoins.codpsi = cli.codpsi AND impoins.area = cli.area
+     WHERE cli.ogg LIKE '%CPP%'
+     ORDER BY RagSoc;

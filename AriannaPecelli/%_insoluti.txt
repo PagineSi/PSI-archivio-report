@@ -1,0 +1,26 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT Area,
+       nomeAgente Agente,
+       ROUND(SUM(i.importoScaduto), 2) Importo_Scaduto,
+       ROUND(SUM(i.ImportoInsoluto), 2) Importo_Insoluto,
+       ROUND(SUM(i.[ImportoInsolutoNuovi]), 2) [Importo_Insoluto_Nuovi],
+       ROUND(SUM(i.[ImportoInsolutoRinnovi]), 2) [Importo_Insoluto_Rinnovi],
+       ROUND(SUM(i.[importoInsolutoMaturati]), 2) [Importo_Insoluto_Maturati],
+       ROUND(SUM(i.[ImportoInsolutoDaMaturare]), 2) [Importo_Insoluto_Da_Maturare],
+       CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsoluto) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') percentualeInsoluto,
+       CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoNuovi) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') percentualeInsolutoNuovi,
+       CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoRinnovi) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') percentualeInsolutoRinnovi,
+       CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoMaturati) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') percentualeInsolutoMaturati,
+       CONCAT(ROUND(IIF(SUM(i.importoScaduto) = 0, 0, CAST(SUM(i.importoInsolutoDaMaturare) / SUM(i.importoScaduto) * 100 AS DECIMAL(18, 2))), 2), '%') percentualeInsolutoDaMaturare
+FROM [estrazioni].[dbo].[vAnalisiImportiCommissioni] c
+     INNER JOIN estrazioni.dbo._ins_scad i ON c.archivio = i.archivio
+                                              AND c.idcom = i.idCom
+--WHERE c.archivio = 9999
+--      AND c.idcom = 725283
+
+GROUP BY Area,
+         nomeAgente
+ORDER BY area,
+         nomeAgente;

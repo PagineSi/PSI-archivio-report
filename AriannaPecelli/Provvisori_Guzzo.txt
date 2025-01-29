@@ -1,0 +1,75 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT --[id]
+si.urlProvvisorio,
+[www],
+       --[idCommissioneCorrente] 
+[CodPsi],
+[Area],
+      --,[SedeEsterna]
+      --,[DataComm]
+      --,[insegna]
+      --,[tipo]
+      --,[IdWebModuloCOggetto]
+      --,[Codice_Oggetto]
+      --,[DataValidazione] 
+mco.cm_ope_inproduzione OpePIP,
+format(ap.[cm_data_inproduzione], 'yyyy-MM-dd') DataPIP,
+--[IdWebModuloC],
+--[operatore],
+--[dataAssCopyExt],
+--[dataAssegnazione],
+--[InizioLavorazione],
+format([DataProvvisorio], 'yyyy-MM-dd') [DataProvvisorio],
+format([dataInvioProvvisorio], 'yyyy-MM-dd') [DataInvioProvvisorio],
+--[utenteInvioProvv],
+format([DataOnline], 'yyyy-MM-dd') [DataOnline],
+--[dataFineLavCopy],
+--[materialeAssente],
+--[annullato],
+--[isAssegnato],
+--[stato_DaAssegnare],
+--[stato_DaPrendereCarico],
+--[stato_InLavorazione],
+--[stato_InLavorazioneTesti],
+--[stato_FineLavorazioneTesti],
+--[stato_ProvvDaRealizzare],
+--[stato_ProvvRealizzato],
+--[stato_ProvvInviato],
+--[stato_ProvvInviato_generico],
+--[stato_PubblicatiTutti],
+--[stato_OnlineRegolare],
+[stato_OnlineInCostruzione]
+--[Nuovi],
+--[Mantenimenti],
+--[Restyling],
+--[FalsiMantenimenti],
+--[tipo_prodotto],
+--[utente_assegnazione],
+--[utente_inlav],
+--[utente_assegnazione_nome],
+--[contenuto],
+--[copy_ingaggiato],
+--[contenutoLav],
+--[commissione],
+--[agente],
+--[numOggDaAss],
+--[online_costruz]
+--[mantieni_in_costruzione_data],
+--[copy_riassegnato],
+--[idcategoria],
+--[utenteAgente],
+--[lavorazioneTrasferita],
+--[importazione_da_id],
+--[IdSi2site],
+--[statoOkAnalisiprod]
+FROM [servizi].[dbo].[vAnalisiProdottiNEW] ap
+     LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = ap.IdWebModuloCOggetto
+     LEFT JOIN servizi.dbo.sicomprod_si2site si ON si.idSi2site = ap.idsi2site
+     LEFT JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti pu ON pu.idWebModcOggetto = ap.IdWebModuloCOggetto
+WHERE mco.cm_ope_inproduzione = 'guzzo'
+      AND (isnull(dataonline, '') = ''
+           OR (ISNULL(ap.stato_OnlineInCostruzione, 0)) = 1
+           AND isnull(DataProvvisorio, '') > isnull(dataonline, ''))
+      AND isnull(pu.pubb_dopocostr_data, '') = '';

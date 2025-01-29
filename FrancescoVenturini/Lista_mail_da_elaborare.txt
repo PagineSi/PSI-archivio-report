@@ -1,0 +1,24 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            m2.[SERVER],
+            [ACCOUNT],
+            c.Firmante,
+            c.codpsi,
+            IIF(d.ID_ModuloC IS NOT NULL, d.ID_moduloc, np.id_moduloc) id_ModC,
+            ang.nome Agente
+     FROM [servizi].[dbo].[lista_mail2] m2
+          LEFT JOIN anagraf.dbo.web_moduloc_mail d ON d.email = m2.ACCOUNT
+          LEFT JOIN servizi.dbo.WEB_ModuloC_Mail_noreply np ON np.email = m2.ACCOUNT
+          LEFT JOIN anagraf.dbo.web_moduloc mc ON mc.id = d.ID_ModuloC
+                                                  OR mc.id = np.id_moduloc
+          LEFT JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+          LEFT JOIN anagraf.dbo.Agenti ag ON ag.gruppo = c.gruppo
+                                             AND ag.codagente = c.agente
+          LEFT JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+	    --where account='acquisti@perrozzi.it'
+     )
+     SELECT *
+     FROM base
+     ORDER BY account,
+              id_ModC DESC;

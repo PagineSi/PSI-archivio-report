@@ -1,0 +1,41 @@
+with sel as (SELECT [id]
+,[id_contatto_tmk]
+,[tipologia]
+,[codpsi]
+,[piva]
+,[prefisso]
+,[telefono]
+,[preferenze_commerciali]
+, f.splitdata
+FROM [servizi].[dbo].[MKTG_PROFILO_SOGGETTO] s
+cross apply dbo.fnSplitString(s.[preferenze_commerciali],';') f
+),
+tipo as (
+select tipo,
+sel.[id_contatto_tmk]
+FROM [servizi].[dbo].[MKTG_PROFILO_INTERESSI] i
+inner join sel on sel.splitdata= i.id)
+SELECT DISTINCT
+servizi.dbo.udfTestoSpezzato(c.id) id,
+servizi.dbo.udfTestoSpezzato(c.[ragsoc]) RagSoc,
+servizi.dbo.udfTestoSpezzato(c.[piva]) PIVA,
+servizi.dbo.udfTestoSpezzato(c.[note]) Note,
+servizi.dbo.udfTestoSpezzato(CONCAT(c.prefisso, '-', c.telefono)) Telefono,
+servizi.dbo.udfTestoSpezzato(CONCAT(c.prefisso2, '-', c.telefono2)) Telefono2,
+servizi.dbo.udfTestoSpezzato(c.[operatore]) Operatore,
+servizi.dbo.udfTestoSpezzato(a.nome) Agente,
+(STUFF(
+(
+SELECT DISTINCT ', '+ tipo.tipo
+from tipo
+
+WHERE tipo.[id_contatto_tmk]=c.ID_TMK_Contatti
+FOR XML PATH('')
+), 1, 2, '')) AS Interessi
+
+FROM servizi.dbo.MARKETING_TMK_Contatti c
+INNER JOIN anagraf.dbo.anage a ON a.utente = c.agente
+WHERE format(data, 'yyyMMdd') BETWEEN 20200101 AND 20201231
+AND c.area IN('BG', 'BS', 'CR', 'VR', 'VI', 'TO')
+AND esito = 3
+ORDER BY RagSoc;

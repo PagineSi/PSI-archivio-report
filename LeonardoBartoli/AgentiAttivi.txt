@@ -1,0 +1,32 @@
+SELECT DISTINCT
+      [nome]
+      --,an.[utente]
+      --,[referente]
+      --,[dataNascita]
+      --,[luogoNascita]
+      --,[residenza]
+      ,an.[telefono]
+      ,[cellulare]
+      ,a.[email]
+      ,[emailExt]
+      --,[sede]
+      --,[noteprovv]
+      --,[classInsluto]
+      --,[sesso]
+      --,[titoloStudio]
+      --,[informatizzazione]
+      --,[cfis]
+      --,[OreLav]
+      --,[NoteClassIns]
+      --,[dotazioneHW]
+      --,[alias]
+      --,[gruppoTopTeam]
+      --,[serviziAgenti]
+      --,[dataServiziAgenti]
+      --,[skype]
+  FROM [anagraf].[dbo].[anAge] an
+  inner join anagraf.dbo.agenti a on a.utente=an.utente
+  where 
+  --a.attivo='S'
+  a.nolavnoi is null
+  order by nome

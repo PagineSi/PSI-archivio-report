@@ -1,0 +1,11 @@
+SELECT DISTINCT
+       c.CodPsi,
+       d.www,
+       format([dataCreazione], 'yyyy-MM-dd') dataCreazioneIub,
+       format(i.[dataScadenza], 'yyyy-MM-dd') dataScadenzaIub,
+       format(d.datadomdel, 'yyyy-MM-dd') dataScadenzaDom
+FROM [servizi].[dbo].[SICOMPROD_Iubenda] i
+     LEFT JOIN anagraf.dbo.web_moduloc_oggetti o ON o.id = i.idWebModuloCOggetti
+     LEFT JOIN anagraf.dbo.web_moduloc_domini d ON d.id_moduloc = o.id_moduloc
+     LEFT JOIN estrazioni.dbo.commissioni c ON c.id = o.id_com
+WHERE d.datadomdel < GETDATE()

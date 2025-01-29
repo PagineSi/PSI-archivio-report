@@ -1,0 +1,62 @@
+WITH dati as (SELECT DISTINCT 
+       c.CodPsi, 
+       a.RagSoc, 
+       c.Area, 
+       cu.Provincia, 
+       (STUFF(
+             (
+                 SELECT DISTINCT
+                        ', '+ang.nome
+                 FROM anagraf.dbo.anage AS ang
+                      INNER JOIN anagraf.dbo.Agenti ag ON ag.utente = ang.utente
+                      INNER JOIN estrazioni.dbo.Commissioni c1 ON c1.gruppo = ag.gruppo
+                                                                  AND c1.agente = ag.Codagente
+                 WHERE c.codpsi = c1.CodPsi
+                       AND estrazioni.dbo.CommissioniAttive(c1.archivio, c1.CodPsi, c1.id) = 1
+                      AND c1.archivio = 9999 FOR XML PATH('')
+             ), 1, 2, '')) AS [Agente],
+	  estrazioni.dbo.udfElencoOggettiClienteCommAttive(c.archivio, c.codpsi) AS oggetti,
+       ct.categoria
+FROM estrazioni.dbo.Commissioni c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.Categorie ct ON ct.codice = a.Categoria
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.Agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     INNER JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+     INNER JOIN anagraf.dbo.comuni cu ON cu.codice = a.comune
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+     AND ct.catref IN(26, 97, 101, 246, 474, 475, 790, 1042, 1364, 1465)
+AND c.archivio = 9999
+GROUP BY   c.CodPsi, 
+       a.RagSoc, 
+       c.Area, 
+       cu.Provincia, 
+       ang.nome, 
+       ct.categoria,
+	  c.archivio),
+
+    imp as (SELECT
+            c1.codpsi,
+		  SUM(c1.Importo) Importo,
+		  SUM(c1.consegnato) Consegnato
+
+		  FROM estrazioni.dbo.commissioni c1
+		  WHERE c1.archivio=9999
+		  and estrazioni.dbo.CommissioniAttive(c1.archivio,c1.codpsi,c1.id)=1
+
+		  GROUP BY c1.codpsi)
+
+	  SELECT dati.CodPsi, 
+       dati.RagSoc, 
+       dati.Area, 
+       dati.Provincia, 
+	  dati.Agente,
+	  imp.Consegnato,
+	  imp.Importo,
+	  dati.oggetti,
+	  dati.categoria
+	   
+	   FROM dati INNER JOIN imp on imp.CodPsi=dati.CodPsi
+	   ORDER BY RagSoc

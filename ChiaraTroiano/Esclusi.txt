@@ -1,0 +1,91 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            c.id AS idCom,
+            mco.id AS idOggetto,
+            t.tipo,
+            c.codpsi,
+            an.RagSoc,
+            www,
+            c.firmante,
+            c.area,
+            ag.nome,
+            a.email,
+            IIF(EmailUrl IS NOT NULL, EmailUrl, EmailAmm) AS EmailCli,
+            c.bianni,
+            c.bianna,
+            c.stContr,
+            estrazioni.dbo.udfElencoOggettiCliente(c.archivio, c.codpsi) Ogg
+     FROM estrazioni.[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+          INNER JOIN anagraf.dbo.web_moduloc_domini md ON md.ID_ModuloC = mc.id
+                                                          AND isnull(md.tipoannullamento, 0) <> 3
+                                                          AND (datadomdel IS NULL
+                                                               OR (datadomdel IS NOT NULL
+                                                                   AND datadomrip IS NOT NULL))
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = mco.Codice_Oggetto
+          LEFT JOIN anagraf.dbo.Agenti a ON a.Gruppo = c.Gruppo
+                                            AND a.Codagente = c.Agente
+          LEFT JOIN anagraf.dbo.anage ag ON ag.utente = a.utente
+          INNER JOIN anagraf.dbo.Anagrafica an ON an.codice = c.Codice
+     WHERE(CodiceCategoriaCommerciale IN(12, 18, 73, 123, 137, 138, 166)
+     OR t.codice IN(680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 1489, 1498, 1318, 1319, 1329, 1330, 1331, 1332, 1519, 1518, 1517, 688, 891, 1206, 713, 1539, 1187, 1188, 1229, 1360, 1230, 1361))
+AND c.archivio = 9999
+AND (isnull(consegnato, 0) > 0
+     OR isnull(importo, 0) > 0
+     OR stcontr IN('oma', 'omb', 'omrt', 'VALID_PRECAR', 'PREC_GECO'))),
+     ager
+     AS (
+     SELECT DISTINCT
+            c.id,
+            ag.nome
+     FROM estrazioni.[dbo].[Commissioni] c
+          INNER JOIN anagraf.dbo.Agenti a ON a.Gruppo = c.Gruppor
+                                             AND a.Codagente = c.Agenter
+          LEFT JOIN anagraf.dbo.anage ag ON ag.utente = a.utente
+     WHERE c.archivio = 9999
+  --and estrazioni.dbo.commissioniattive(c.archivio,c.codpsi,c.id)=1
+  --and (isnull(consegnato,0)>0 or isnull(importo,0)>0 or stcontr='oma')
+     )
+     SELECT DISTINCT
+            idCom,
+            base.Codpsi,
+            --codpsi,
+            base.RagSoc,
+            base.firmante Firmante,
+            base.area Area,
+            base.nome Agente,
+            ager.nome AgenteAff,
+            email Email,
+            base.EmailCli,
+            base.bianni BiannI,
+            base.bianna BiannA,
+            base.stContr,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+www
+                      FROM anagraf.[dbo].[Commissioni] cc
+                           INNER JOIN anagraf.dbo.WEB_ModuloC mcc ON mcc.IDcom = cc.id
+                           INNER JOIN anagraf.dbo.web_moduloc_domini mdd ON mdd.ID_ModuloC = mcc.id
+                                                                            AND isnull(mdd.tipoannullamento, 0) <> 3
+                                                                            AND isnull(tipoannullamento, 0) <> 3
+                                                                            AND (datadomdel IS NULL
+                                                                                 OR (datadomdel IS NOT NULL
+                                                                                     AND datadomrip IS NOT NULL))
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mcoo ON mcoo.id_moduloc = mcc.id
+                           INNER JOIN anagraf.dbo.TipoInserz tt ON tt.Codice = mcoo.Codice_Oggetto
+                      WHERE(CodiceCategoriaCommerciale IN(12, 18, 73, 123, 137, 138, 166)
+                      OR tt.codice IN(680, 930, 931, 1219, 1220, 1221, 1222, 1690, 844, 908, 1014, 1213, 1214, 1215, 1216, 1217, 1218, 1461, 1462, 1463, 1464, 1465, 1466, 1489, 1498, 1318, 1319, 1329, 1330, 1331, 1332, 1519, 1518, 1517, 688, 891, 1206, 713, 1539, 1187, 1188, 1229, 1360, 1230, 1361))
+                      AND (isnull(consegnato, 0) > 0
+                           OR isnull(importo, 0) > 0
+                           OR stcontr IN('oma', 'omb', 'omrt', 'VALID_PRECAR', 'PREC_GECO'))
+                  AND cc.id = base.idcom FOR XML PATH('')
+                  ), 1, 2, '')) AS www,
+            base.Ogg
+     FROM base
+          LEFT JOIN ager ON ager.id = base.idcom
+		LEFT JOIN estrazioni.[dbo].[SitiMailing] sm on sm.codpsi=base.codpsi
+		WHERE sm.codpsi IS NULL
+		ORDER BY RagSoc

@@ -1,0 +1,63 @@
+WITH nuoviCMS
+     AS (
+     SELECT DISTINCT
+            c.stContr,
+            c.id,
+            c.Riferimento,
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND aio1.codice_tipo_inserz IN(2229, 2231, 2233)
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_New
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN estrazioni.dbo.commissioni c ON c.archivio = aio.archivio
+                                                     AND c.id = aio.idCom
+     WHERE format(aio.datacomm, 'yyyyMM') BETWEEN '202402' AND '202408'
+           AND aio.tipo_importo = 'FIRMATO'
+           AND isnull(aio.firmato_rinnovi, 0) > 0
+           AND aio.codice_tipo_inserz IN(2229, 2231, 2233)),
+     oldSiti
+     AS (
+     SELECT DISTINCT
+            ROW_NUMBER() OVER(PARTITION BY c.CodPsi ORDER BY IIF(c.DataComm IS NOT NULL, c.DataComm, c.Datacomm_annoprec) DESC) AS idRec,
+            c.stContr,
+            c.annsostid,
+            c.Riferimento,
+            aio.Area,
+            aio.CodPsi,
+            (STUFF(
+                  (
+                      SELECT ', '+aio1.tipo_inserz+' (x',
+                             COUNT(aio1.tipo_inserz),
+                             ')'
+                      FROM estrazioni.[dbo].[vAnalisiImportiOggetti] aio1
+                      WHERE aio.codpsi = aio1.codpsi
+                            AND aio.archivio = aio1.archivio
+                            AND (aio1.CodiceCategoria IN(12, 19, 31, 33, 35, 179)
+                      AND aio1.codice_tipo_inserz NOT IN(2229, 2231, 2233, 1685, 1686, 2230, 2232, 2234))
+                      GROUP BY aio1.tipo_inserz FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle_Old
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+          INNER JOIN estrazioni.dbo.commissioni c ON c.archivio = aio.archivio
+                                                     AND c.id = aio.idCom
+     WHERE(aio.CodiceCategoria IN(12, 19, 31, 33, 35, 179)
+          AND aio.codice_tipo_inserz NOT IN(2229, 2231, 2233, 2230, 2232, 2234)))
+     SELECT DISTINCT
+            nuoviCMS.Area,
+            nuoviCMS.CodPsi,
+            nuoviCMS.Sigle_New,
+            oldSiti.Sigle_Old,
+            oldSiti.idRec
+     FROM nuoviCMS
+          LEFT JOIN oldSiti ON oldSiti.area = nuoviCMS.area
+                               AND oldSiti.CodPsi = nuoviCMS.CodPsi
+     WHERE oldSiti.idRec = 1
+     ORDER BY nuoviCMS.CodPsi;

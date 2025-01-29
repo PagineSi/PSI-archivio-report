@@ -1,0 +1,16 @@
+SELECT commissioni.codpsi, 
+       commissioni.intfat, 
+       commissioni.importo, 
+       commissioni.dataprrata, 
+       commissioni.fatpa, 
+       commissioni.stampafat, 
+       commissioni.datafat
+FROM commissioni
+WHERE commissioni.importo > 1
+      AND commissioni.fatpa = 2
+      AND ISNULL(commissioni.fattAutom, '') = ''
+      AND (commissioni.stampafat = 0
+           OR commissioni.stampafat IS NULL)
+      AND (commissioni.datafat = 0
+           OR commissioni.datafat IS NULL)
+      AND DataPrRata = concat(format(GETDATE(), 'yyyyMM'), IIF(DATEPART(month, GETDATE()) = 2, '28', '30'));

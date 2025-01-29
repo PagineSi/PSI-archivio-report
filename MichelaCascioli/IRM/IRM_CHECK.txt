@@ -1,0 +1,227 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT DISTINCT c.[id],
+       c.[Codice],
+       c.[comweb],
+       c.[Piva],
+       c.[Firmante],
+       c.[Qualifica],
+       c.[CodFiscale],
+       c.[Gruppo],
+       c.[Agente],
+       c.[Riferimento],
+       c.[CodPsi],
+       c.[Luogo],
+	  ----cr.DataComm_AnnoprecPrec,
+       cr.DatacommPrec,
+       c.[DataComm_Annoprec],
+       c.[DataComm],
+       c.[Commissione],
+       c.[Anno],
+       c.[DataPrRata],
+       c.[Rate],
+       c.[Cadenza],
+       c.[Acconto],
+	  cr.ConsPrec,
+       c.[Consegnato],
+       c.[ModConsegnato],
+       c.[Importo],
+       c.[aliqIva],
+       c.[Causale],
+       c.[BancAbi],
+       c.[BancCab],
+       c.[ContoCor],
+       c.[IntFat],
+       c.[IntCoDes],
+       c.[IntCoInd],
+       c.[IntCoCap],
+       c.[IntCoLoc],
+       c.[Modificato],
+       c.[Visitato],
+       c.[ModPagam],
+       c.[Contabil],
+       c.[StampaFat],
+       c.[DataFat],
+       c.[CrystalFat],
+       c.[Biann],
+       c.[BiannI],
+       c.[BiannA],
+       c.[RinTac],
+       --c.[Annotaz],
+       c.[TipoCli],
+       c.[NcImpo],
+       c.[NcNum],
+       c.[NcData],
+       c.[AutRidSped],
+       c.[AutRidRic],
+       c.[Lng1],
+       c.[Lng2],
+       c.[WarnIns],
+       c.[Validaz],
+       c.[Grafico],
+       c.[InAgenzia],
+       c.[Attesa],
+       c.[MotivoAtt],
+       c.[DataLavoraz],
+       c.[SpedBozza],
+       c.[DataModif],
+       --c.[NoteStorico],
+       c.[StornoRid],
+       c.[DataProv],
+       c.[Impo2],
+       c.[CrdStato],
+       c.[CrdScade],
+       c.[ExGruppo],
+       c.[ExAgente],
+       --c.[Diciture],
+       c.[Area],
+       c.[Azienda],
+       c.[Prezzo],
+       c.[PraticaErr],
+       c.[regdom],
+       c.[NoSpInc],
+       c.[GruppoR],
+       c.[AgenteR],
+       c.[Iban],
+       c.[daVer],
+       c.[fatbloc],
+       c.[comBgl],
+       c.[comTus],
+       c.[GruppoTus],
+       c.[AgenteTus],
+       c.[ncbloc],
+       c.[dataCrt],
+       c.[oraCrt],
+       c.[pcCrt],
+       c.[opCrt],
+       c.[bgldata],
+       c.[negativo],
+       c.[DataAccet],
+       c.[DataRegDom],
+       c.[ModalAccet],
+       c.[CauDinRid],
+       --c.[AnnotGraf],
+       c.[dataCaric],
+       c.[importoWeb],
+       c.[ggScadRt],
+       c.[dataScadRt],
+       c.[dataAccetPrec],
+       c.[dittaIndiv],
+       c.[codPremio],
+       c.[sottoTar],
+       c.[ageRiassIniCamp],
+       c.[exRinTac],
+       c.[stContr],
+       c.[dataCampagna],
+       c.[chkScad],
+       c.[prodConc],
+       c.[oggPostic],
+       c.[exConsegnato],
+       c.[autfattinv],
+       c.[autfattric],
+       c.[mailWelcome],
+       c.[fatpa],
+       c.[ridfirst],
+       c.[annsostid],
+       c.[competenzaDa],
+       c.[competenzaA],
+       c.[dataPrecaricamento],
+       c.[ImpoAnnullato],
+       c.[socRecupero],
+       c.[nuovoiban],
+       c.[exPluriennale],
+       c.[dataVers],
+       c.[exOmaggio],
+       c.[dataAffid],
+       c.[tariffaMensile],
+       c.[fattAutom],
+       c.[propPrio],
+       c.[verChius],
+       c.[tipoSocieta],
+       c.[inAttesaRiass],
+       [firmanteNome],
+       [firmanteCognome],
+       c.[creditoAss],
+       c.[pagPos],
+       [creditoAssData],
+       --[annotris],
+       [ridMandato],
+       [cfRespTratt],
+       [nomeRespTratt],
+       [cognomeRespTratt],
+       [idPreventivo],
+       --[noteNonValidazione],
+       [contrattoEditabile],
+       [bando],
+       [daShop]
+
+
+	  --FROM [anagraf].[dbo].[Commissioni] c
+   --      WHERE SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 5, 2) = '03'
+   --            AND SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 0, 5) NOT IN('2024')
+   --      AND isnull(consegnato, 0) > 9
+   --      AND isnull(importo, 0) = 0
+   --      AND isnull(rintac, '') = ''
+   --      AND isnull(biannA, '') = ''
+   --      AND (stcontr IS NULL
+   --           OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+
+
+
+
+
+--FROM [anagraf].[dbo].[Commissioni] c
+--              INNER JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.idCom = c.id
+--         WHERE(ISNULL(c.DataComm, '') BETWEEN 20240301 AND 20240331
+--               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20240301 AND 20240331)
+--              AND SUBSTRING(cr.DataCommPrec, 5, 2) = '03'
+--              --AND ((SUBSTRING(cr.DataCommPrec, 5, 2) = '02' AND isnull(c.DataComm_Annoprec,'') <> isnull(cr.DataCommPrec,'')) OR (isnull(c.DataComm_Annoprec,'') = isnull(cr.DataCommPrec,'') AND SUBSTRING(isnull(cr.DataComm_AnnoprecPrec,''), 5, 2) = '02'))
+--              AND ((isnull(c.importo, 0) > 0
+--                    AND isnull(c.consegnato, 0) > 9
+--                    AND isnull(c.DataComm_Annoprec, '') <> isnull(cr.DataCommPrec, ''))
+--                   OR ((isnull(c.importo, 0) = 0
+--                        OR isnull(c.importo, 0) > 0)
+--                       AND isnull(c.consegnato, 0) > 9
+--                       AND isnull(c.DataComm_Annoprec, '') = isnull(cr.DataCommPrec, '')
+--                       AND isnull(cr.ConsPrec, 0) > 0))
+--              AND NOT(isnull(biannI, '') <> isnull(c.biannA, '')
+--                      AND isnull(biannI, '') > 'A')
+--              AND (c.stcontr IS NULL
+--                   OR c.stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+
+
+
+
+
+--FROM [anagraf].[dbo].[Commissioni] c
+--              INNER JOIN estrazioni.dbo.vcommissioniriferimento cr ON cr.idCom = c.id
+--         WHERE(ISNULL(c.DataComm, '') BETWEEN 20240301 AND 20240331
+--               OR ISNULL(c.DataComm_annoprec, '') BETWEEN 20240301 AND 20240331)
+--              AND SUBSTRING(cr.DataCommPrec, 5, 2) NOT IN('03') 
+--		    --AND ((SUBSTRING(cr.DataCommPrec, 5, 2) NOT IN ('02') AND isnull(c.DataComm_Annoprec,'') <> isnull(cr.DataCommPrec,'')) OR (isnull(c.DataComm_Annoprec,'') = isnull(cr.DataCommPrec,'') AND SUBSTRING(isnull(cr.DataComm_AnnoprecPrec,''), 5, 2) NOT IN ('02')))
+--              AND ((isnull(c.importo, 0) > 0
+--                    AND isnull(c.consegnato, 0) > 9
+--                    AND isnull(c.DataComm_Annoprec, '') <> isnull(cr.DataCommPrec, ''))
+--                   OR ((isnull(c.importo, 0) = 0
+--                        OR isnull(c.importo, 0) > 0)
+--                       AND isnull(c.consegnato, 0) > 9
+--                       AND isnull(c.DataComm_Annoprec, '') = isnull(cr.DataCommPrec, '')
+--                       AND isnull(cr.ConsPrec, 0) > 0))
+--              AND NOT(isnull(biannI, '') <> isnull(c.biannA, '')
+--                      AND isnull(biannI, '') > 'A')
+--              AND (stcontr IS NULL
+--                   OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))
+
+
+
+
+--FROM [anagraf].[dbo].[Commissioni] c
+--         WHERE SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 5, 2) = '04'
+--               AND SUBSTRING(IIF(ISNULL(DataComm, '') <> '', datacomm, datacomm_annoprec), 0, 5) NOT IN('2024')
+--         AND isnull(consegnato, 0) > 9
+--         AND isnull(importo, 0) = 0
+--         AND isnull(rintac, '') = ''
+--         AND isnull(biannA, '') = ''
+--         AND (stcontr IS NULL
+--              OR stcontr NOT IN('A', 'AS', 'ART', 'NON_VALIDATO', 'OmA', 'OmB', 'OmRT'))

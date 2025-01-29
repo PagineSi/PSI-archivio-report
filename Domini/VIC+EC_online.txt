@@ -1,0 +1,17 @@
+SELECT DISTINCT
+       c.Codpsi,
+       d.www,
+       format(p.online_data, 'yyyy-MM-dd') DataOnline
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = d.id_moduloc
+     INNER JOIN anagraf.dbo.web_moduloc_oggetti mco ON mco.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.IDcom
+     INNER JOIN servizi.dbo.SICOMPROD_ECOMMERCE ec ON ec.id_moduloc = mc.ID
+     INNER JOIN servizi.dbo.SICOMPROD_Pubblicazioni_Siti p ON p.idWebModcOggetto = mco.id
+     --INNER JOIN servizi.[dbo].[vTipoVIC] ON [vTipoVIC].codpsi = c.codpsi
+WHERE p.online_data <> ''
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND d.sitorif = 1
+     AND (d.dataScadenza IS NULL
+          OR d.datascadenza >= GETDATE())
+ORDER BY c.codpsi;

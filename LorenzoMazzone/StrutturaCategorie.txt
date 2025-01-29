@@ -1,0 +1,35 @@
+WITH settore
+     AS (
+     SELECT crs.[codiceSet] idSettore,
+            csd.Settore,
+            c.[catRef] idCatP,
+            c.categoria CatP,
+            c.codice
+     FROM [main].[dbo].[CatRefSettore] crs
+          LEFT JOIN [main].[dbo].[CatSetDescrizione] csd ON crs.codiceSet = csd.codiceSet
+          RIGHT JOIN anagraf.dbo.categorie c ON c.catref = crs.catref
+     WHERE c.catref = c.codice
+--ORDER BY csd.settore,
+--         c.categoria;
+     ),
+     sub
+     AS (
+     SELECT DISTINCT
+            cat.catref,
+            cat.codice idCatS,
+            cat.categoria CatS
+     FROM anagraf.dbo.categorie cat
+     WHERE cat.catref <> cat.codice)
+     SELECT settore.idSettore,
+            settore.Settore,
+            settore.idCatP,
+            settore.CatP,
+            sub.idCatS,
+            sub.CatS
+     FROM settore
+          LEFT JOIN sub ON settore.codice = sub.catref
+     ORDER BY 
+		--settore.settore, catP, catS
+     settore.idSettore,
+     settore.idcatP,
+     sub.idcats;

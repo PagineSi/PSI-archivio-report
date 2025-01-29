@@ -1,0 +1,17 @@
+SELECT DISTINCT
+      servizi.dbo.udfTestoSpezzato(a.[utente]) Utente
+      ,servizi.dbo.udfTestoSpezzato(a.[nome]) Nome
+      ,servizi.dbo.udfTestoSpezzato(a.[cognome]) Cognome
+	 ,servizi.dbo.udfTestoSpezzato(r.descrizione) Reparto
+	 ,servizi.dbo.udfTestoSpezzato(s.Ufficio) Sede
+	 ,servizi.dbo.udfTestoSpezzato(a.email) Email
+	 ,servizi.dbo.udfTestoSpezzato(a.telefono) Tel
+	 ,servizi.dbo.udfTestoSpezzato(pa.azienda) Azienda
+      
+  FROM [anagraf].[dbo].[persAnag] a
+  left join anagraf.dbo.sedi s on a.idsedi=s.idSede
+  left join anagraf.dbo.persAnagReparti ar on ar.idPersAnag=a.id
+  left join anagraf.dbo.persreparti r on r.id=ar.idPersReparto
+  left join anagraf.dbo.persAziende pa on pa.siglaAzienda=a.codazie
+  WHERE isnull(a.nolavnoi,'')=''
+  ORDER BY cognome

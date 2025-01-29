@@ -1,0 +1,5 @@
+SELECT  [domini]
+  FROM [servizi].[dbo].[dominiLo] d
+  left join servizi.dbo.domini d1 on (d.domini=d1.dominio or d1.Dominio=CONCAT('www.',d1.dominio) or d1.dominio=CONCAT('www-',d1.dominio))
+  where (d1.CodPsi is null or d1.codpsi=388151)
+  order by d.domini

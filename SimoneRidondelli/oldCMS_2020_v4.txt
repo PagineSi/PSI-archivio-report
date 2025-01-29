@@ -1,0 +1,67 @@
+WITH cli
+     AS (
+     SELECT DISTINCT
+            ulc.id,
+            ulc.archivio,
+            ulc.codpsi,
+            ragsoc,
+            ulc.area,
+            anage.nome Agente,
+            IIF(isnull(a.emailurl, '')  '', isnull(a.emailurl, ''), isnull(a.emailamm, '')) Email,
+            IIF(ulc.datacomm IS NOT NULL, ulc.datacomm, ulc.DataComm_Annoprec) DataComm,
+            (STUFF(
+                  (
+                      SELECT ', '+tp1.tipo+' (x',
+                             COUNT(tp1.tipo),
+                             ')'
+                      FROM anagraf.dbo.TipoInserz tp1
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                      WHERE ulc1.id = ulc.id
+                            AND ulc1.archivio = ulc.archivio
+                            AND ulc1.archivio = 9999
+                            AND tp1.CodiceCategoria IN(35, 12, 179)
+                      GROUP BY tp1.tipo FOR XML PATH('')
+                  ), 1, 2, '')) AS Sigle,
+            CASE
+                WHEN isnull(pu.online_costruz, 0) = 0
+                THEN pu.online_data
+                WHEN isnull(pu.online_costruz, 0) = 1
+                     AND isnull(pubb_dopocostr_data, '')  ''
+                THEN pubb_dopocostr_data
+                ELSE mc.dataOnline
+            END AS DataOnline,
+            estrazioni.dbo.udfElencoOggettiClienteCommAttive(ulc.archivio, ulc.codpsi) Ogg,
+            do.www
+     FROM estrazioni.dbo.commissioni ulc
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.codice
+          LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                             AND ulc.Agente = ag.Codagente
+          LEFT JOIN anagraf.dbo.anage ON anage.utente = ag.utente
+          INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = ulc.id
+          INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini do ON do.ID_ModuloC = mc.ID
+          INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+          LEFT JOIN servizi.dbo.sicomprod_pubblicazioni_siti pu ON pu.idWebModcOggetto = mco.id
+     WHERE archivio = 9999
+           AND tp.CodiceCategoria IN(35, 12, 179)
+          --AND ulc.area IN('MS', 'SP', 'IM', 'PR', 'SV', 'PC', 'FE', 'RA', 'MO', 'RE', 'BO')
+          AND (estrazioni.dbo.commissioniattive(ulc.archivio, ulc.CodPsi, ulc.id) = 1
+AND isnull(do.sitorif, 0) = 1
+AND isnull(pu.id_Lavorazione, 0) = 1
+--OR isnull(ulc.stContr, '') = 'A'
+--OR isnull(ulc.stContr, '') = 'AS'))
+))
+     SELECT DISTINCT
+            cli.www,
+            cli.id,
+            cli.codpsi,
+            cli.Email,
+            cli.Area,
+            cli.RagSoc,
+            cli.Sigle,
+            format(cli.Dataonline, 'yyyy-MM-dd') DataOnline,
+            cli.Agente,
+            cli.ogg Oggetti
+     FROM cli
+     ORDER BY RagSoc;

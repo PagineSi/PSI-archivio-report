@@ -1,0 +1,103 @@
+SELECT DISTINCT
+       c.CodPsi,
+	  (STUFF(
+             (
+                 SELECT DISTINCT ', '+do1.www
+			  
+                 FROM [anagraf].[dbo].[WEB_ModuloC_Domini] do1
+                      
+                 
+			  inner join anagraf.dbo.web_moduloc mc1 on mc1.id=do1.ID_ModuloC
+			  inner join anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.id_moduloc=mc1.ID
+  inner join estrazioni.dbo.Commissioni c1 on c1.id=mc1.IDcom
+  WHERE 
+  c1.id=c.id and c.id=c1.id and c1.archivio=c.archivio
+ and isnull(do1.tipoAnnullamento,0) = 2
+ 
+ 
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS www,
+MAX(gog.Account) Account
+FROM estrazioni.dbo.Commissioni c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = mco.Codice_Oggetto
+     INNER JOIN anagraf.dbo.Agenti ag ON ag.gruppo = c.Gruppo
+                                         AND ag.Codagente = c.Agente
+     INNER JOIN anagraf.dbo.anAge ang ON ang.utente = ag.utente
+	INNER JOIN anagraf.dbo.WEB_ModuloC_Domini do on do.ID_ModuloC_Oggetti=mco.id
+	LEFT JOIN anagraf.dbo.WEB_ModuloC_GoogleAnalytics gog on gog.ID_ModuloC=mc.id
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio,c.CodPsi, c.id) = 1
+and ang.id=3999
+and t.codice IN (
+1690, 
+931, 
+1219, 
+1220, 
+930, 
+1221, 
+1222, 
+480, 
+481, 
+482, 
+597, 
+483, 
+599, 
+484, 
+600, 
+632, 
+634, 
+486, 
+633, 
+1225, 
+1226, 
+1014, 
+1215, 
+1216, 
+704, 
+1189, 
+1190, 
+1465, 
+1466, 
+1464, 
+844, 
+1217, 
+1218, 
+706, 
+1193, 
+1194, 
+705, 
+1191, 
+1192, 
+900, 
+1211, 
+1212, 
+841, 
+1752, 
+1753, 
+1461, 
+1462, 
+1463, 
+908, 
+1213, 
+1214, 
+1209, 
+1210, 
+995, 
+1207, 
+1208, 
+1187, 
+1188, 
+1229, 
+1360, 
+1230, 
+1361, 
+68, 
+69, 
+341)
+and isnull(do.tipoAnnullamento,0) = 2
+GROUP BY c.codpsi,
+         c.id,
+	    c.archivio
+ORDER BY codpsi

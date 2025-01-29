@@ -1,0 +1,49 @@
+SELECT [Dominio],
+       format([DataRichiestaCliente], 'yyyy-MM-dd') DataRichiesta,
+       [Proprietario],
+       CASE
+           WHEN [ProprietaPsi] = 0
+           THEN ''
+           WHEN [ProprietaPsi] = 1
+           THEN 'X'
+       END AS ProprietaPSI,
+       CASE
+           WHEN [EsitoRichiesta] = 1
+           THEN 'Rilasciato'
+           WHEN [EsitoRichiesta] = 2
+           THEN 'Non Rilasciato'
+           WHEN [EsitoRichiesta] = 3
+           THEN 'Cliente Recuperato'
+       END AS EsitoRichiesta,
+       CASE
+           WHEN [MotivoRichiesta] = 1
+           THEN 'Chiusura attività'
+           WHEN [MotivoRichiesta] = 2
+           THEN 'Costo elevato'
+           WHEN [MotivoRichiesta] = 3
+           THEN 'Mancanza intervento commerciale'
+           WHEN [MotivoRichiesta] = 4
+           THEN 'Cambio provider concorrenza'
+           WHEN [MotivoRichiesta] = 5
+           THEN 'Insoddisfazione'
+           WHEN [MotivoRichiesta] = 6
+           THEN 'Gestione autonoma'
+           WHEN [MotivoRichiesta] = 7
+           THEN 'Disdetta'
+           WHEN [MotivoRichiesta] = 8
+           THEN 'Desiderio di acquistare il dominio'
+       END AS MotivoRichiesta,
+       CASE
+           WHEN [StatoRichiesta] = 1
+           THEN 'In trattamento commerciale'
+           WHEN [StatoRichiesta] = 2
+           THEN 'In trattamento aziendale'
+           WHEN [StatoRichiesta] = 3
+           THEN 'In sospeso'
+           WHEN [StatoRichiesta] = 4
+           THEN 'Intervento fallito'
+       END AS StatoRichiesta,
+       [ImportoRilascio]
+FROM [servizi].[dbo].[domini] d
+WHERE DATEPART(year, [DataRichiestaCliente]) = 2022
+ORDER BY datarichiestacliente;

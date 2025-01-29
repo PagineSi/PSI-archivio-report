@@ -1,0 +1,14 @@
+select distinct count(oggetti.tipo) as TotaleVenduti
+				, lavorati.LavoratiF
+			from commissioni 
+				inner join oggetti on oggetti.idcom=commissioni.id
+				inner join tipoinserz on tipoinserz.codice=oggetti.tipo
+				left join (
+					select distinct count (*) as LavoratiF
+					from commissioni as c 
+						inner join oggetti on oggetti.idcom=c.id
+					where oggetti.tipo in (604,803,1000,1548,1547,1494,1549,1550) 
+						and isnull(oggetti.avanz,'')='F'
+					) as lavorati on commissioni.id=oggetti.idcom
+			where tipoinserz.codice in (604,803,1000,1548,1547,1494,1549,1550)
+			group by lavorati.LavoratiF	

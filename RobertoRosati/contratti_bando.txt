@@ -1,0 +1,57 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT Area,
+       id idCom,
+       Codpsi,
+       a.RagSoc,
+       IIF(DataComm IS NOT NULL, datacomm, datacomm_annoprec) DataComm,
+       c.Importo
+FROM [anagraf].[dbo].[Commissioni] c
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+WHERE isnull(bando, 0) > 0
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+UNION
+SELECT Area,
+       id idCom,
+       Codpsi,
+       a.RagSoc,
+       IIF(DataComm IS NOT NULL, datacomm, datacomm_annoprec) DataComm,
+       c.Importo
+FROM [arc222].[dbo].[Commissioni] c
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+WHERE isnull(bando, 0) > 0
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+UNION
+SELECT Area,
+       id idCom,
+       Codpsi,
+       a.RagSoc,
+       IIF(DataComm IS NOT NULL, datacomm, datacomm_annoprec) DataComm,
+       c.Importo
+FROM [arc221].[dbo].[Commissioni] c
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+WHERE isnull(bando, 0) > 0
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+UNION
+SELECT Area,
+       id idCom,
+       Codpsi,
+       a.RagSoc,
+       IIF(DataComm IS NOT NULL, datacomm, datacomm_annoprec) DataComm,
+       c.Importo
+FROM [arc220].[dbo].[Commissioni] c
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+WHERE isnull(bando, 0) > 0
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+UNION
+SELECT Area,
+       id idCom,
+       Codpsi,
+       a.RagSoc,
+       IIF(DataComm IS NOT NULL, datacomm, datacomm_annoprec) DataComm,
+       c.Importo
+FROM [arc219].[dbo].[Commissioni] c
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+WHERE isnull(bando, 0) > 0
+      AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1;

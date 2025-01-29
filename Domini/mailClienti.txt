@@ -1,0 +1,44 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT COUNT(m.Codpsi) nMail,
+       m.CodPsi
+       --m.email
+       --m.oggetti
+FROM
+(
+    SELECT DISTINCT
+           c.CodPsi,
+           anagraf.dbo.udfElencoOggetti(c.id) Oggetti,
+		 --mc.contenuto Oggetti,
+       --m.[Id],
+       --m.[ID_ModuloC],
+           [email],
+       --[user],
+       --[pwd],
+       --m.[note],
+       --[dataInserimento],
+       --[operatore],
+       --[mailDaAnnullare],
+           [datamaildel],
+       --[operatoremaildel],
+           [datamailrip]
+       --[operatoremailrip],
+       --m.[dataCopiaInGeco],
+       --[isPec],
+       --[dataInvioCredenziali],
+       --[operatoreInvioCredenziali]
+    FROM [anagraf].[dbo].[WEB_ModuloC_Mail] m
+         INNER JOIN anagraf.dbo.WEB_ModuloC_Domini d ON d.ID_ModuloC = m.ID_ModuloC
+         LEFT JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+         LEFT JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+    WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+         AND (isnull(datamaildel, '') = ''
+              OR (isnull(datamaildel, '') <> ''
+                  AND isnull(datamailrip, '') <> ''))
+         AND isnull([user], '') = isnull(email, '') --and codpsi=1902
+--ORDER BY c.CodPsi
+) m --WHERE 
+GROUP BY m.CodPsi;
+         --m.email
+         --m.oggetti;

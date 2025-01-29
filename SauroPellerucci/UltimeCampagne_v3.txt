@@ -1,0 +1,182 @@
+
+--Consegnato = consegnato ultima campagna chiusa (ovvero importo due campange fa)
+--Consumato = importo totale commissione - se importo totale è <= consegnato, se > mostro consegnato
+--Rinnovato = importo totale commissione ultima campagna chiusa di chi ha consegnato
+--Nuovo = somma importo totale commissioni dei nuovi clienti 
+--Acquisito Totale = somma importi di tutte le commissioni
+
+
+
+
+WITH base
+     AS (
+     SELECT DISTINCT
+            Area,
+            archivio
+     FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne]),
+     consegnato
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.Consegnato) TOT_Consegnato
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                isnull(c.Consegnato, 0) Consegnato
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+     ) AS m
+     GROUP BY Area),
+     consegnatoConcProp
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.ConsegnatoConc) TOT_ConsegnatoConc,
+            SUM(m.ConsegnatoProp) TOT_ConsegnatoProp
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                isnull(aio.acquisito_concessione, 0) ConsegnatoConc,
+                isnull(aio.acquisito_property, 0) ConsegnatoProp
+         FROM [estrazioni].[dbo].[vCommissioniPenultimeCampagne] c
+              INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idCom = c.id
+                                                                      AND aio.archivio = c.archivio
+     ) AS m
+     GROUP BY Area),
+     consumato
+     AS (
+     SELECT m.Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.Consumato) TOT_Consumato
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                IIF(isnull(importo, 0) > 0, isnull(consegnato, 0), 0) Consumato
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+     ) AS m
+     GROUP BY m.Area),
+     consumatoConcProp
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.ConsumatoConc) TOT_ConsumatoConc,
+            SUM(m.ConsumatoProp) TOT_ConsumatoProp
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                isnull(aio.acquisito_concessione, 0) ConsumatoConc,
+                isnull(aio.acquisito_property, 0) ConsumatoProp
+         FROM [estrazioni].[dbo].[vCommissioniPenultimeCampagne] c
+              LEFT JOIN [estrazioni].[dbo].vCommissioniUltimeCampagne uc ON uc.Riferimento = c.Commissione
+                                                                            AND uc.area = c.area
+              INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idCom = c.id
+                                                                      AND aio.archivio = c.archivio
+         WHERE isnull(uc.importo, 0) > 0
+     ) AS m
+     GROUP BY m.Area),
+     rinnovato
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.Importo) TOT_Rinnovato
+     FROM
+     (
+         SELECT c.[Area],
+                id,
+                isnull(importo, 0) Importo
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+         WHERE isnull(consegnato, 0) > 0
+     ) AS m
+     GROUP BY Area),
+     rinnovatoConcProp
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.ImportoConc) TOT_RinnovatoConc,
+            SUM(m.ImportoProp) TOT_RinnovatoProp
+     FROM
+     (
+         SELECT c.[Area],
+                id,
+                isnull(importo, 0) Importo,
+                isnull(aio.acquisito_concessione, 0) ImportoConc,
+                isnull(aio.acquisito_property, 0) ImportoProp
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+              INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idcom = c.id
+                                                                      AND aio.archivio = c.archivio
+         WHERE isnull(consegnato, 0) > 0
+     ) AS m
+     GROUP BY Area),
+     importoNuovi
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.Importo) TOT_Importo
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                isnull(c.importo, 0) Importo
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+              LEFT JOIN estrazioni.dbo.vCommissioniPenultimeCampagne c2 ON c2.codpsi = c.codpsi
+         WHERE c2.codpsi IS NULL
+     ) AS m
+     GROUP BY Area),
+     importoNuoviConcProp
+     AS (
+     SELECT Area,
+            COUNT(m.id) TOT_Comm,
+            SUM(m.ImportoConc) TOT_ImportoConc,
+            SUM(m.ImportoProp) TOT_ImportoProp
+     FROM
+     (
+         SELECT c.[Area],
+                c.id,
+                isnull(c.importo, 0) Importo,
+                isnull(aio.acquisito_concessione, 0) ImportoConc,
+                isnull(aio.acquisito_property, 0) ImportoProp
+         FROM [estrazioni].[dbo].[vCommissioniUltimeCampagne] c
+              INNER JOIN estrazioni.dbo.vAnalisiImportiOggetti aio ON aio.idcom = c.id
+                                                                      AND aio.archivio = c.archivio
+              LEFT JOIN estrazioni.dbo.vCommissioniPenultimeCampagne c2 ON c2.codpsi = c.codpsi
+         WHERE c2.codpsi IS NULL
+     ) AS m
+     GROUP BY Area)
+     SELECT DISTINCT
+            base.Area,
+            ROUND(isnull(consegnato.TOT_Consegnato, 0), 2) Consegnato,
+            ROUND(isnull(consumato.TOT_Consumato, 0), 2) Consumato,
+            ROUND(isnull(rinnovato.TOT_Rinnovato, 0), 2) Rinnovato,
+            ROUND(isnull(consegnato.TOT_Consegnato, 0) - isnull(consumato.TOT_Consumato, 0), 2) AS Negativo,
+            ROUND(isnull(importoNuovi.TOT_Importo, 0), 2) Nuovi,
+            ROUND(isnull(rinnovato.TOT_Rinnovato, 0) + isnull(importoNuovi.TOT_Importo, 0), 2) AS AcquisitoTotale,
+            ROUND(isnull(consegnatoConcProp.TOT_ConsegnatoProp, 0), 2) ConsegnatoProp,
+            ROUND(isnull(consumatoConcProp.TOT_ConsumatoProp, 0), 2) ConsumatoProp,
+            ROUND(isnull(rinnovatoConcProp.TOT_RinnovatoProp, 0), 2) RinnovatoProp,
+            ROUND(isnull(consegnatoConcProp.TOT_ConsegnatoProp, 0) - isnull(consumatoConcProp.TOT_ConsumatoProp, 0), 2) AS NegativoProp,
+            ROUND(isnull(importoNuoviConcProp.TOT_ImportoProp, 0), 2) NuoviProp,
+            ROUND(isnull(rinnovatoConcProp.TOT_RinnovatoProp, 0) + isnull(importoNuoviConcProp.TOT_ImportoProp, 0), 2) AS AcquisitoTotaleProp,
+            ROUND(isnull(consegnatoConcProp.TOT_ConsegnatoConc, 0), 2) ConsegnatoConc,
+            ROUND(isnull(consumatoConcProp.TOT_ConsumatoConc, 0), 2) ConsumatoConc,
+            ROUND(isnull(rinnovatoConcProp.TOT_RinnovatoConc, 0), 2) RinnovatoConc,
+            ROUND(isnull(consegnatoConcProp.TOT_ConsegnatoConc, 0) - isnull(consumatoConcProp.TOT_ConsumatoConc, 0), 2) AS NegativoConc,
+            ROUND(isnull(importoNuoviConcProp.TOT_ImportoConc, 0), 2) NuoviConc,
+            ROUND(isnull(rinnovatoConcProp.TOT_RinnovatoConc, 0) + isnull(importoNuoviConcProp.TOT_ImportoConc, 0), 2) AS AcquisitoTotaleConc
+     FROM base
+          LEFT JOIN consegnato ON consegnato.area = base.area
+          LEFT JOIN consegnatoConcProp ON consegnatoConcProp.area = base.area
+          LEFT JOIN consumato ON consumato.area = base.area
+          LEFT JOIN consumatoConcProp ON consumatoConcProp.area = base.area
+          LEFT JOIN rinnovato ON rinnovato.area = base.area
+          LEFT JOIN rinnovatoConcProp ON rinnovatoConcProp.area = base.area
+          LEFT JOIN importoNuovi ON importoNuovi.area = base.area
+          LEFT JOIN importoNuoviConcProp ON importoNuoviConcProp.area = base.area
+          LEFT JOIN main.dbo.arcediz a ON a.arc = CONCAT('arc', base.archivio)
+                                          AND a.arc NOT IN('_archivio')
+     WHERE format(campagnaA, 'yyyyMMdd') > '20211231'
+           AND a.arc NOT LIKE '%_archivio%'
+           AND format(campagnaA, 'yyyyMMdd') NOT IN('20991231')
+     ORDER BY base.Area;

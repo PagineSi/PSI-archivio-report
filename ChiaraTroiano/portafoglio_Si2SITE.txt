@@ -1,0 +1,220 @@
+WITH corr
+     AS (
+     SELECT DISTINCT
+            c.causale,
+            c.Rintac,
+            c.BiannI,
+            c.BiannA,
+            c.PIVA,
+            a.RagSoc,
+            c.[Area],
+            c.id idCommissione,
+            c.Commissione,
+            c.Riferimento,
+            c.CodPsi,
+            --format(TRY_CONVERT( DATE, c.DataComm), 'yyyy-MM-dd') DataComm,
+            anagraf.dbo.udfelencooggetti(c.id) Oggetti,
+            STUFF(
+                 (
+                     SELECT ', '+t1.tipo
+                     FROM anagraf.dbo.TipoInserz t1
+                          INNER JOIN anagraf.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                          INNER JOIN anagraf.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                   --AND c1.archivio = ogg1.archivio
+                     WHERE c1.id = c.id
+                           --AND c1.archivio = c.archivio
+                           AND t1.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM') FOR XML PATH('')
+                 ), 1, 2, '') AS Sigle,
+            --c.Consegnato,
+            c.Importo,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+ang.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+                          INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                   AND c2.agente = ag.Codagente
+                     WHERE c2.id = c.id
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS Agente,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+agc.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                                  AND ag.utente = ac.utenteAge
+                                                                  AND ac.isCoordinatore = 1
+                          LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                          INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                   AND c2.agente = ag.Codagente
+                     WHERE c2.id = c.id
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS Coordinatore,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+agc.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                                  AND ag.utente = ac.utenteAge
+                                                                  AND ac.isSupervisore = 1
+                          LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                          INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                   AND c2.agente = ag.Codagente
+                     WHERE c2.id = c.id
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS Supervisore
+     FROM anagraf.dbo.commissioni c
+          INNER JOIN z_erytest.dbo.commissioniNonRinnovate ch ON ch.idCommissione = c.id
+          LEFT JOIN estrazioni.dbo.oggetti ogg ON ogg.idcom = ch.idCommissione
+          LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = ogg.tipo
+          LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     WHERE tp.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM')
+          AND isnull(datarinnovato, '') = ''
+          AND format(dataScadenzaCommissione, 'yyyyMM') BETWEEN '202401' AND '202403'
+          AND dataScadenzaCommissione <> dataUltimaCommissione
+          AND nonvalid IS NULL),
+     commPrec
+     AS (
+     SELECT DISTINCT
+            MAX(cr.ArchivioPrec) ArchivioPrec,
+            --corr.idCommissione,
+            MAX(cr.idComPrec) idComPrec,
+            --corr.Commissione,
+            --corr.Riferimento,
+            cr.CommissionePrec,
+            corr.Codpsi
+     FROM corr
+          INNER JOIN estrazioni.dbo.vCommissioniRiferimento_ID cr ON cr.CommissionePrec = corr.Riferimento
+                                                                     AND cr.codpsi = corr.codpsi
+     GROUP BY cr.CommissionePrec,
+              corr.Codpsi),
+     prec
+     AS (
+     SELECT DISTINCT
+            --commPrec.idComPrec,
+            commPrec.CodPsi,
+            commPrec.CommissionePrec,
+            STUFF(
+                 (
+                     SELECT ', '+t1.tipo+' (x',
+                            COUNT(t1.tipo),
+                            ')'
+                     FROM anagraf.dbo.TipoInserz t1
+                          INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                          INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                      AND c1.archivio = ogg1.archivio
+                     WHERE c1.id = commPrec.idComPrec
+                           AND c1.archivio = commPrec.ArchivioPrec
+                           AND c1.commissione = commprec.CommissionePrec
+                     GROUP BY t1.tipo FOR XML PATH('')
+                 ), 1, 2, '') AS OggettiPrec,
+            STUFF(
+                 (
+                     SELECT ', '+t1.tipo
+                     FROM anagraf.dbo.TipoInserz t1
+                          INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+                          INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+                                                                      AND c1.archivio = ogg1.archivio
+                     WHERE c1.id = commPrec.idComPrec
+                           AND c1.archivio = commPrec.ArchivioPrec
+                           AND c1.commissione = commprec.CommissionePrec
+                           AND t1.tipo IN('RDVC', 'RDVC-C', 'RDVC-M', 'RDVC-PC', 'RDVC-PM', 'RDVC-R', 'RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'S2Pro', 'S2ProM', 'S2ProR', 'S2RDV', 'Si2BImm', 'Si2BImmM', 'Si2BIMM-M', 'Si2BIMM-PM', 'Si2BImmR', 'Si2BIMM-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2Imm', 'Si2ImmM', 'Si2IMM-M', 'Si2IMM-PM', 'Si2ImmR', 'Si2IMM-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2PRO-C', 'Si2PRO-M', 'Si2PRO-PC', 'Si2PRO-PM', 'Si2PRO-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R', 'Si2RE-PRO-M', 'Si2RE-PRO-PM', 'Si2VN-PM', 'Si2VN-M', 'Si2S-M', 'Si2S-PM', 'Si2RE-M', 'Si2RE-PM', 'Si2A-M', 'Si2A-PM') FOR XML PATH('')
+                 ), 1, 2, '') AS SiglePrec,
+            --c.Consegnato,
+            ia.Importo ImportoPrec,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+ang.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+                          INNER JOIN estrazioni.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                      AND c2.agente = ag.Codagente
+                     WHERE c2.id = commPrec.idComPrec
+                           AND c2.commissione = commprec.CommissionePrec
+                           AND c2.archivio = commPrec.ArchivioPrec
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS AgentePrec,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+agc.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                                  AND ag.utente = ac.utenteAge
+                                                                  AND ac.isCoordinatore = 1
+                          LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                          INNER JOIN estrazioni.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                      AND c2.agente = ag.Codagente
+                     WHERE c2.id = commPrec.idComPrec
+                           AND c2.commissione = commprec.CommissionePrec
+                           AND c2.archivio = commPrec.ArchivioPrec
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS CoordinatorePrec,
+            STUFF(
+                 (
+                     SELECT DISTINCT
+                            ', '+agc.nome
+                     FROM anagraf.dbo.agenti ag
+                          LEFT JOIN anagraf.dbo.agesicomnew ac ON ag.[zone] = ac.area
+                                                                  AND ag.utente = ac.utenteAge
+                                                                  AND ac.isSupervisore = 1
+                          LEFT JOIN anagraf.dbo.anage agc ON ac.utenteRif = agc.utente
+                          INNER JOIN estrazioni.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                                      AND c2.agente = ag.Codagente
+                     WHERE c2.id = commPrec.idComPrec
+                           AND c2.commissione = commprec.CommissionePrec
+                           AND c2.archivio = commPrec.ArchivioPrec
+                      --AND servizi.dbo.commissioniattive(c2.codpsi, c2.id) = 1 
+                     FOR XML PATH('')
+                 ), 1, 2, '') AS SupervisorePrec
+     FROM commPrec
+          INNER JOIN estrazioni.dbo.ImportiALL ia ON ia.idcom = commprec.idComPrec
+                                                     AND ia.archivio = commPrec.Archivioprec
+                                                     AND isnull(importo, 0) > 0                                                                                               
+          --LEFT JOIN estrazioni.dbo.oggetti ogg ON ogg.idcom = commPrec.idComPrec
+          --LEFT JOIN anagraf.dbo.tipoinserz tp ON tp.codice = ogg.tipo;
+          --LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     --WHERE commPrec.codpsi = 163166
+            )
+     SELECT DISTINCT
+            --corr.Rintac,
+            --corr.BiannI,
+            --corr.BiannA,
+            corr.[Area],
+            corr.PIVA,
+            corr.RagSoc,
+            corr.CodPsi,
+            corr.idCommissione,
+            corr.Commissione,
+            prec.CommissionePrec,
+            corr.Sigle,
+            prec.SiglePrec,
+            corr.Oggetti,
+            prec.OggettiPrec,
+            corr.Importo,
+            prec.ImportoPrec,
+            corr.Agente,
+            prec.AgentePrec,
+            corr.Coordinatore,
+            prec.CoordinatorePrec,
+            Corr.Supervisore,
+            prec.SupervisorePrec,
+            corr.Causale
+     FROM corr
+          INNER JOIN prec ON corr.Codpsi = prec.Codpsi
+                             AND corr.riferimento = prec.commissioneprec
+     --WHERE corr.codpsi = 249008
+     ORDER BY corr.idCommissione;
+
+
+
+PER ESTRARRE RINNOVATE, SOSTITUIRE CONDIZIONI NELLA WHERE DELLA PRIMA SUBQUERY (DA FILE CH_CHECK)

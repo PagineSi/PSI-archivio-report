@@ -1,0 +1,108 @@
+WITH base
+     AS (
+     SELECT DISTINCT
+            c.archivio,
+            anagrafica.ragsoc Ragione_Sociale,
+            c.PIVA,
+            c.codpsi,
+            --c.id,
+            c.Area,
+            (STUFF(
+                  (
+                      SELECT DISTINCT
+                             ', '+www
+                      FROM anagraf.dbo.web_moduloc_domini do
+                           INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.id = do.ID_ModuloC_Oggetti
+                           INNER JOIN anagraf.dbo.web_moduloc mc1 ON mc1.id = mco1.id_moduloc
+                           INNER JOIN estrazioni.dbo.commissioni ulc1 ON ulc1.id = mc1.idcom
+                      WHERE ulc1.archivio = 9999
+                            AND ulc1.codpsi = c.codpsi
+                            AND do.sitorif = 1
+                            AND isnull(do.cpOut, 0) = 0
+                            AND (isnull(do.datadomdel, '') = ''
+                                 OR (isnull(do.datadomdel, '') <> ''
+                                     AND isnull(do.datadomrip, '') <> ''))
+                            AND isnull(cpImmediato_ope, '') = ''
+                            AND isnull(do.tipoannullamento, 0) <> 3 FOR XML PATH('')
+                  ), 1, 2, '')) AS www
+            --STUFF(
+            --     (
+            --         SELECT ', '+t1.tipo+' (x',
+            --                COUNT(t1.tipo),
+            --                ')'
+            --         FROM anagraf.dbo.TipoInserz t1
+            --              INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+            --              INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+            --                                                          AND c1.archivio = ogg1.archivio
+            --         WHERE c1.id = c.id
+            --               AND c1.archivio = c.archivio
+            --               AND (t1.CodiceCategoria IN(47, 39)
+            --         OR t1.codice IN(850, 851))
+            --         GROUP BY t1.tipo FOR XML PATH('')
+            --     ), 1, 2, '') AS SigleADW,
+            --STUFF(
+            --     (
+            --         SELECT ', '+t1.tipo+' (x',
+            --                COUNT(t1.tipo),
+            --                ')'
+            --         FROM anagraf.dbo.TipoInserz t1
+            --              INNER JOIN estrazioni.dbo.oggetti ogg1 ON ogg1.tipo = t1.codice
+            --              INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = ogg1.idcom
+            --                                                          AND c1.archivio = ogg1.archivio
+            --         WHERE c1.id = c.id
+            --               AND c1.archivio = c.archivio
+            --               AND (t1.CodiceCategoria = 60
+            --                    OR t1.codice IN(1781, 1816, 2008))
+            --         GROUP BY t1.tipo FOR XML PATH('')
+            --     ), 1, 2, '') AS SigleAdv
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN anagraf.dbo.anagrafica ON anagrafica.codice = c.codice
+          LEFT JOIN anagraf.dbo.Categorie cat ON cat.Codice = anagrafica.Categoria
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+          --LEFT JOIN anagraf.dbo.web_moduloc_domini d ON d.ID_ModuloC_Oggetti = mco.id
+     WHERE format(TRY_CONVERT(DATE, c.datacomm), 'yyyyMM') >= '202301'
+           AND cat.catref = 393),
+     importi --DI TUTTO IL CLIENTE NON DELLA COMMISSIONE
+     AS (
+     SELECT --idCom,
+     Codpsi,
+     ROUND(SUM(Importo), 2) Importo,
+     ROUND(SUM(Consegnato), 2) Consegnato
+     FROM estrazioni.dbo.commissioni c
+     WHERE format(TRY_CONVERT(DATE, c.datacomm), 'yyyyMM') >= '202301'
+     GROUP BY Codpsi),
+     importiADW --DI TUTTO IL CLIENTE NON DELLA COMMISSIONE
+     AS (
+     SELECT aio.codpsi,
+            ROUND(SUM(aio.tot_acquisito), 2) AS ImportoADW
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE(CodiceCategoria IN(47, 39)
+     OR codice_tipo_inserz IN(850, 851))
+     AND format(TRY_CONVERT(DATE, aio.datacomm), 'yyyyMM') >= '202301'
+     GROUP BY aio.codpsi),
+     importiADV --DI TUTTO IL CLIENTE NON DELLA COMMISSIONE
+     AS (
+     SELECT aio.codpsi,
+            ROUND(SUM(aio.tot_acquisito), 2) AS ImportoADV
+     FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     WHERE(CodiceCategoria = 60
+           OR codice_tipo_inserz IN(1781, 1816, 2008))
+     AND format(TRY_CONVERT(DATE, aio.datacomm), 'yyyyMM') >= '202301'
+     GROUP BY aio.codpsi)
+     SELECT DISTINCT
+            base.Ragione_Sociale,
+            base.PIVA,
+            base.CodPsi,
+            base.Area,
+            importi.Consegnato Consegnato_Cliente,
+            importi.Importo Importo_Cliente,
+            --base.SigleADW Oggetti_ADW,
+            --base.SigleAdv Oggetti_Adv,
+            importiADW.ImportoADW,
+            importiADV.ImportoADV,
+            base.www
+     FROM base
+          LEFT JOIN importi ON base.codpsi = importi.CodPsi
+          LEFT JOIN importiADW ON base.codpsi = importiADW.codpsi
+          LEFT JOIN importiADV ON base.codpsi = importiADV.codpsi
+     ORDER BY Ragione_Sociale;

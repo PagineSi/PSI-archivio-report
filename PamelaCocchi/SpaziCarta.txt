@@ -1,0 +1,15 @@
+SELECT DISTINCT
+       [archivio]
+      ,[id]
+      ,[BiannI]
+      ,[BiannA]
+      ,[RinTac]
+	 ,o.Edizione
+	 ,t.tipo
+  FROM [estrazioni].[dbo].[Commissioni] c
+   INNER JOIN anagraf.dbo.oggetti o ON o.idcom = c.id
+   INNER JOIN anagraf.dbo.tipoinserz t on t.codice=o.Tipo
+  where archivio=212
+  and area = 'SI'
+  and edizione <> 'WWW'
+  and estrazioni.dbo.CommissioniAttive(c.archivio,c.codpsi,c.id)=1

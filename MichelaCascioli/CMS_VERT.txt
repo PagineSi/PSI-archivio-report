@@ -1,0 +1,240 @@
+WITH aree
+     AS (
+     SELECT DISTINCT
+            aio.Area,
+            aio.archivio,
+            tipo_inserz
+     FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio),
+
+----CMS NUOVI
+
+     prima
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) CMS_Nuovi
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.firmato_nuovi) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'FIRMATO'
+               AND isnull(firmato_nuovi, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio),
+
+----CMS RINNOVI
+
+     seconda
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) CMS_Rinnovi
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.firmato_rinnovi) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'FIRMATO'
+               AND isnull(firmato_rinnovi, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio),
+
+----CMS MATURATI
+
+     terza
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) CMS_Maturati
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.tot_maturato) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'MATURATO'
+               AND isnull(tot_maturato, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVR', 'RDVRM', 'RDVR-M', 'RDVR-PM', 'RDVRR', 'RDVR-R', 'Si2E', 'Si2EM', 'Si2E-M', 'Si2E-PM', 'Si2ER', 'Si2E-R', 'Si2NL', 'Si2NLM', 'Si2NL-M', 'Si2NL-PM', 'Si2NLR', 'Si2NL-R', 'Si2R', 'Si2RM', 'Si2R-M', 'Si2R-PM', 'Si2RR', 'Si2R-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     --WHERE area = 'bg'
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio),
+
+----VERTICAL NUOVI
+
+     quarta
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) Vert_Nuovi
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.firmato_nuovi) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'FIRMATO'
+               AND isnull(firmato_nuovi, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio),
+
+----VERTICAL RINNOVI
+
+     quinta
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) Vert_Rinnovi
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.firmato_rinnovi) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'FIRMATO'
+               AND isnull(firmato_rinnovi, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio),
+
+----VERTICAL MATURATI
+
+     sesta
+     AS (
+     SELECT m.Area,
+            m.archivio,
+            m.tipo_inserz Sigla,
+            COUNT(m.tipo_inserz) nSigle,
+            SUM(m.Importo) Vert_Maturati
+     FROM
+     (
+         SELECT aio.[archivio],
+                aio.tipo_inserz,
+                SUM(aio.tot_maturato) Importo,
+                aio.[Area]
+         FROM [estrazioni].[dbo].[vAnalisiImportiOggetti] aio
+         WHERE tipo_importo = 'MATURATO'
+               AND isnull(tot_maturato, 0) > 0
+               AND format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+               AND tipo_inserz IN('RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R')
+         GROUP BY aio.archivio,
+                  aio.codpsi,
+                  aio.area,
+                  aio.tipo_inserz
+     ) m
+     GROUP BY m.area,
+              m.tipo_inserz,
+              m.archivio)
+     SELECT aree.Area,
+            SUM(prima.nSigle) CMS_Nuovi,
+            ROUND(SUM(prima.CMS_Nuovi), 2) Importo,
+            SUM(seconda.nSigle) CMS_Rinnovi,
+            ROUND(SUM(seconda.CMS_Rinnovi), 2) Importo,
+            SUM(terza.nSigle) CMS_Maturati,
+            ROUND(SUM(terza.CMS_Maturati), 2) Importo,
+            SUM(quarta.nSigle) Vert_Nuovi,
+            ROUND(SUM(quarta.Vert_Nuovi), 2) Importo,
+            SUM(quinta.nSigle) Vert_Rinnovi,
+            ROUND(SUM(quinta.Vert_Rinnovi), 2) Importo,
+            SUM(sesta.nSigle) Vert_Maturati,
+            ROUND(SUM(sesta.Vert_Maturati), 2) Importo
+     FROM aree
+          LEFT JOIN prima ON prima.Area = aree.Area
+                             AND prima.Sigla = aree.tipo_inserz
+                             AND prima.archivio = aree.archivio
+          LEFT JOIN seconda ON seconda.Area = aree.Area
+                               AND seconda.Sigla = aree.tipo_inserz
+                               AND seconda.archivio = aree.archivio
+          LEFT JOIN terza ON terza.Area = aree.Area
+                             AND terza.Sigla = aree.tipo_inserz
+                             AND terza.archivio = aree.archivio
+          LEFT JOIN quarta ON quarta.Area = aree.Area
+                              AND quarta.Sigla = aree.tipo_inserz
+                              AND quarta.archivio = aree.archivio
+          LEFT JOIN quinta ON quinta.Area = aree.Area
+                              AND quinta.Sigla = aree.tipo_inserz
+                              AND quinta.archivio = aree.archivio
+          LEFT JOIN sesta ON sesta.Area = aree.Area
+                             AND sesta.Sigla = aree.tipo_inserz
+                             AND sesta.archivio = aree.archivio
+     WHERE aree.area IS NOT NULL
+     GROUP BY aree.Area
+     ORDER BY aree.Area;
+
+
+
+-----------------------------------------------------------
+
+
+
+SELECT DISTINCT
+            c.[archivio],
+            aio.tipo_inserz,
+            c.[Area],
+            c.CodPsi,
+            aio.datacomm
+            --c.importo,
+            --c.consegnato
+            --c.id
+     FROM estrazioni.dbo.commissioni c
+          INNER JOIN [estrazioni].[dbo].[vAnalisiImportiOggetti] aio ON aio.codpsi = c.codpsi
+                                                                       AND aio.archivio = c.archivio
+     WHERE format(datacompetenza, 'yyyyMMdd') BETWEEN '20210101' AND '20221231'
+           AND tipo_inserz IN('RDVV', 'RDVVM', 'RDVV-M', 'RDVV-PM', 'RDVVR', 'RDVV-R', 'Si2TM', 'Si2TMM', 'Si2TMR', 'Si2V', 'Si2V-C', 'Si2VC-C', 'Si2VCL', 'Si2VCLM', 'Si2VC-M', 'Si2VC-PC', 'Si2VC-PM', 'Si2VC-R', 'Si2VImm', 'Si2VImmM', 'Si2VIMM-M', 'Si2VIMM-PM', 'Si2VImmR', 'Si2VIMM-R', 'Si2VM', 'Si2V-M', 'Si2V-PC', 'Si2V-PM', 'Si2VR', 'Si2V-R', 'Si2VS', 'Si2VS-C', 'Si2VSM', 'Si2VS-M', 'Si2VS-PC', 'Si2VS-PM', 'Si2VSR', 'Si2VS-R', 'Si4N B', 'Si4N-C', 'Si4N-M', 'Si4N-PC', 'Si4N-PM', 'Si4N-R')
+          AND tipo_importo = 'FIRMATO'
+          AND isnull(firmato_nuovi, 0) > 0

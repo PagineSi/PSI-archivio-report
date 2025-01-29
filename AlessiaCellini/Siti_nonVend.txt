@@ -1,0 +1,196 @@
+SELECT DISTINCT 
+       c.id, 
+       c.CodPsi, 
+       a.RagSoc, 
+       c.Area, 
+       (STUFF(
+             (
+                 SELECT ', '+tp1.tipo
+			  FROM  anagraf.dbo.TipoInserz tp1
+			  INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.codice_oggetto=tp1.codice
+                 INNER JOIN estrazioni.dbo.commissioni ulc1 on ulc1.id=mco1.id_com
+			  WHERE ulc1.id=c.id and ulc1.archivio=c.archivio
+			  AND ulc1.archivio=9999
+			  AND estrazioni.dbo.CommissioniAttive(ulc1.archivio, ulc1.CodPsi, ulc1.id) = 1
+			  AND tp1.Codice IN (68,
+69,
+70,
+71,
+341,
+342,
+364,
+407,
+408,
+480,
+481,
+482,
+483,
+484,
+485,
+597,
+599,
+600,
+601,
+632,
+633,
+634,
+635,
+636,
+846,
+1076,
+1113,
+1188,
+1224,
+1230,
+1318,
+1319,
+1329,
+1330,
+1331,
+1332,
+1361,
+1461,
+1462,
+1463,
+1464,
+1465,
+1466,
+1851,
+1852,
+1853,
+1854,
+1855,
+1856,
+1857,
+1858,
+1860,
+1861,
+1862,
+1863,
+1864,
+1865,
+1866,
+1867,
+1868,
+1869,
+1870,
+1871,
+1872,
+1873,
+1874,
+1875,
+1876,
+1877,
+1878,
+1879,
+1880,
+1881,
+1882,
+1883,
+1884,
+1885,
+1518,
+1309)
+GROUP BY tp1.tipo
+			FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle,
+       (STUFF(
+             (
+                 SELECT DISTINCT ', '+d2.www
+			  
+                 FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d2                   
+			  inner join anagraf.dbo.web_moduloc c1 on c1.id=d2.ID_ModuloC
+			  inner join anagraf.dbo.WEB_ModuloC_oggetti mco1 on mco1.id_moduloc=c1.ID
+  inner join anagraf.dbo.Commissioni co1 on co1.id=c1.IDcom
+  WHERE 
+  c1.id=mc.id and c.id=co1.id
+  and isnull(d2.tipoAnnullamento,0) <> 3
+ 
+                        FOR XML PATH('')
+             ), 1, 2, '')) AS www,
+       c.BiannI, 
+       c.BiannA, 
+       c.Rintac RinTac,
+	  c.Importo,
+	  ang.nome Agente
+FROM estrazioni.dbo.Commissioni c
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+	LEFT JOIN anagraf.dbo.Agenti ag on ag.Codagente=c.Agente and ag.Gruppo=c.Gruppo
+	LEFT JOIN anagraf.dbo.anAge ang on ang.utente=ag.utente
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.CodPsi, c.id) = 1
+      and tp.codice IN (68,
+69,
+70,
+71,
+341,
+342,
+364,
+407,
+408,
+480,
+481,
+482,
+483,
+484,
+485,
+597,
+599,
+600,
+601,
+632,
+633,
+634,
+635,
+636,
+846,
+1076,
+1113,
+1188,
+1224,
+1230,
+1361,
+1461,
+1462,
+1463,
+1464,
+1465,
+1466,
+1851,
+1852,
+1853,
+1854,
+1855,
+1856,
+1857,
+1858,
+1860,
+1861,
+1862,
+1863,
+1864,
+1865,
+1866,
+1867,
+1868,
+1869,
+1870,
+1871,
+1872,
+1873,
+1874,
+1875,
+1876,
+1877,
+1878,
+1879,
+1880,
+1881,
+1882,
+1883,
+1884,
+1885)
+AND c.archivio = 9999
+ORDER BY ragsoc;

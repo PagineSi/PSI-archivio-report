@@ -1,0 +1,41 @@
+
+
+SELECT DISTINCT
+       --c.archivio,
+       [CodPsi],
+       a.RagSoc,
+       STUFF(
+            (
+                SELECT ', '+t1.tipo
+                FROM anagraf.dbo.TipoInserz t1
+                     INNER JOIN anagraf.dbo.web_moduloc_oggetti mco1 ON mco1.Codice_Oggetto = t1.Codice
+                     INNER JOIN estrazioni.dbo.commissioni c1 ON c1.id = mco1.Id_Com
+                WHERE c1.codpsi = c.codpsi
+                      AND c1.archivio = c.archivio
+                      AND estrazioni.dbo.commissioniattive(c1.archivio, c1.codpsi, c1.id) = 1
+                     AND t1.codicecategoria = 18 FOR XML PATH('')
+            ), 1, 2, '') AS Sigle,
+       d.www,
+       c.DataComm
+       --IIF(a.EmailUrl IS NOT NULL, a.EmailUrl, a.EmailAmm) AS Mail,
+       --c.Area,
+       --ang.nome Agente,
+       --cat.Categoria
+FROM [estrazioni].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.idcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloC = mc.id
+     LEFT JOIN anagraf.dbo.WEB_ModuloC_Domini d ON d.id_moduloc = mc.id
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.tipoinserz t ON t.codice = mco.codice_oggetto
+     INNER JOIN anagraf.dbo.agenti ag ON ag.gruppo = c.gruppo
+                                         AND ag.codagente = c.agente
+     LEFT JOIN anagraf.dbo.anage ang ON ang.utente = ag.utente
+     LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+     AND c.archivio = 9999
+     AND t.codicecategoria = 18
+     AND ISNULL(c.codpsi, 0) <> 37774
+     --AND d.sitoRif = 1
+     AND isnull(c.rintac, '') <> ''
+     AND SUBSTRING(ISNULL(DataComm, ''), 5, 2) = '12'
+ORDER BY ragsoc;

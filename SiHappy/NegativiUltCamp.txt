@@ -1,0 +1,73 @@
+WITH clish
+     AS (
+     SELECT DISTINCT
+            IdCom,
+            ulc.archivio,
+            (STUFF(
+                  (
+                      SELECT ', '+t1.tipo
+                      FROM anagraf.dbo.TipoInserz t1
+                           INNER JOIN estrazioni.dbo.oggetti o1 ON o1.tipo = t1.codice
+                      WHERE o1.IdCom = ulc.id
+                            AND o1.archivio = ulc.archivio
+                            AND t1.CodiceCategoria = 23 FOR XML PATH('')
+                  ), 1, 2, '')) AS oggetti,
+            ulc.codpsi,
+            u.datacomm,
+            ragsoc,
+            ulc.area,
+            ulc.consegnato,
+            ulc.importo,
+            u.DataComm_Annoprec,
+            ana.nome AS nomeAgenteUltimaCamp,
+            ulc.campagnaDa,
+            ulc.campagnaA
+     FROM [estrazioni].[dbo].[vCommNuoveRinnoviPluriennali] ulc
+          INNER JOIN estrazioni.dbo.vCommissioniUltimeCampagne u ON u.id = ulc.id
+                                                                    AND u.archivio = ulc.archivio
+          INNER JOIN estrazioni.dbo.oggetti o ON o.idcom = ulc.id
+                                                 AND ulc.archivio = o.archivio
+          INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = o.tipo
+          LEFT JOIN anagraf.dbo.agenti ag ON ulc.Gruppo = ag.Gruppo
+                                             AND ulc.Agente = ag.Codagente
+          INNER JOIN anagraf.dbo.anAge ana ON ana.utente = ag.utente
+          INNER JOIN anagraf.dbo.anagrafica a ON a.codice = ulc.Codice
+     WHERE t.codicecategoria IN(23)
+          AND ulc.area IN('LV', 'MI', 'NA', 'TO', 'CH')
+     AND estrazioni.dbo.commissioniattive(ulc.archivio, ulc.codpsi, ulc.id) = 1),
+     ATTIVI
+     AS (
+     SELECT DISTINCT
+            com.codpsi
+     FROM estrazioni.dbo.commissioni com
+     WHERE com.archivio = 9999
+           AND estrazioni.dbo.commissioniattive(com.archivio, com.codpsi, com.id) = 1)
+     SELECT --clish.archivio,
+           --clish.IdCom,
+     clish.codpsi,
+     a.RagSoc,
+     --a.Insegna,
+     CONCAT(a.Prefisso, '-', a.Telefono) AS Numero,
+     cm.Provincia,
+           --clish.datacomm,
+           --clish.DataComm_Annoprec,
+     clish.nomeAgenteUltimaCamp,
+     ana.nome AS NomeAgenteArchAttuale,
+     clish.consegnato,
+     clish.importo,
+     clish.oggetti
+           
+           --CONVERT(DATE, clish.campagnaDa) campagnaDa,
+           --CONVERT(DATE, clish.campagnaA) campagnaA
+           --clish.tipo
+     FROM clish
+          LEFT JOIN ATTIVI ON attivi.codpsi = clish.codpsi
+          LEFT JOIN anagraf.dbo.commissioni com ON com.id = clish.idcom
+          LEFT JOIN anagraf.dbo.agenti ag ON com.Gruppo = ag.Gruppo
+                                             AND com.Agente = ag.Codagente
+          LEFT JOIN anagraf.dbo.anAge ana ON ana.utente = ag.utente
+          INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = com.Codice
+          INNER JOIN anagraf.dbo.Comuni cm ON cm.codice = a.Comune
+     WHERE attivi.codpsi IS NULL
+           AND ana.nome = 'Attesa Riass. (fittizio)'
+     ORDER BY ragsoc;

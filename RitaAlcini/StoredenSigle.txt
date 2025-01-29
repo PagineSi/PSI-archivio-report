@@ -1,0 +1,30 @@
+SELECT DISTINCT 
+       archivio, 
+       tipo_inserz AS Sigla, 
+       idcom, 
+       codpsi, 
+       BiannI, 
+       BiannA,
+       CASE isRinnovoTacito
+           WHEN 1
+           THEN 'SI'
+           WHEN 0
+           THEN 'NO'
+       END AS RT,
+       CASE isPluriennale
+           WHEN 1
+           THEN 'SI'
+           WHEN 0
+           THEN 'NO'
+       END AS Pluri, 
+       ROUND((aio.tot_acquisito), 2) TotAcquisito, 
+       ROUND((aio.firmato_nuovi), 2) FirmatoNuovi, 
+       ROUND((aio.firmato_rinnovi), 2) FirmatoRinnovi, 
+       ROUND((aio.tot_maturato), 2) TotMaturato, 
+       ROUND((tot_acquisito_insoluto), 2) TotInsoluto
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.tipo_inserz IN('EC-FlexS', 'EC-AmaGes', 'EC-FlexSM', 'EC-ConsS', 'EC-FlexSR', 'EC-Coup', 'EC-FlexL', 'EC-Design', 'EC-FlexLM', 'EC-eBayGes', 'EC-FlexLR', 'EC-ELC', 'EC-FlexXL', 'EC-Gate+', 'EC-FlexXLM,''EC-Lingua+', 'EC-FlexXLR', 'EC-PlatFor', 'EC-FlexB2B', 'EC-Prod20+', 'EC-FlexB2BM', 'EC-Sincro', 'EC-FlexB2BR,''EC-upload', 'EC-Med', 'EC-Var+', 'EC-Flex', 'EC-Sped', 'EC-Bus', 'EC-Foto20', 'EC-Acc', 'EC-AccM', 'EC-MedM', 'EC-FlexM', 'EC-FlexR', 'EC-BusM')
+AND ISNULL(aio.tot_acquisito, '') <> ''
+AND format(aio.DataCompetenza, 'yyyyMMdd') BETWEEN 20160101 AND 20190531
+ORDER BY sigla, 
+         CodPsi;

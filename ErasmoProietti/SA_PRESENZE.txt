@@ -1,0 +1,51 @@
+WITH prima
+AS (SELECT DISTINCT
+c.codpsi,
+1 AS conteggio,
+cu.Provincia,
+cu.Comune
+FROM commissioni c
+INNER JOIN WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+INNER JOIN tipoinserz tp ON tp.codice = mco.codice_oggetto
+INNER JOIN anagrafica a ON a.codice = c.codice
+INNER JOIN comuni cu ON cu.codice = a.comune
+WHERE tp.CodiceCategoriaCommerciale = 9
+AND servizi.dbo.commissioniattive(c.codpsi, c.id) = 1),
+
+conti as ( select prima.comune, count (conteggio) as n_presenze
+from prima 
+group by prima.comune
+),
+
+sigle as ( SELECT concat(b.Tipo,'(', COUNT(*),')') as conteggioSigle ,b.comune
+    FROM (Select distinct tp.tipo, mco.id, 
+     cu.comune from
+	 anagraf.dbo.commissioni c
+INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_com = c.id
+INNER JOIN anagraf.dbo.tipoinserz tp ON tp.codice = mco.codice_oggetto
+INNER JOIN anagraf.dbo.anagrafica ON anagrafica.codice = c.codice
+INNER JOIN anagraf.dbo.comuni cu ON cu.codice = anagrafica.comune
+    WHERE 
+		  servizi.dbo.commissioniattive(c.codpsi,c.id)=1
+		  and tp.CodiceCategoriaCommerciale = 9
+
+		  ) as b
+    GROUP BY b.tipo ,b.comune)
+
+
+SELECT distinct  prima.provincia,
+prima.comune,
+(STUFF(
+(
+SELECT DISTINCT', '+conteggioSigle
+FROM sigle
+where sigle.comune=comuni.comune
+
+FOR XML PATH('')
+), 1, 2, '')) AS tipo_sa,
+
+ n_presenze
+FROM prima left join sigle on sigle.comune=prima.comune
+inner join anagraf.dbo.comuni on comuni.comune=prima.comune
+inner join conti on conti.comune=prima.comune
+order by prima.provincia,prima.comune

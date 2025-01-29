@@ -1,0 +1,10 @@
+SELECT DISTINCT 
+       nomeAgente Agente, 
+       COUNT(tipo_inserz) nSigle, 
+       ROUND(SUM(aio.tot_acquisito), 2) ImpoTot
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+WHERE aio.CodiceCategoriaCommerciale IN(18, 94, 95, 121, 165, 168, 153, 166)
+AND ISNULL(aio.tot_acquisito, '') <> ''
+AND format(aio.DataCompetenza, 'yyyy') = 2020
+GROUP BY nomeAgente
+ORDER BY nSigle DESC;

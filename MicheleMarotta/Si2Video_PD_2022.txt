@@ -1,0 +1,17 @@
+SELECT DATEPART(year, datacompetenza) AS Anno,
+       DATEPART(month, datacompetenza) AS Mese,
+       aio.tipo_inserz Sigla,
+       SUM(IIF(isnull(tipo_importo, '') = 'FIRMATO', 1, 0)) AS Firmati,
+       --SUM(IIF(isnull(tipo_importo, '') = 'MATURATO', 1, 0)) AS Maturati,
+       IIF(SUM(step1 + step2 + step3 + step4 + step5 + step6 + step7) <> 0, SUM(step1 + step2 + step3 + step4 + step5 + step6 + step7), SUM(p.ore)) SommaPD
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+     LEFT JOIN servizi.dbo.prodottiOre p ON p.codiceSigla = aio.codice_tipo_inserz
+WHERE DATEPART(year, datacompetenza) IN(2022)
+     AND aio.tipo_inserz IN('VC', 'VCdE', 'VCOM', 'VCS', 'VCT', 'VDEL', 'VE', 'VF6', 'VLOT', 'VP', 'VRC', 'VRG', 'VRH4', 'VS1', 'VS12', 'VS4', 'VS8', 'VSG', 'VSGCdE', 'VSGCOM', 'VSGR', 'VSGRCdE', 'VSGRCOM', 'VSOP', 'VSOPP', 'VSOPPCdE', 'VSOPPCOM', 'VSOV', 'VSOVCdE', 'VSOVP', 'VSOVPCOM', 'VspeakC', 'VST30', 'YTA', 'YTA0')
+	--and aio.tipo_inserz='YTA0'
+GROUP BY DATEPART(year, datacompetenza),
+         DATEPART(month, datacompetenza),
+         aio.tipo_inserz
+ORDER BY anno,
+         mese,
+         sigla;

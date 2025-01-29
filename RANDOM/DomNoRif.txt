@@ -1,0 +1,69 @@
+SELECT DISTINCT 
+       d.[Id], 
+       d.[ID_ModuloC], 
+       c.CodPsi, 
+       [www], 
+       [datareg], 
+       [operatoregl], 
+       [cpOut], 
+       [dataCp], 
+       [tipoAnnullamento], 
+       [dataOperAnnullamento], 
+       [operatoreAnnullamento], 
+       [dataRegDomForAnn], 
+       [dataScadenza], 
+       [datadomdel], 
+       [operatoredomdel], 
+       [datadomrip], 
+       [operatoredomrip], 
+       [note], 
+       [dataComCliAnnDominio], 
+       [dataCopiaInGeco], 
+       [isBasicPage], 
+       [wwwAlt], 
+       d.[authInfo], 
+       [dataComCliRegDom], 
+       [dataCpIn], 
+       [userOVH], 
+       [pwdOVH], 
+       [cpSeat], 
+       [sitoRif], 
+       [userSitoRif], 
+       d.[cpIn], 
+       [cpImmediato], 
+       [acatalogo], 
+       [dataCp_storico], 
+       [tipoAnnullamento_storico], 
+       [dataScadenza_storico], 
+       [dataComCliAnnDominio_storico], 
+       [datadomdel_storico], 
+       [datadomrip_storico], 
+       [url_parlante], 
+       [pubblicazionePerIP], 
+       [isHttps], 
+       [ID_ModuloC_Oggetti], 
+       [dataScadenzaDominio], 
+       [dataScadenzaDominio_storico], 
+       [provider], 
+       [proprietario], 
+       [dns], 
+       [contattoAdmin], 
+       [PivaCF], 
+       [dataCancellazione], 
+       [dataCancellazione_storico], 
+       [prezzoIniziale], 
+       [prezzoAnniSucc]
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = d.ID_ModuloC_Oggetti
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = mco.id_moduloc
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.Codice = mco.Codice_Oggetto
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND ISNULL(tipoAnnullamento, '') = ''
+     AND ISNULL(cm_data_inproduzione, '') <> ''
+     AND ISNULL(sitoRif, '') = ''
+     AND ISNULL(dataOnline, '') = ''
+     AND mco.Codice_Oggetto <> 713
+     AND codpsi <> 388151
+     AND dataReg BETWEEN '2020-01-01' AND '2021-01-20'
+ORDER BY datareg;

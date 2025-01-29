@@ -1,0 +1,217 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+
+SELECT COUNT(m.id) AS nContratti,
+       COUNT(CASE
+                 WHEN ISNULL(m.contrattoEditabile, 0) > 0
+                 THEN m.contrattoEditabile
+             END) AS Editabili,
+       CASE SUBSTRING(IIF(m.dataVers IS NOT NULL
+                          AND LEN(m.dataVers) = 8, m.dataVers, ''), 5, 2)
+           WHEN '01'
+           THEN 'GEN'
+           WHEN '02'
+           THEN 'FEB'
+           WHEN '03'
+           THEN 'MAR'
+           WHEN '04'
+           THEN 'APR'
+           WHEN '05'
+           THEN 'MAG'
+           WHEN '06'
+           THEN 'GIU'
+           WHEN '07'
+           THEN 'LUG'
+           WHEN '08'
+           THEN 'AGO'
+           WHEN '09'
+           THEN 'SET'
+           WHEN '10'
+           THEN 'OTT'
+           WHEN '11'
+           THEN 'NOV'
+           WHEN '12'
+           THEN 'DIC'
+       END AS Mese,
+       SUBSTRING(IIF(m.dataVers IS NOT NULL
+                     AND LEN(m.dataVers) = 8, m.dataVers, ''), 7, 2) AS Giorno,
+       LEFT(CASE DATEPART(WEEKDAY, CONVERT(DATE, SUBSTRING(m.dataVers, 1, 4)+'-'+SUBSTRING(m.dataVers, 5, 2)+'-'+SUBSTRING(m.dataVers, 7, 2)))
+                WHEN 1
+                THEN 'DOM'
+                WHEN 2
+                THEN 'LUN'
+                WHEN 3
+                THEN 'MAR'
+                WHEN 4
+                THEN 'MER'
+                WHEN 5
+                THEN 'GIO'
+                WHEN 6
+                THEN 'VEN'
+                WHEN 7
+                THEN 'SAB'
+            END, 3) AS GiornoSettimana
+FROM
+(
+    SELECT [archivio],
+           [id],
+           [Codice],
+           [comweb],
+           [Piva],
+           [Firmante],
+           [Qualifica],
+           [CodFiscale],
+           [Gruppo],
+           [Agente],
+           [Riferimento],
+           [CodPsi],
+           [Luogo],
+           [DataComm_Annoprec],
+           [DataComm],
+           [Commissione],
+           [Anno],
+           [DataPrRata],
+           [Rate],
+           [Cadenza],
+           [Acconto],
+           [Consegnato],
+           [ModConsegnato],
+           [Importo],
+           [aliqIva],
+           [Causale],
+           [BancAbi],
+           [BancCab],
+           [ContoCor],
+           [IntFat],
+           [IntCoDes],
+           [IntCoInd],
+           [IntCoCap],
+           [IntCoLoc],
+           [Modificato],
+           [Visitato],
+           [ModPagam],
+           [Contabil],
+           [StampaFat],
+           [DataFat],
+           [CrystalFat],
+           [Biann],
+           [BiannI],
+           [BiannA],
+           [RinTac],
+           [Annotaz],
+           [TipoCli],
+           [NcImpo],
+           [NcNum],
+           [NcData],
+           [AutRidSped],
+           [AutRidRic],
+           [Lng1],
+           [Lng2],
+           [WarnIns],
+           [Validaz],
+           [Grafico],
+           [InAgenzia],
+           [Attesa],
+           [MotivoAtt],
+           [DataLavoraz],
+           [SpedBozza],
+           [DataModif],
+           [NoteStorico],
+           [StornoRid],
+           [DataProv],
+           [Impo2],
+           [CrdStato],
+           [CrdScade],
+           [ExGruppo],
+           [ExAgente],
+           [Diciture],
+           [Area],
+           [Azienda],
+           [Prezzo],
+           [PraticaErr],
+           [regdom],
+           [NoSpInc],
+           [GruppoR],
+           [AgenteR],
+           [Iban],
+           [daVer],
+           [fatbloc],
+           [comBgl],
+           [comTus],
+           [GruppoTus],
+           [AgenteTus],
+           [ncbloc],
+           [dataCrt],
+           [oraCrt],
+           [pcCrt],
+           [opCrt],
+           [bgldata],
+           [negativo],
+           [DataAccet],
+           [DataRegDom],
+           [ModalAccet],
+           [CauDinRid],
+           [AnnotGraf],
+           [dataCaric],
+           [importoWeb],
+           [ggScadRt],
+           [dataScadRt],
+           [dataAccetPrec],
+           [dittaIndiv],
+           [codPremio],
+           [sottoTar],
+           [ageRiassIniCamp],
+           [exRinTac],
+           [stContr],
+           [dataCampagna],
+           [chkScad],
+           [prodConc],
+           [oggPostic],
+           [exConsegnato],
+           [autfattinv],
+           [autfattric],
+           [mailWelcome],
+           [fatpa],
+           [ridfirst],
+           [annsostid],
+           [competenzaDa],
+           [competenzaA],
+           [dataPrecaricamento],
+           [ImpoAnnullato],
+           [socRecupero],
+           [nuovoiban],
+           [exPluriennale],
+           [dataVers],
+           [exOmaggio],
+           [dataAffid],
+           [tariffaMensile],
+           [fattAutom],
+           [propPrio],
+           [verChius],
+           [tipoSocieta],
+           [inAttesaRiass],
+           [daSanareProd],
+           [importoInsoluto],
+           [importoScaduto],
+           [creditoAss],
+           [pagPos],
+           [percAcconto],
+           [impoSpan],
+           [switch],
+           [commissione_switch],
+           [id_commissione_switch],
+           [contrattoEditabile],
+           [bando]
+    FROM [estrazioni].[dbo].[Commissioni]
+) m
+WHERE SUBSTRING(m.dataVers, 1, 4) = '2024'
+GROUP BY SUBSTRING(IIF(m.dataVers IS NOT NULL
+                       AND LEN(m.dataVers) = 8, m.dataVers, ''), 5, 2),
+         SUBSTRING(IIF(m.dataVers IS NOT NULL
+                       AND LEN(m.dataVers) = 8, m.dataVers, ''), 7, 2),
+         DATEPART(WEEKDAY, CONVERT(DATE, SUBSTRING(m.dataVers, 1, 4)+'-'+SUBSTRING(m.dataVers, 5, 2)+'-'+SUBSTRING(m.dataVers, 7, 2)))
+ORDER BY SUBSTRING(IIF(m.dataVers IS NOT NULL
+                       AND LEN(m.dataVers) = 8, m.dataVers, ''), 5, 2),
+         SUBSTRING(IIF(m.dataVers IS NOT NULL
+                       AND LEN(m.dataVers) = 8, m.dataVers, ''), 7, 2);

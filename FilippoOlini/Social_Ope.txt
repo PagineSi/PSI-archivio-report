@@ -1,0 +1,38 @@
+SELECT DISTINCT
+       c.codpsi CodPsi,
+       a.RagSoc,
+       (STUFF(
+             (
+                 SELECT ', '+tp1.tipo+' (x',
+                        COUNT(tp1.tipo),
+                        ')'
+                 FROM anagraf.dbo.TipoInserz tp1
+                      INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.codice_oggetto = tp1.codice
+                      INNER JOIN anagraf.dbo.commissioni ulc1 ON ulc1.id = mco1.id_com
+                 WHERE ulc1.codpsi = c.codpsi
+                            --AND ulc1.archivio = ulc.archivio
+                            --AND ulc1.archivio = 9999
+                       AND servizi.dbo.commissioniattive(ulc1.CodPsi, ulc1.id) = 1
+                      AND tp1.Codice IN(616, 804, 834, 890, 894, 895, 902, 906, 907, 944, 945, 946, 947, 948, 964, 1170, 1171, 1172, 1173, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1231, 1250, 1266, 1267, 1268, 1269, 1270, 1271, 1272, 1273, 1274, 1275, 1276, 1277, 1279, 1280, 1281, 1282, 1412, 1413, 1418, 1419, 1420, 1421, 1422, 1423, 1435, 1607, 1608, 1609, 1714, 1715, 1716, 1772, 1773, 1774, 1775, 1776, 1777, 1778, 1779, 1780, 1782, 1783, 1784, 1785, 1786, 1801, 1807, 1808, 1809, 1810, 1811, 1812, 1996, 1997, 1998, 1999, 2000, 2001, 2009)
+                 GROUP BY tp1.tipo FOR XML PATH('')
+             ), 1, 2, '')) AS Sigle,
+       CASE sc.in_produzione_operatore
+           WHEN 'lmsocial'
+           THEN 'Montagnuolo'
+           WHEN 'agsocial'
+           THEN 'Guglielmi'
+           WHEN 'fcsocial'
+           THEN 'Clementelli'
+           WHEN 'valebsocial'
+           THEN 'Basilico'
+       END AS Operatore,
+       c.bianni BiannI,
+       c.bianna BiannA,
+       c.rintac RinTac
+FROM [servizi].[dbo].[SICOMPROD_SOCIAL] sc
+     LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = sc.idWebModcOggetto
+     LEFT JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+     LEFT JOIN anagraf.dbo.Anagrafica a ON a.codice = c.Codice
+WHERE sc.in_produzione_operatore IN('lmsocial', 'agsocial', 'fcsocial', 'valebsocial')
+     AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+ORDER BY RagSoc;

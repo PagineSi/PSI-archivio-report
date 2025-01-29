@@ -1,0 +1,90 @@
+WITH base
+     AS (
+     SELECT d.www,
+            c.codpsi
+     FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+          LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = d.ID_ModuloC_Oggetti
+          LEFT JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+     WHERE isnull(d.sitorif, 0) = 0
+           AND isnull(d.tipoAnnullamento, 0) <> 3
+           AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+          AND isnull(d.www, '') <> ''),
+     unico
+     AS (
+     SELECT COUNT(m.www) nWWW,
+            m.codpsi
+     FROM
+     (
+         SELECT d.[Id],
+                d.[ID_ModuloC],
+                c.codpsi,
+                [www],
+                [datareg],
+                [operatoregl],
+                [cpOut],
+                [dataCp],
+                [tipoAnnullamento],
+                [dataOperAnnullamento],
+                [operatoreAnnullamento],
+                [dataRegDomForAnn],
+                [dataScadenza],
+                [datadomdel],
+                [operatoredomdel],
+                [datadomrip],
+                [operatoredomrip],
+                [note],
+                [dataComCliAnnDominio],
+                [dataCopiaInGeco],
+                [isBasicPage],
+                [wwwAlt],
+                [authInfo],
+                [dataComCliRegDom],
+                [dataCpIn],
+                [userOVH],
+                [pwdOVH],
+                [cpSeat],
+                [sitoRif],
+                [userSitoRif],
+                [cpIn],
+                [cpImmediato],
+                [acatalogo],
+                [dataCp_storico],
+                [tipoAnnullamento_storico],
+                [dataScadenza_storico],
+                [dataComCliAnnDominio_storico],
+                [datadomdel_storico],
+                [datadomrip_storico],
+                [url_parlante],
+                [pubblicazionePerIP],
+                [isHttps],
+                [ID_ModuloC_Oggetti],
+                [dataScadenzaDominio],
+                [dataScadenzaDominio_storico],
+                [provider],
+                [proprietario],
+                [dns],
+                [contattoAdmin],
+                [PivaCF],
+                [dataCancellazione],
+                [dataCancellazione_storico],
+                [prezzoIniziale],
+                [prezzoAnniSucc],
+                [OLD_ID_ModuloC_Oggetti],
+                [cpImmediato_ope],
+                [datarichiesta_cpImmediato_ope],
+                [datarichiesta_cpImmediato],
+                [isMail2]
+         FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+              LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id = d.ID_ModuloC_Oggetti
+              LEFT JOIN anagraf.dbo.Commissioni c ON c.id = mco.id_com
+         WHERE --isnull(d.sitorif, 0) = 0
+         isnull(d.tipoAnnullamento, 0) <> 3
+         AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+              AND isnull(d.www, '') <> ''
+     ) m
+     GROUP BY m.codpsi)
+     SELECT base.www,
+            base.codpsi
+     FROM base
+          LEFT JOIN unico ON unico.CodPsi = base.CodPsi
+     WHERE unico.nWWW = 1;

@@ -1,0 +1,18 @@
+SELECT DISTINCT
+       w.[id],
+       c.[codpsi],
+       [da],
+       CASE
+           WHEN [a] = '1970-01-01 01:00:00.000'
+           THEN NULL
+           ELSE [a]
+       END AS [a],
+       [priorita]
+FROM [anagraf].[dbo].[Webext] w
+     INNER JOIN bark.estrazioni.dbo.vcommissionipenultimecampagne c ON c.codpsi = w.codpsi
+     INNER JOIN bark.anagraf.dbo.oggetti o ON o.idcom = c.id
+WHERE o.tipo IN(282, 324, 338)
+     AND priorita NOT IN(80, 99, -20, 30, 29)
+AND (c.importo IS NULL
+     AND c.consegnato IS NULL)
+ORDER BY a;

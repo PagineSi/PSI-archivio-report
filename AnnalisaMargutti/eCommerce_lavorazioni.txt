@@ -1,0 +1,144 @@
+
+
+SELECT n.Codpsi,
+       n.RagSoc,
+       n.Oggetto,
+       n.Mese DataLav,
+       n.Operatore OpeLav,
+       n.TipoLav,
+       n.MinutiLav
+FROM
+(
+    SELECT m.Codpsi,
+           m.RagSoc,
+           m.tipo Oggetto,
+           format(m.data_lav, 'yyyy-MM-dd') Mese,
+           IIF(m.cognome IS NOT NULL, m.cognome, m.utente_lav) Operatore,
+           'Istanza' AS TipoLav,
+           NULL AS MinutiLav
+    FROM
+    (
+        SELECT c.codpsi,
+               a.ragsoc,
+               tp.tipo,
+               u.cognome,
+               ist.utente_lav,
+               ist.data_lav
+        FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE] e
+             INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = e.id_moduloc
+             INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+             INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+             INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+             LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+             LEFT JOIN [servizi].[dbo].[SICOMPROD_istanze_wordpress] ist ON ist.idWebModcOggetto = mco.id
+             LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = ist.utente_lav
+        WHERE format(ist.data_lav, 'yyyyMMdd') BETWEEN '20230301' AND '20230331'
+    ) m
+    UNION ALL
+    SELECT m.Codpsi,
+           m.RagSoc,
+           m.tipo Oggetto,
+           format(m.data_provvisorio_CQ, 'yyyy-MM-dd') Mese,
+           IIF(m.cognome IS NOT NULL, m.cognome, m.operatore_provvisorio_CQ) Operatore,
+           'Provvisorio' AS TipoLav,
+           NULL AS MinutiLav
+    FROM
+    (
+        SELECT c.codpsi,
+               a.ragsoc,
+               tp.tipo,
+               u.cognome,
+               provv.operatore_provvisorio_CQ,
+               provv.data_provvisorio_CQ
+        FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE] e
+             INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = e.id_moduloc
+             INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+             INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+             INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+             LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+             LEFT JOIN [servizi].[dbo].[SICOMPROD_ECOMMERCE_Provvisorio] provv ON provv.idWebModcOggetto = mco.id
+             LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = provv.operatore_provvisorio_CQ
+        WHERE format(provv.data_provvisorio_CQ, 'yyyyMMdd') BETWEEN '20230301' AND '20230331'
+    ) m
+    UNION ALL
+    SELECT m.Codpsi,
+           m.RagSoc,
+           m.Oggetto,
+           format(m.fine_lavorazione_data, 'yyyy-MM-dd') Mese,
+           IIF(m.cognome IS NOT NULL, m.cognome, m.fine_lavorazione_operatore) Operatore,
+           'Optional' AS TipoLav,
+           NULL AS MinutiLav
+    FROM
+    (
+        SELECT c.codpsi,
+               a.ragsoc,
+               tp.tipo Oggetto,
+               u.cognome,
+               opt.fine_lavorazione_operatore,
+               opt.fine_lavorazione_data
+        FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE] e
+             INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = e.id_moduloc
+             INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+             INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+             INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+             LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+             LEFT JOIN [servizi].[dbo].[SICOMPROD_ECOMMERCE_Optionals] opt ON opt.idWebModcOggetto = mco.id
+             LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = opt.fine_lavorazione_operatore
+        WHERE format(opt.fine_lavorazione_data, 'yyyyMMdd') BETWEEN '20230301' AND '20230331'
+    ) m
+    UNION ALL
+    SELECT m.Codpsi,
+           m.RagSoc,
+           m.tipo Oggetto,
+           format(m.online_data, 'yyyy-MM-dd') Mese,
+           IIF(m.cognome IS NOT NULL, m.cognome, m.in_carico_grafico_operatore) Operatore,
+           'Pubblicazione' AS TipoLav,
+           NULL AS MinutiLav
+    FROM
+    (
+        SELECT c.codpsi,
+               a.ragsoc,
+               tp.tipo,
+               u.cognome,
+               e.in_carico_grafico_operatore,
+               pubb.online_data
+        FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE] e
+             INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = e.id_moduloc
+             INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+             INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+             INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+             LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+             LEFT JOIN [servizi].[dbo].[SICOMPROD_Pubblicazioni_Siti] pubb ON pubb.idWebModcOggetto = mco.id
+             LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = e.in_carico_grafico_operatore
+        WHERE format(pubb.online_data, 'yyyyMMdd') BETWEEN '20230301' AND '20230331'
+    ) m
+    UNION ALL
+    SELECT m.Codpsi,
+           m.RagSoc,
+           m.tipo Oggetto,
+           format(m.lavorazione_data, 'yyyy-MM-dd') Mese,
+           IIF(m.cognome IS NOT NULL, m.cognome, m.lavorazione_operatore) Operatore,
+           'Modifiche' AS TipoLav,
+           m.MinutiLav
+    FROM
+    (
+        SELECT c.codpsi,
+               a.ragsoc,
+               tp.tipo,
+               u.cognome,
+               modd.lavorazione_operatore,
+               modd.lavorazione_data,
+               modd.minuti_intervento MinutiLav
+        FROM [servizi].[dbo].[SICOMPROD_ECOMMERCE] e
+             INNER JOIN anagraf.dbo.web_moduloc mc ON mc.id = e.id_moduloc
+             INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.id
+             INNER JOIN anagraf.dbo.commissioni c ON c.id = mc.idcom
+             INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.Codice
+             LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+             LEFT JOIN [servizi].[dbo].[SICOMPROD_Interventi_Siti] modd ON modd.id_oggetto_modulo_c = mco.id
+             LEFT JOIN servizi.dbo.sicomprod_utenti u ON u.utente = modd.lavorazione_operatore
+        WHERE format(modd.lavorazione_data, 'yyyyMMdd') BETWEEN '20230301' AND '20230331'
+              AND modd.fase_lavorazione = 1
+    ) m
+) n
+ORDER BY TipoLav;

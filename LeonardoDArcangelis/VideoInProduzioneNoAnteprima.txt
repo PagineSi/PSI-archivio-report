@@ -1,0 +1,23 @@
+SELECT DISTINCT
+       mco.[id],
+       c.CodPsi,
+       a.RagSoc,
+       tp.Tipo,
+       mco.[id_moduloc],
+       [operatoreLavWeb],
+       [datalavWeb],
+       [cm_data_inproduzione],
+       [cm_ope_inproduzione],
+       vd.dataAssLavVideo
+FROM [anagraf].[dbo].[WEB_ModuloC_oggetti] mco
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = mco.id_moduloc
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+     LEFT JOIN servizi.dbo.SICOMPROD_Videodrone vd ON vd.id_moduloc = mc.ID
+WHERE servizi.dbo.CommissioniAttive(c.CodPsi, c.id) = 1
+     AND tp.Tipo IN('VF6', 'VST30', 'VST60', 'VP', 'VPD', 'VE', 'VED', 'VCdE', 'VC', 'VCT', 'VDR', 'VSOV', 'YTA', 'VA', 'VS', 'VS4', 'VS6', 'VS8', 'VS12', 'VSS', 'VSS4', 'VSS6', 'VSS12', 'Vtrad1', 'Vtrad2', 'Vtrad3', 'Vtrad4', 'VspeakC')
+AND cm_data_inproduzione IS NOT NULL
+AND vd.dataMailAnteprima IS NULL
+AND codpsi <> 37774
+ORDER BY RagSoc ASC;

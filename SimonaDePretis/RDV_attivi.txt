@@ -1,0 +1,40 @@
+
+
+SELECT DISTINCT
+       c.PIVA,
+       [CodPsi],
+       a.RagSoc,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+ang.nome
+                FROM anagraf.dbo.anage ang
+                     INNER JOIN anagraf.dbo.agenti ag ON ag.utente = ang.utente
+                     INNER JOIN anagraf.dbo.commissioni c2 ON c2.gruppo = ag.gruppo
+                                                              AND c2.agente = ag.Codagente
+                WHERE c2.codpsi = c.codpsi
+                      AND servizi.dbo.CommissioniAttive(c2.codpsi, c2.id) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS Agente,
+       [Area],
+       estrazioni.dbo.udfElencoOggettiClienteCommAttive(9999, c.codpsi) Oggetti,
+       STUFF(
+            (
+                SELECT DISTINCT
+                       ', '+do.www
+                FROM anagraf.dbo.WEB_ModuloC_Domini do
+                     LEFT JOIN anagraf.dbo.WEB_ModuloC_oggetti mco1 ON mco1.id = do.ID_ModuloC_Oggetti
+                     LEFT JOIN estrazioni.dbo.commissioni c1 ON c1.id = mco1.id_com
+                WHERE c1.codpsi = c.codpsi
+                      AND servizi.dbo.CommissioniAttive(c1.codpsi, c1.id) = 1
+                     AND isnull(do.sitorif, 0) = 1 FOR XML PATH('')
+            ), 1, 2, '') AS www
+FROM [anagraf].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_Oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.Anagrafica a ON a.codice = c.codice
+     LEFT JOIN anagraf.dbo.categorie cat ON cat.codice = a.categoria
+     LEFT JOIN anagraf.dbo.TipoInserz tp ON tp.codice = mco.Codice_Oggetto
+WHERE estrazioni.dbo.udfElencoOggettiClienteCommAttive(9999, c.codpsi) LIKE '%RDV%'
+     AND cat.catref = 393
+     AND servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+ORDER BY ragsoc;

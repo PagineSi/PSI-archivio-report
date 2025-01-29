@@ -1,0 +1,41 @@
+WITH prima
+     AS (SELECT DISTINCT 
+                c.codpsi, 
+                a.RagSoc, 
+                c.Area
+         FROM estrazioni.[dbo].[Commissioni] c
+              INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+              INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+              INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = mco.Codice_Oggetto
+         WHERE t.codice IN(1381, 1382, 1383, 1384, 1385, 1391)
+              AND estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1),
+     seconda
+     AS (SELECT DISTINCT 
+                c.codpsi
+         FROM estrazioni.[dbo].[Commissioni] c
+         WHERE estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1
+         AND c.archivio = 9999),
+     terza
+     AS (SELECT DISTINCT 
+                c.codpsi, 
+                a.RagSoc, 
+                c.Area
+         FROM estrazioni.[dbo].[Commissioni] c
+              INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+              INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.IDcom = c.id
+              INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+              INNER JOIN anagraf.dbo.TipoInserz t ON t.Codice = mco.Codice_Oggetto
+         WHERE t.codice IN(1386, 1387, 1388, 1389)
+              AND estrazioni.dbo.CommissioniAttive(c.archivio, c.codpsi, c.id) = 1)
+     SELECT DISTINCT 
+            prima.codpsi, 
+            prima.ragsoc, 
+            prima.area, 
+            estrazioni.dbo.[udfElencoOggettiClienteCommAttiveNA](prima.CodPsi) AS Oggetti, 
+            IIF(seconda.codpsi IS NOT NULL, 'SI', 'NO') AS ATTIVO
+     FROM prima
+          LEFT JOIN seconda ON seconda.codpsi = prima.codpsi
+          LEFT JOIN terza ON terza.codpsi = prima.codpsi
+     WHERE terza.codpsi IS NULL
+     ORDER BY ragsoc;

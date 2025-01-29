@@ -1,0 +1,24 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+SELECT COUNT(m.codpsi) nSchede,
+       m.catprin Categoria,
+       m.Provincia
+FROM
+(
+    SELECT DISTINCT
+           [priorita],
+           [catprin],
+           w.[codpsi],
+           c.Provincia
+    FROM [anagraf].[dbo].[Webext] w
+         LEFT JOIN BARK.anagraf.dbo.commissioni co ON co.codpsi = w.codpsi
+         LEFT JOIN BARK.anagraf.dbo.anagrafica a ON a.codice = co.codice
+         LEFT JOIN BARK.anagraf.dbo.comuni c ON c.codice = a.comune
+    WHERE isnull(priorita, 0) = -20
+          --AND w.codpsi = 433050
+) m
+GROUP BY m.catprin,
+         m.provincia
+ORDER BY provincia,
+         categoria;

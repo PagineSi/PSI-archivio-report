@@ -1,0 +1,55 @@
+SELECT DISTINCT 
+       mco.id idModuloCOggetto, 
+       c.id, 
+       c.codpsi, 
+       a.Insegna, 
+       a.RagSoc,
+       CASE t.codice
+           WHEN 687
+           THEN 'SIN'
+           WHEN 688
+           THEN 'SMN'
+           WHEN 690
+           THEN 'SKP'
+           WHEN 689
+           THEN 'SLP'
+           WHEN 693
+           THEN 'SSOC'
+           WHEN 1004
+           THEN 'SC'
+           WHEN 678
+           THEN 'ADD'
+           WHEN 696
+           THEN 'ADDCom'
+           WHEN 698
+           THEN 'ADDMet'
+           WHEN 1260
+           THEN 'BLS10'
+           WHEN 1487
+           THEN 'BLS10M'
+           WHEN 1261
+           THEN 'BLS30'
+           WHEN 1488
+           THEN 'BLS30M'
+       END AS Sigla, 
+       s.sito dominio, 
+       STUFF((
+       SELECT ', ' + k1.keyword
+       FROM lupin.cmsseo.dbo.siti_keyword k1
+            LEFT JOIN lupin.cmsseo.dbo.siti s1 ON s1.id_sito = k1.id_sito
+            INNER JOIN anagraf.dbo.web_moduloc mc1 ON mc1.id = s1.id_moduloc
+       WHERE mc1.id = mc.id
+
+       FOR XML PATH('')
+       ), 1, 2, '') AS keyword
+FROM [anagraf].[dbo].[Commissioni] c
+     INNER JOIN anagraf.dbo.web_moduloc mc ON mc.IDcom = c.id
+     INNER JOIN anagraf.dbo.WEB_ModuloC_oggetti mco ON mco.id_moduloc = mc.ID
+     INNER JOIN anagraf.dbo.anagrafica a ON a.codice = c.codice
+     INNER JOIN anagraf.dbo.TipoInserz t ON t.codice = mco.codice_oggetto
+     LEFT JOIN lupin.cmsseo.dbo.siti s ON s.id_moduloc = mc.id
+WHERE servizi.dbo.CommissioniAttive(c.codpsi, c.id) = 1
+     AND a.altoSp = 1
+     AND t.codice IN(687, 688, 690, 689, 693, 1004, 678, 696, 698, 1260, 1487, 1261, 1488)
+AND ISNULL(c.codpsi, 0) <> 37774
+ORDER BY ragsoc;

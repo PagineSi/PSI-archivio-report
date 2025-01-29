@@ -1,0 +1,219 @@
+WITH ultima
+AS (
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.firmato_nuovi), 2) impo,
+'Firmato_Nuovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vUltimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'FIRMATO'
+AND isnull(aio.firmato_nuovi, '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz
+UNION
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.firmato_rinnovi), 2) impo,
+'Firmato_Rinnovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vUltimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'FIRMATO'
+AND isnull(aio.firmato_rinnovi, '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz
+UNION
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.[tot_maturato]), 2) impo,
+'Maturato' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vUltimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'Maturato'
+AND isnull([tot_maturato], '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz),
+penultima
+AS (
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.firmato_nuovi), 2) impo,
+'Firmato_Nuovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vPenultimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'FIRMATO'
+AND isnull(aio.firmato_nuovi, '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz
+UNION
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.firmato_rinnovi), 2) impo,
+'Firmato_Rinnovi' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vPenultimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'FIRMATO'
+AND isnull(aio.firmato_rinnovi, '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz
+UNION
+SELECT DISTINCT
+aio.archivio,
+aio.Area,
+tipo_inserz AS sigla,
+COUNT(tipo_inserz) nSigle,
+ROUND(SUM(aio.[tot_maturato]), 2) impo,
+'Maturato' AS Tipo
+FROM estrazioni.dbo.vAnalisiImportiOggetti aio
+INNER JOIN [estrazioni].[dbo].[vPenultimeCampagne] vuc ON vuc.archivio = aio.archivio
+AND vuc.ediz = aio.area
+WHERE codicecategoria = 18
+AND aio.tipo_importo = 'Maturato'
+AND isnull([tot_maturato], '') <> ''
+GROUP BY aio.archivio,
+aio.Area,
+tipo_inserz)
+SELECT ultima.archivio,
+ultima.Area,
+ultima.sigla,
+ultima.nSigle,
+penultima.nSigle as nSiglePrec,
+ultima.impo,
+ultima.Tipo,
+CASE
+WHEN ultima.nsigle>penultima.nsigle
+THEN '0'
+WHEN ultima.nsigle=penultima.nsigle
+THEN '0'
+WHEN ultima.nsigle<penultima.nsigle
+THEN ultima.nsigle-penultima.nsigle
+WHEN penultima.nsigle is NULL
+THEN '0'
+END AS sigleNegative,
+
+CASE
+WHEN penultima.nSigle IS NULL
+THEN ultima.nSigle
+WHEN penultima.nsigle=ultima.nsigle
+THEN '0'
+WHEN penultima.nsigle>ultima.nsigle
+THEN '0'
+WHEN ultima.nsigle>penultima.nsigle
+THEN ultima.nsigle-penultima.nsigle
+END AS sigleIncrementate
+FROM ultima
+LEFT JOIN penultima ON penultima.area = ultima.area
+AND penultima.sigla = ultima.sigla
+AND ultima.tipo = penultima.tipo
+UNION
+SELECT NULL AS archivio,
+penultima.Area,
+penultima.sigla,
+NULL AS nSigle,
+penultima.nSigle as nSiglePrec,
+NULL AS impo,
+penultima.Tipo,
+CASE
+WHEN ultima.nsigle IS NULL
+THEN CONCAT('-',penultima.nsigle)
+END as sigleNegative,
+
+CASE
+WHEN ultima.nsigle IS NULL
+THEN '0'
+END AS sigleIncrementate
+FROM penultima
+LEFT JOIN ultima ON penultima.area = ultima.area
+AND penultima.sigla = ultima.sigla
+AND ultima.tipo = penultima.tipo
+WHERE ultima.area IS NULL
+order by area
+
+
+------------------------------------------------
+
+
+SELECT ultima.archivio,
+ultima.Area,
+ultima.sigla,
+ultima.nSigle,
+penultima.nSigle as nSiglePrec,
+ultima.impo,
+ultima.Tipo,
+CASE
+WHEN ultima.nsigle>penultima.nsigle
+THEN '0'
+WHEN ultima.nsigle=penultima.nsigle
+THEN '0'
+WHEN ultima.nsigle<penultima.nsigle
+THEN ultima.nsigle-penultima.nsigle
+WHEN penultima.nsigle is NULL
+THEN '0'
+END AS sigleNegative,
+
+CASE
+WHEN penultima.nSigle IS NULL
+THEN ultima.nSigle
+WHEN penultima.nsigle=ultima.nsigle
+THEN '0'
+WHEN penultima.nsigle>ultima.nsigle
+THEN '0'
+WHEN ultima.nsigle>penultima.nsigle
+THEN ultima.nsigle-penultima.nsigle
+END AS sigleIncrementate
+FROM estrazioni.dbo.vUltCamp ultima
+LEFT JOIN estrazioni.dbo.vPenultCamp penultima ON penultima.area = ultima.area
+AND penultima.sigla = ultima.sigla
+AND ultima.tipo = penultima.tipo
+UNION
+SELECT NULL AS archivio,
+penultima.Area,
+penultima.sigla,
+NULL AS nSigle,
+penultima.nSigle as nSiglePrec,
+NULL AS impo,
+penultima.Tipo,
+CASE
+WHEN ultima.nsigle IS NULL
+THEN CONCAT('-',penultima.nsigle)
+END as sigleNegative,
+
+CASE
+WHEN ultima.nsigle IS NULL
+THEN '0'
+END AS sigleIncrementate
+FROM estrazioni.dbo.vPenultCamp penultima
+LEFT JOIN estrazioni.dbo.vUltCamp ultima ON penultima.area = ultima.area
+AND penultima.sigla = ultima.sigla
+AND ultima.tipo = penultima.tipo
+WHERE ultima.area IS NULL
+order by area

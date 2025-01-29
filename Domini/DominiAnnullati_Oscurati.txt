@@ -1,0 +1,19 @@
+SELECT DISTINCT 
+       c.codpsi, 
+       [www],
+       CASE
+           WHEN ISNULL(datadomdel, '') <> ''
+                AND ISNULL(datadomrip, '') = ''
+           THEN 'ANNULLATO'
+           WHEN(ISNULL(mc.dataOscuramento, '') <> ''
+                AND ISNULL(mc.dataRipristino, '') = '')
+               AND ISNULL(datadomdel, '') = ''
+           THEN 'OSCURATO'
+       END AS 'STATO', 
+       format(datadomdel, 'yyyy-MM-dd') datadomdel, 
+       format(mc.dataOscuramento, 'yyyy-MM-dd') dataOscuramento
+FROM [anagraf].[dbo].[WEB_ModuloC_Domini] d
+     INNER JOIN anagraf.dbo.WEB_ModuloC mc ON mc.id = d.ID_ModuloC
+     INNER JOIN anagraf.dbo.Commissioni c ON c.id = mc.IDcom
+WHERE ISNULL(tipoannullamento, '') = 2
+ORDER BY www;

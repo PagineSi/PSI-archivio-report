@@ -1,0 +1,50 @@
+
+/****** Script per comando SelectTopNRows da SSMS  ******/
+
+WITH forn
+     AS (
+     SELECT f.id,
+            f.RagSoc,
+            f.piva,
+            f.Provincia,
+            ofo.id idcogest
+     FROM [cogest].[dbo].[ofoForn] ofo
+          RIGHT JOIN main.dbo.fornitori f ON f.id = ofo.idFornitMain),
+     lav
+     AS (
+     SELECT DISTINCT
+            DATEPART(year, oro.dataConsegnaEff) Anno,
+            DATEPART(month, oro.dataConsegnaEff) Mese,
+            COUNT(oro.id) nOrdini,
+            od.siglaOggetto,
+            ofo.idFornitMain
+     FROM [cogest].[dbo].[ofoForn] ofo
+          LEFT JOIN [cogest].[dbo].[oFoOrdiniHead] oh ON ofo.id = oh.codForn
+          LEFT JOIN [cogest].[dbo].[oFoOrdiniRows] oro ON oro.idHead = oh.id
+          LEFT JOIN [cogest].[dbo].[oFoOrdiniStato] os ON os.idRows = oro.id
+          LEFT JOIN [cogest].[dbo].[oFoDistinte] od ON od.id = oro.iddistinta
+     WHERE isnull(oro.statoLavoraz, 0) = 8
+           AND format(oro.dataConsegnaEff, 'yyyyMMdd') BETWEEN '20230101' AND GETDATE()
+           AND os.stato = oro.statoLavoraz
+           AND isnull(od.codServizio, '') NOT IN('Trasferta')
+     GROUP BY idFornitMain,
+              od.siglaOggetto,
+              DATEPART(year, oro.dataConsegnaEff),
+              DATEPART(month, oro.dataConsegnaEff))
+     SELECT DISTINCT
+            forn.id idFornitMain,
+            forn.idCogest,
+            forn.RagSoc,
+            forn.PIVA,
+            forn.Provincia,
+            lav.Anno,
+            lav.Mese,
+            lav.nOrdini,
+            lav.siglaOggetto Sigla
+     FROM forn
+          LEFT JOIN lav ON forn.id = lav.idFornitMain
+ --    WHERE idcogest = 39
+	--and anno=2024 and mese=2
+     ORDER BY forn.id,
+              lav.anno,
+              lav.mese;
